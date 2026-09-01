@@ -1,0 +1,16 @@
+/*
+ * The ONE place cascade-layer precedence is declared for this framework.
+ * Later in the list = higher priority.
+ *
+ *   reveal.reset   - Reveal's CSS reset (must lose to everything)
+ *   reveal.base    - Reveal's structural/layout/transition CSS
+ *   reveal.theme   - Reveal's theme-template element rules (headings, links, tables...)
+ *   vars.primitive - tier 1 CSS custom properties (raw values)   [declarations only]
+ *   vars.semantic  - tier 2 CSS custom properties (role names)   [declarations only]
+ *   theme          - deck-level look: maps semantics -> Reveal --r-* + element tweaks
+ *   components      - light-DOM component hooks (most component CSS is in Shadow DOM)
+ *
+ * Anything left UNLAYERED deliberately outranks every layer above - reserved as an
+ * explicit escape hatch, used by nothing in the scaffold.
+ */
+@layer reveal.reset, reveal.base, reveal.theme, vars.primitive, vars.semantic, theme, components;

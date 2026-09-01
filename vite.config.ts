@@ -3,6 +3,7 @@ import { ModuleFormat } from 'rollup';
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
 import { rewriteLegacyCoreDtsPath } from './build/dts-paths.ts';
+import slides from './build/vite-plugin-slides.js';
 
 export const appendExtension = (format: ModuleFormat, name: String): string => {
 	if (format === 'es') {
@@ -39,9 +40,14 @@ export default defineConfig({
 			'reveal.js/plugin': '/plugin',
 			'reveal.js': '/js',
 			'reveal.css': '/css/reveal.scss',
+			// Framework source
+			'@': '/src',
 		},
 	},
 	plugins: [
+		// Assembles slides/*.{html,md} into index.html's `<!-- @slides -->` marker.
+		// Inert during the core library build (no index.html processed there).
+		slides(),
 		dts({
 			insertTypesEntry: true,
 			rollupTypes: false,

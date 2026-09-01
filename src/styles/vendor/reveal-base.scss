@@ -1,0 +1,27 @@
+/*
+ * Pulls Reveal.js's own stylesheets into cascade layers AT SASS COMPILE TIME.
+ *
+ * Reveal ships these unlayered; unlayered CSS outranks every @layer rule regardless
+ * of source order, so a deck could never override Reveal's look. Sass inlines these
+ * extension-less imports INSIDE the @layer blocks below, fixing the layer assignment
+ * before Vite / PostCSS ever see the CSS (this also sidesteps known Vite @layer
+ * inlining-order bugs).
+ *
+ * Paths are relative to this file: src/styles/vendor/ -> repo root css/
+ */
+
+@layer reveal.reset {
+	@import '../../../css/reset';
+}
+
+@layer reveal.base {
+	@import '../../../css/layout';
+	@import '../../../css/reveal';
+}
+
+@layer reveal.theme {
+	/* Reveal's theme-template element rules (headings, paragraphs, links, tables,
+	   blockquotes, code...). It only consumes var(--r-*) - which src/styles/theme/deck.css
+	   supplies - so no Reveal theme .scss under css/theme/ is compiled or linked. */
+	@import '../../../css/theme/template/theme';
+}

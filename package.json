@@ -1,10 +1,10 @@
 {
 	"name": "reveal.js",
-	"version": "6.0.1",
-	"description": "The HTML Presentation Framework",
-	"homepage": "https://revealjs.com",
-	"subdomain": "revealjs",
+	"version": "0.1.0",
+	"description": "Personal reveal.js-based presentation framework",
 	"license": "MIT",
+	"private": true,
+	"_comment": "package name kept as 'reveal.js' so plugin/*/index.ts self-reference imports still resolve under tsc; the project/repo is 'presentation-framework'",
 	"main": "dist/reveal.js",
 	"module": "dist/reveal.mjs",
 	"types": "dist/reveal.d.ts",
@@ -15,8 +15,7 @@
 		"js",
 		"LICENSE",
 		"README.md",
-		"index.html",
-		"demo.html"
+		"index.html"
 	],
 	"exports": {
 		".": {
@@ -69,26 +68,16 @@
 	"scripts": {
 		"dev": "npm run start",
 		"start": "vite",
+		"build:deck": "vite build -c vite.config.deck.js",
 		"prepack": "npm run build",
 		"build:core": "tsc && vite build && vite build -c vite.config.styles.ts && node scripts/add-banner.js dist/reveal.js",
 		"build:es5": "npm run build && node scripts/build-es5.js",
 		"build:styles": "vite build -c vite.config.styles.ts",
 		"build": "tsc && vite build && vite build -c vite.config.styles.ts && vite build -c plugin/highlight/vite.config.ts && vite build -c plugin/markdown/vite.config.ts && vite build -c plugin/math/vite.config.ts && vite build -c plugin/notes/vite.config.ts && vite build -c plugin/search/vite.config.ts && vite build -c plugin/zoom/vite.config.ts && node scripts/add-banner.js dist/reveal.js",
 		"package": "node scripts/zip.js",
-		"test": "node scripts/test.js",
-		"react:build": "npm run --prefix react build",
-		"react:demo": "npm run --prefix react demo",
-		"react:test": "npm run --prefix react test"
+		"test": "node scripts/test.js"
 	},
-	"author": {
-		"name": "Hakim El Hattab",
-		"email": "hakim.elhattab@gmail.com",
-		"web": "https://hakim.se"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git://github.com/hakimel/reveal.js.git"
-	},
+	"author": "Greg Shallard",
 	"devEngines": {
 		"runtime": {
 			"name": "node",
@@ -101,6 +90,12 @@
 		"slides",
 		"presentation"
 	],
+	"dependencies": {
+		"alpinejs": "^3.14.9",
+		"d3": "^7.9.0",
+		"gsap": "^3.13.0",
+		"topojson-client": "^3.1.0"
+	},
 	"devDependencies": {
 		"fitty": "^2.4.2",
 		"glob": "^13.0.6",

@@ -1,0 +1,63 @@
+/*
+ * DECK THEME - the bridge between this framework's semantic custom properties
+ * and Reveal.js's own `--r-*` theme API.
+ *
+ * Reveal's theme-template element rules (imported into @layer reveal.theme by
+ * vendor/reveal-base.scss) read only var(--r-*). We supply every --r-* Reveal
+ * consumes, each pointing at a semantic custom property, so re-skinning via
+ * [data-theme] flows straight through to Reveal with no other edits.
+ *
+ * Add deck-wide element tweaks in the @layer theme block at the bottom; they
+ * outrank @layer reveal.theme.
+ */
+@layer theme {
+	:root {
+		/* background */
+		--r-background-color: var(--surface-bg);
+		--r-background: var(--surface-bg);
+
+		/* body text */
+		--r-main-font: var(--font-body);
+		--r-main-font-size: var(--text-root-size);
+		--r-main-color: var(--surface-fg);
+		--r-block-margin: var(--space-block);
+		--r-code-font: var(--font-code);
+
+		/* headings */
+		--r-heading-font: var(--font-heading);
+		--r-heading-color: var(--surface-fg);
+		--r-heading-font-weight: 700;
+		--r-heading-line-height: 1.2;
+		--r-heading-letter-spacing: normal;
+		--r-heading-text-transform: none;
+		--r-heading-text-shadow: none;
+		--r-heading-margin: 0 0 var(--space-block) 0;
+		--r-heading1-size: 2.5em;
+		--r-heading2-size: 1.6em;
+		--r-heading3-size: 1.3em;
+		--r-heading4-size: 1em;
+		--r-heading1-text-shadow: none;
+
+		/* links */
+		--r-link-color: var(--accent);
+		--r-link-color-hover: var(--accent-strong);
+		--r-link-color-dark: var(--accent-strong);
+
+		/* selection */
+		--r-selection-background-color: var(--accent);
+		--r-selection-color: var(--accent-fg);
+
+		/* overlays (speaker/help/scroll) - Reveal expects "r, g, b" triplets here.
+		   Kept as literals: these are chrome, not brand surface. */
+		--r-overlay-element-bg-color: 240, 240, 240;
+		--r-overlay-element-fg-color: 0, 0, 0;
+	}
+
+	/* deck-wide element tweaks (win over @layer reveal.theme) */
+	.reveal .slides section {
+		text-align: left;
+	}
+	.reveal .slides section.stack {
+		text-align: initial;
+	}
+}

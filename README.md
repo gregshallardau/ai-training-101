@@ -1,32 +1,89 @@
-<p align="center">
-  <a href="https://revealjs.com">
-  <img src="https://hakim-static.s3.amazonaws.com/reveal-js/logo/v1/reveal-black-text-sticker.png" alt="reveal.js" width="500">
-  </a>
-  <br><br>
-  <a href="https://github.com/hakimel/reveal.js/actions"><img src="https://github.com/hakimel/reveal.js/workflows/tests/badge.svg"></a>
-  <a href="https://slides.com/"><img src="https://static.slid.es/images/slides-github-banner-320x40.png?1" alt="Slides" width="160" height="20"></a>
-</p>
+# Presentation Framework
 
-reveal.js is an open source HTML presentation framework. It enables anyone with a web browser to create beautiful presentations for free. Check out the live demo at [revealjs.com](https://revealjs.com/).
+A personal presentation framework built **on** reveal.js 6 - not wrapped around it.
+Reveal.js is the base; the only daily command is `npm start` (Reveal's own Vite dev
+server). GSAP, D3, Alpine, custom-property theming and a multi-file slide loader all
+ride that one pipeline invisibly.
 
-The framework comes with a powerful feature set including [nested slides](https://revealjs.com/vertical-slides/), [Markdown support](https://revealjs.com/markdown/), [Auto-Animate](https://revealjs.com/auto-animate/), [PDF export](https://revealjs.com/pdf-export/), [speaker notes](https://revealjs.com/speaker-view/), [LaTeX typesetting](https://revealjs.com/math/), [syntax highlighted code](https://revealjs.com/code/) and an [extensive API](https://revealjs.com/api/).
+## Daily workflow
+
+```
+npm start          # Reveal's Vite dev server on http://localhost:8000  (the only command)
+npm run build:deck # static export of the current deck -> deck-dist/  (for publishing)
+```
+
+`npm run build` (Reveal's own full build, regenerates `dist/`) still works - run it
+after merging an upstream update.
+
+## Architecture
+
+- **Base:** reveal.js 6.0.1, kept intact (`js/`, `css/`, `plugin/`, `dist/`, build
+  scripts). Upstream is the git remote `upstream`; pull updates with
+  `git fetch upstream && git merge upstream/<tag>`.
+- **Entry:** `src/main.js` - the single module (styles -> component registry ->
+  Reveal + Notes + Markdown -> GSAP / Alpine). `index.html` carries no `<link>`s;
+  all CSS flows through `main.js` so it is cascade-layered.
+
+### Custom-property tiers (single source of truth)
+
+| Tier | File | What |
+|---|---|---|
+| 1 primitive | `src/styles/vars/primitives.css` | raw values (`--color-*`, `--size-*`, ...) |
+| 2 semantic  | `src/styles/vars/semantic.css`   | role names (`--surface-*`, `--accent`, ...) + `[data-theme]` skins |
+| theme map   | `src/styles/theme/deck.css`      | semantic -> Reveal's `--r-*` API |
+
+Components, GSAP, D3 and Alpine consume **tier 2 only**. These are CSS custom
+properties / CSS variables - not "tokens".
+
+### Cascade layers (low -> high)
+
+```
+reveal.reset, reveal.base, reveal.theme, vars.primitive, vars.semantic, theme, components
+```
+
+Reveal's own CSS is wrapped into the `reveal.*` layers by
+`src/styles/vendor/reveal-base.scss` so deck styling overrides it by layer, not by
+specificity. `index.html` also carries the bare `@layer` order statement so a
+minifier can't reorder precedence.
+
+### Canonical components
+
+One definition per component in `src/components/<name>/index.js`, listed once in
+`src/components/registry.js`. Slides place a `<deck-*>` tag - never restyle,
+never duplicate markup/style/behaviour. See `src/components/README.md`.
+
+### Slides
+
+One file per slide in `slides/` (`.md` or `.html`, `NN[.M]-<slug>` naming).
+`build/vite-plugin-slides.js` stitches them into `index.html`'s `<!-- @slides -->`
+marker at dev and build time. Each slide is written to be **portable** - copy it
+into another framework deck and it renders. See `slides/README.md`.
+
+### Re-skin
+
+```js
+document.documentElement.dataset.theme = 'dark';
+```
+
+A skin is a `[data-theme="<name>"]` block in `src/styles/vars/semantic.css`.
+
+## Authoring skills
+
+`.claude/skills/` - `slide-builder`, `artefact-builder`, `deck-builder`,
+`skin-builder`, plus the shared `framework-conventions.md` they all read first.
+
+## Deviations from a plain reveal.js 6.0.1 checkout
+
+- `package.json`: `name` kept as `reveal.js` (so `plugin/*/index.ts` self-reference
+  imports still resolve under `tsc`); identity, `dependencies`, and a `build:deck`
+  script added; `react:*` scripts removed.
+- `vite.config.ts`: `@ -> /src` alias + the `slides()` plugin (two lines).
+- Removed: `react/`, `.github/`, `demo.html`. Kept `css/theme/` (its sources feed
+  `npm run build`; nothing links the compiled output) and `test/` / `examples/`.
+- `src/styles/vendor/reveal-base.scss` uses Sass `@import` (deprecation warnings,
+  not errors) to inline Reveal's CSS inside `@layer` blocks.
 
 ---
 
-Want to create reveal.js presentation in a graphical editor? Try <https://slides.com>. It's made by the same people behind reveal.js.
-
----
-
-### Getting started
-
-- 🚀 [Install reveal.js](https://revealjs.com/installation)
-- 👀 [View the demo presentation](https://revealjs.com/demo)
-- 📖 [Read the documentation](https://revealjs.com/markup/)
-- 🖌 [Try the visual editor for reveal.js at Slides.com](https://slides.com/)
-- 🎬 [Watch the reveal.js video course (paid)](https://revealjs.com/course)
-
----
-
-<div align="center">
-  MIT licensed | Copyright © 2011-2026 Hakim El Hattab, https://hakim.se
-</div>
+Built on [reveal.js](https://revealjs.com) by Hakim El Hattab - MIT licensed
+(`LICENSE`).

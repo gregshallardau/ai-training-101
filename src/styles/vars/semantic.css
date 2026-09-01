@@ -1,0 +1,59 @@
+/*
+ * TIER 2 - SEMANTIC custom properties.
+ *
+ * Role-named aliases. THIS is the API that components, slides, and JS consume -
+ * nothing downstream should ever touch a tier-1 primitive or a raw literal.
+ *
+ * Each semantic is `var(--<primitive>)`. A [data-theme="name"] block re-points the
+ * semantics at different primitives (or new ones) - that is the ENTIRE re-skin
+ * mechanism. `skin-builder` appends new [data-theme] blocks here.
+ */
+@layer vars.semantic {
+	:root {
+		/* surfaces & text */
+		--surface-bg: var(--color-paper-000);
+		--surface-fg: var(--color-ink-900);
+		--surface-fg-muted: var(--color-ink-500);
+		--surface-line: var(--color-ink-300);
+
+		/* accent */
+		--accent: var(--color-brand-500);
+		--accent-strong: var(--color-brand-600);
+		--accent-fg: var(--color-paper-000);
+
+		/* spacing */
+		--space-inline: var(--size-3);
+		--space-block: var(--size-4);
+		--space-gap: var(--size-2);
+
+		/* radius */
+		--radius-control: var(--radius-1);
+		--radius-card: var(--radius-2);
+		--radius-round: var(--radius-pill);
+
+		/* type roles */
+		--font-heading: var(--font-sans);
+		--font-body: var(--font-sans);
+		--font-code: var(--font-mono);
+
+		/* motion */
+		--motion-hero-duration: var(--dur-slow);
+		--motion-hero-ease: var(--ease-emphasis);
+		--motion-ui-duration: var(--dur-fast);
+		--motion-ui-ease: var(--ease-standard);
+	}
+
+	/*
+	 * Worked example skin. Toggle with:  document.documentElement.dataset.theme = 'dark'
+	 * Only the semantics that differ from :root are re-pointed.
+	 */
+	[data-theme="dark"] {
+		--surface-bg: var(--color-ink-900);
+		--surface-fg: var(--color-paper-100);
+		--surface-fg-muted: var(--color-ink-300);
+		--surface-line: var(--color-ink-700);
+
+		--accent: var(--color-brand-400);
+		--accent-strong: var(--color-brand-500);
+	}
+}

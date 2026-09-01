@@ -1,0 +1,12 @@
+/*
+ * Single stylesheet entry - imported once from src/main.js.
+ * Order matters: layer declaration first, then Reveal (already wrapped in layers),
+ * then the custom-property tiers, then the deck theme that bridges to Reveal's --r-*.
+ *
+ * Component CSS is NOT imported here - it ships inside each Custom Element's Shadow DOM.
+ */
+@import './layers.css';
+@import './vendor/reveal-base.scss';
+@import './vars/primitives.css';
+@import './vars/semantic.css';
+@import './theme/deck.css';
