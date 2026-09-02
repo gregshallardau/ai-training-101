@@ -45,7 +45,11 @@ And as we start thinking about words, we start realising — hey, words are simi
 
 Show the Glossary — add C.
 
-## Slide 4 — Word Association Game → Introduce: Vector
+## Slide 4 — The Glossary: Token
+
+- 🧩 Token — a chunk of text. A word.
+
+## Slide 5 — Word Association Game → Introduce: Vector
 
 Trying to give them the idea of vector directions without saying it. I say the first, then put up sister > ????. And as I go through, we have all these examples:
 
@@ -78,7 +82,12 @@ Directionality:
 
 🧭 Vector — a direction and a distance. Similar words (or ideas) point the same way.
 
-## Slide 5 — Context (With Pictures)
+## Slide 6 — The Glossary: Vector
+
+- 🧩 Token — a chunk of text. A word.
+- 🧭 Vector — a direction and a distance. Similar words (or ideas) point the same way.
+
+## Slide 7 — Context (With Pictures)
 
 What animal would you find here?
 
@@ -88,7 +97,7 @@ Show them pictures and show how their brains get context from the picture:
 - A chicken coop (no chickens would be in the photo) = Chickens
 - Horse racing track = Horse
 
-## Slide 6 — Context (With Words)
+## Slide 8 — Context (With Words)
 
 We keep adding words to guess who the person is. We're trying to show that exactly the same prompt, but with different context, is going to get a totally different answer.
 
@@ -112,7 +121,14 @@ This is how AI is trained: give it a whole bunch of information, and its brain c
 
 🧠 Model — all the dial positions together. The complete knowledge.
 
-## Slide 7 — What Is a Model
+## Slide 9 — The Glossary: Weight & Model
+
+- 🧩 Token — a chunk of text. A word.
+- 🧭 Vector — a direction and a distance. Similar words (or ideas) point the same way.
+- 🎛️ Weight — a dial. How strongly two tokens are connected.
+- 🧠 Model — all the dial positions together. The complete knowledge.
+
+## Slide 10 — What Is a Model
 
 Remember those tokens we spoke about earlier.
 
@@ -122,7 +138,14 @@ Prompt: the question we ask or what we want to do.
 
 TODO: Put in the "What is a model" content.
 
-## Slide 8 — But It Wasn't Trained on You
+## Slide 11 — Everything Is Linked — Don't Train It on Only One Topic
+
+- TODO: "why not just train it on our topic — don't give it science when we're doing arts?"
+- TODO: researchers removed all the other fields from a model's training and the responses got worse — everything appears to be linked
+- TODO: find and cite the paper (leads: domain-coverage ablations, Longpre et al. NAACL 2024; over-specialisation work)
+- TODO: breadth of knowledge is what makes the focused answers good
+
+## Slide 12 — But It Wasn't Trained on You
 
 But then with an AI model, it has zero context of who we are. Its context is built from the world — it was trained on books, .......
 
@@ -150,7 +173,15 @@ So everything we do and say is shaped by everything that has come before.
 
 ✍️ Prompt — what you type. Where you start.
 
-## Slide 9 — The Prompt Knows Nothing
+## Slide 13 — The Glossary: Prompt
+
+- 🧩 Token — a chunk of text. A word.
+- 🧭 Vector — a direction and a distance. Similar words (or ideas) point the same way.
+- 🎛️ Weight — a dial. How strongly two tokens are connected.
+- 🧠 Model — all the dial positions together. The complete knowledge.
+- ✍️ Prompt — what you type. Where you start.
+
+## Slide 14 — The Prompt Knows Nothing
 
 The prompt knows nothing if it has no context.
 
@@ -183,7 +214,7 @@ It's not about asking better questions.
 
 It's about bringing more of yourself to the question.
 
-## Slide 10 — You're Not a Prompt Builder, You're a Context Builder
+## Slide 15 — You're Not a Prompt Builder, You're a Context Builder
 
 We looked earlier at asking the exact same question and getting completely different answers.
 
@@ -195,7 +226,7 @@ But here's the shift:
 
 A prompt is a question. A context builder is someone who layers in who they are, what they need, and why it matters before they ask.
 
-## Slide 11 — The Same Question, Three Answers
+## Slide 16 — The Same Question, Three Answers
 
 Let's ask the same question three ways:
 
@@ -219,7 +250,7 @@ Same question. But now the model has context about who you are, who you're writi
 
 The email it writes is nothing like the first one. Because the context is different.
 
-## Slide 12 — The Context Layers
+## Slide 17 — The Context Layers
 
 Think of context like layers you add to a question:
 
@@ -241,7 +272,7 @@ Think of context like layers you add to a question:
 
 Each layer changes the output. Add more layers, get better results.
 
-## Slide 13 — The Mental Shift
+## Slide 18 — The Mental Shift
 
 Most people think: "What do I need to type?"
 
@@ -259,7 +290,7 @@ You wouldn't walk up to your colleague and say "help me" and expect them to know
 
 That's context. That's what you're doing when you talk to AI.
 
-## Slide 14 — The Analogy
+## Slide 19 — The Analogy
 
 You wouldn't send a chef into a kitchen with no order, no dietary requirements, no guest count, and expect a good meal.
 
@@ -271,7 +302,7 @@ That's an order. That's context.
 
 Every prompt is an order to a chef who has never met you.
 
-## Slide 15 — Context in the Real World
+## Slide 20 — Context in the Real World
 
 Here's how a broker actually builds context, from broad to specific. This is what you do now — you probably just haven't thought about it.
 
@@ -290,7 +321,7 @@ Every good prompt starts with layers:
 
 Then you layer it all together.
 
-## Slide 16 — Dumb and Dumber
+## Slide 21 — Dumb and Dumber
 
 When it is trying to be helpful, that is when it's at its most dangerous.
 
@@ -298,11 +329,11 @@ When it is trying to be helpful, that is when it's at its most dangerous.
 - Example screenshot: "Yes, you told me not to do that before and I did it anyway"
 - Screenshot of OpenClaw wiping a CTO's entire system.
 
-## Slide 17 — You Don't Have to Do One and Done
+## Slide 22 — You Don't Have to Do One and Done
 
 Say that I need to write an email, here is the idea I have, ask me a couple of questions and I will give answers. When I think you have the right idea, then I will tell you to write the draft.
 
-## Slide 18 — Precision Is Key
+## Slide 23 — Precision Is Key
 
 Remember earlier — words have meaning.
 
@@ -310,7 +341,7 @@ Precision is key. Pick words or phrases that have meaning.
 
 One output is another input.
 
-## Slide 19 — Trust in Information
+## Slide 24 — Trust in Information
 
 Where information comes from matters.
 
@@ -321,11 +352,11 @@ Where information comes from matters.
 
 If you have information that you may or may not trust, verify it — it could pollute everything you do.
 
-## Slide 20 — Your Context Is Reusable
+## Slide 25 — Your Context Is Reusable
 
 Your context is reusable. Build your own context.
 
-## Slide 21 — Transformers: Robots in Disguise
+## Slide 26 — Transformers: Robots in Disguise
 
 - OCR: Picture to words
 - Voice to words
@@ -333,11 +364,11 @@ Your context is reusable. Build your own context.
 - Spreadsheet to words
 
 
-## Slide 21 — It's not about the Car, its about the Driver.
+## Slide 27 — It's not about the Car, its about the Driver.
 
 Slide about skills behind the wheel are more imporant.
 
-## Slide 22 — Choose the Right Model for the Right Task
+## Slide 28 — Choose the Right Model for the Right Task
 
 Different models, different outcomes.
 
