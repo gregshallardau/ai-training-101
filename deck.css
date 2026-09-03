@@ -195,10 +195,11 @@
 
 	/* .flex-cols     children side by side, equal width
 	   .flex-rows     children stacked, full width
-	   both use --space-block as the gap */
+	   both use --space-block as the gap; explicit layouts, so no 32em cap */
 	.reveal .slides section :is(.flex-cols, .flex-rows) {
 		display: flex;
 		gap: var(--space-block);
+		max-width: none;
 	}
 	.reveal .slides section .flex-cols {
 		flex-direction: row;
@@ -217,14 +218,18 @@
 
 	/* .columns / .columns-3   flow the children into 2 (or 3) newspaper
 	   columns - a glossary wall, a long term list. Works on <dl>, <ul>, or a
-	   set of <p>s. Pairs never split across a column. */
+	   set of <p>s. Pairs never split across a column. An explicit layout, so
+	   it opts out of the 32em reading measure. */
+	.reveal .slides section :is(.columns, .columns-3) {
+		max-width: none;
+		column-gap: var(--space-block);
+	}
 	.reveal .slides section .columns {
 		columns: 2;
 		column-gap: calc(var(--space-block) * 1.5);
 	}
 	.reveal .slides section .columns-3 {
 		columns: 3;
-		column-gap: var(--space-block);
 	}
 	.reveal .slides section :is(.columns, .columns-3) > * {
 		break-inside: avoid;
@@ -255,6 +260,7 @@
 		background: var(--bg);
 		color: var(--fg);
 		margin-block: var(--space-block); /* space from neighbouring blocks */
+		max-width: none; /* a .box is a panel, not body copy - no 32em cap */
 	}
 	.reveal .slides section .box > :first-child { margin-top: 0; }
 	.reveal .slides section .box > :last-child { margin-bottom: 0; }
