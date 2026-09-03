@@ -24,8 +24,8 @@ src/components/
 - `index.js` self-registers on import; it needn't export anything.
 - The class `extends DeckElement`.
 - All visual style goes in `static styles` (a CSS string, injected into Shadow DOM).
-- **Consume tier-2 semantic custom properties only** - `var(--surface-*)`,
-  `var(--accent*)`, `var(--space-*)`, `var(--radius-*)`, `var(--motion-*)`,
+- **Consume tier-2 semantic custom properties only** - `var(--bg)` / `var(--fg)` / `var(--muted)` / `var(--line)`,
+  `var(--primary*)`, `var(--space-*)`, `var(--radius-*)`, `var(--motion-*)`,
   `var(--font-*)`, plus Reveal's `var(--r-*)`. Never a tier-1 primitive, never a
   raw colour / length literal. (These are CSS custom properties, not "tokens".)
 - `connectedCallback` must be idempotent - Reveal relocates `<section>` nodes.
@@ -52,7 +52,7 @@ class DeckHeroTitle extends DeckElement {
     :host { display: block; }
     h1 {
       margin: 0;
-      color: var(--surface-fg);
+      color: var(--fg);
       font: 700 2.5em/1.05 var(--font-heading);
     }
   `;

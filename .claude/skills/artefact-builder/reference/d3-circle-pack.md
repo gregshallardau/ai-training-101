@@ -57,8 +57,8 @@ class DeckConceptMap extends DeckElement {
 		:host { display: block; }
 		svg { width: 100%; height: auto; display: block; cursor: pointer;
 		      font: inherit; background: transparent; }
-		text { fill: var(--surface-fg); text-anchor: middle; }
-		circle { stroke: var(--surface-line); }
+		text { fill: var(--fg); text-anchor: middle; }
+		circle { stroke: var(--line); }
 	`;
 
 	get data() {
@@ -75,7 +75,7 @@ class DeckConceptMap extends DeckElement {
 	}
 
 	_build() {
-		const [accent, strong, bg] = readPalette(['--accent', '--accent-strong', '--surface-bg']);
+		const [primary, strong, bg] = readPalette(['--primary', '--primary-strong', '--bg']);
 		const dur = parseFloat(this.cssVar('--motion-hero-duration')) || 600;
 
 		const root = d3.pack().size([SIZE, SIZE]).padding(3)(
@@ -84,7 +84,7 @@ class DeckConceptMap extends DeckElement {
 				.sort((a, b) => b.value - a.value)
 		);
 
-		const depth = d3.scaleLinear().domain([0, root.height]).range([bg, accent]);
+		const depth = d3.scaleLinear().domain([0, root.height]).range([bg, primary]);
 
 		const svg = d3.select(this.shadowRoot)
 			.append('svg')
@@ -150,7 +150,7 @@ sample), or pass your own tree in `data='{...}'`.
 - **Static, non-zoom variant:** drop `zoom` / `zoomTo` / the click handlers and
   show all labels (`fill-opacity: 1` for every `d.depth === 1`). One `layout`
   branch if you want both in the component.
-- Colours track the theme via `readPalette` - leaves use `--accent-strong`,
-  parents a `--surface-bg -> --accent` depth ramp.
+- Colours track the theme via `readPalette` - leaves use `--primary-strong`,
+  parents a `--bg -> --primary` depth ramp.
 - Zoom duration is `--motion-hero-duration`; no hard-coded ms.
 - `d3.interpolateZoom` ships in d3 core (via `@/lib/d3.js`).

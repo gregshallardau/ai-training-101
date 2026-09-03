@@ -2,7 +2,7 @@
  * Template for src/components/<name>/index.js
  *
  * Replace <Name> (PascalCase), <name> (kebab). Keep it to ONE component per file.
- * Consume SEMANTIC custom properties only - var(--surface-*), var(--accent*),
+ * Consume SEMANTIC custom properties only - var(--bg/fg/muted/line), var(--primary*), var(--secondary*),
  * var(--space-*), var(--radius-*), var(--motion-*), var(--font-*) - plus Reveal's
  * var(--r-*). Never a tier-1 primitive, never a raw colour / length literal.
  */
@@ -19,7 +19,7 @@ class Deck<Name> extends DeckElement {
 	static styles = `
 		:host {
 			display: block;
-			color: var(--surface-fg);
+			color: var(--fg);
 		}
 		.root {
 			gap: var(--space-gap);

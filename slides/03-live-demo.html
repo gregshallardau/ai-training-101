@@ -15,7 +15,7 @@
 			height: 8rem;
 			margin: var(--space-block) auto 0;
 			border-radius: var(--radius-round);
-			background: var(--accent);
+			background: var(--primary);
 			animation: demo-pulse var(--motion-hero-duration) ease-in-out infinite;
 		}
 		@keyframes demo-pulse {
@@ -31,7 +31,7 @@
 		addEventListener('load', () => {
 			const el = document.getElementById('live-demo').querySelector('.pulse');
 			const accent = getComputedStyle(document.documentElement)
-				.getPropertyValue('--accent')
+				.getPropertyValue('--primary')
 				.trim();
 			el.title = `accent is ${accent}`;
 		});

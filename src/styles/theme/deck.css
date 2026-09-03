@@ -17,13 +17,13 @@
 @layer theme {
 	:root {
 		/* background */
-		--r-background-color: var(--surface-bg);
-		--r-background: var(--surface-bg);
+		--r-background-color: var(--bg);
+		--r-background: var(--bg);
 
 		/* body text */
 		--r-main-font: var(--font-body);
 		--r-main-font-size: var(--text-root-size);
-		--r-main-color: var(--surface-fg);
+		--r-main-color: var(--fg);
 		--r-block-margin: var(--space-block);
 		--r-code-font: var(--font-code);
 
@@ -31,7 +31,7 @@
 		   billboard. Sizes are em-multiples of --text-root-size. Override any
 		   of these in deck.css (TYPE SCALE) if a deck wants louder titles. */
 		--r-heading-font: var(--font-heading);
-		--r-heading-color: var(--surface-fg);
+		--r-heading-color: var(--fg);
 		--r-heading-font-weight: 600;
 		--r-heading-line-height: 1.15;
 		--r-heading-letter-spacing: -0.005em;
@@ -45,13 +45,13 @@
 		--r-heading1-text-shadow: none;
 
 		/* links */
-		--r-link-color: var(--accent);
-		--r-link-color-hover: var(--accent-strong);
-		--r-link-color-dark: var(--accent-strong);
+		--r-link-color: var(--primary);
+		--r-link-color-hover: var(--primary-strong);
+		--r-link-color-dark: var(--primary-strong);
 
 		/* selection */
-		--r-selection-background-color: var(--accent);
-		--r-selection-color: var(--accent-fg);
+		--r-selection-background-color: var(--primary);
+		--r-selection-color: var(--primary-fg);
 
 		/* overlays (speaker/help/scroll) - Reveal expects "r, g, b" triplets here.
 		   Kept as literals: these are chrome, not brand surface. */

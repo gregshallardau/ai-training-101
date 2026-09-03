@@ -17,7 +17,7 @@ transfers; the **integration** does not - re-home every one of these:
 | React `useEffect` / `svgRef` | `render()` + `attributeChangedCallback` on the DeckElement |
 | `d3.select('#chart')` | `d3.select(this.shadowRoot.querySelector('svg'))` |
 | `d3.select('body').append('div.tooltip')` | a tooltip `<div>` appended **inside** `this.shadowRoot`, positioned in host coords |
-| `"steelblue"`, `d3.schemeCategory10` | `this.cssVar('--accent')`, or `readPalette([...])` from `@/lib/d3.js` |
+| `"steelblue"`, `d3.schemeCategory10` | `this.cssVar('--primary')`, or `readPalette([...])` from `@/lib/d3.js` |
 | `window.addEventListener('resize', ...)` | `ResizeObserver` on `this`, redraw |
 | fixed `width`/`height` px | `viewBox="0 0 W H"` on the `<svg>`, CSS `width:100%` - it scales within the 1920x1080 slide |
 
@@ -40,13 +40,13 @@ class DeckChart extends DeckElement {
 	static styles = `
 		:host { display: block; }
 		svg { width: 100%; height: auto; font: inherit; }
-		.axis text { fill: var(--surface-fg-muted); font-size: 12px; }
-		.axis path, .axis line { stroke: var(--surface-line); }
+		.axis text { fill: var(--muted); font-size: 12px; }
+		.axis path, .axis line { stroke: var(--line); }
 		.tip {
 			position: absolute; pointer-events: none; opacity: 0;
 			padding: var(--space-gap) var(--space-inline);
-			border: 1px solid var(--surface-line); border-radius: var(--radius-control);
-			background: var(--surface-bg); color: var(--surface-fg); font-size: 0.8em;
+			border: 1px solid var(--line); border-radius: var(--radius-control);
+			background: var(--bg); color: var(--fg); font-size: 0.8em;
 		}
 	`;
 
@@ -83,7 +83,7 @@ class DeckChart extends DeckElement {
 	_draw() {
 		const data = this.data;
 		if (!data.length) return;
-		const [accent, muted] = readPalette(['--accent', '--surface-fg-muted']);
+		const [primary, muted] = readPalette(['--primary', '--muted']);
 		const svg = d3.select(this.shadowRoot.querySelector('svg'));
 		svg.selectAll('g').remove();
 
@@ -99,7 +99,7 @@ class DeckChart extends DeckElement {
 		g.selectAll('rect').data(data).join('rect')
 			.attr('x', (d) => x(d.label)).attr('y', (d) => y(d.value))
 			.attr('width', x.bandwidth()).attr('height', (d) => ih - y(d.value))
-			.attr('fill', accent)
+			.attr('fill', primary)
 			.on('mousemove', (e, d) => {
 				const r = this.getBoundingClientRect();
 				this._tip.style.opacity = 1;
@@ -125,7 +125,7 @@ data='[{"label":"Jan","value":12},{"label":"Feb","value":19}]'></deck-chart>`
 | category -> band (bars) | `d3.scaleBand().padding(0.1)` |
 | category -> point (line/scatter x) | `d3.scalePoint()` |
 | dates -> pixels | `d3.scaleTime()` |
-| value -> sequential colour | `d3.scaleSequential(d3.interpolateBlues)` - but prefer `--accent` ramps |
+| value -> sequential colour | `d3.scaleSequential(d3.interpolateBlues)` - but prefer `--primary` ramps |
 | exponential data | `d3.scaleLog()` |
 | circle area encoding | `d3.scaleSqrt()` |
 
@@ -137,15 +137,15 @@ data='[{"label":"Jan","value":12},{"label":"Feb","value":19}]'></deck-chart>`
 ```js
 // line
 const line = d3.line().x((d) => x(d.date)).y((d) => y(d.value)).curve(d3.curveMonotoneX);
-g.append('path').datum(data).attr('fill', 'none').attr('stroke', accent).attr('stroke-width', 2).attr('d', line);
+g.append('path').datum(data).attr('fill', 'none').attr('stroke', primary).attr('stroke-width', 2).attr('d', line);
 
 // area
 const area = d3.area().x((d) => x(d.date)).y0(ih).y1((d) => y(d.value)).curve(d3.curveMonotoneX);
-g.append('path').datum(data).attr('fill', accent).attr('fill-opacity', 0.2).attr('d', area);
+g.append('path').datum(data).attr('fill', primary).attr('fill-opacity', 0.2).attr('d', area);
 
 // scatter
 g.selectAll('circle').data(data).join('circle')
-	.attr('cx', (d) => x(d.x)).attr('cy', (d) => y(d.y)).attr('r', 4).attr('fill', accent).attr('opacity', 0.7);
+	.attr('cx', (d) => x(d.x)).attr('cy', (d) => y(d.y)).attr('r', 4).attr('fill', primary).attr('opacity', 0.7);
 ```
 
 Transitions: `sel.transition().duration(parseFloat(this.cssVar('--motion-ui-duration')))`.

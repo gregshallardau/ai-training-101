@@ -35,7 +35,7 @@ A slide file is portable - drop it into any framework deck and it renders - iff:
 
 1. It references shared things only through **framework-guaranteed surfaces**:
    - canonical `<deck-*>` tags (see `src/components/registry.js`),
-   - **semantic** CSS custom properties (`--surface-*`, `--accent*`, `--space-*`,
+   - **semantic** CSS custom properties (`--bg` / `--fg` / `--muted` / `--line`, `--primary*`, `--space-*`,
      `--radius-*`, `--motion-*`, `--font-*`) and Reveal's `--r-*`,
    - `@/lib/*` **only from inside a `<deck-*>` component**, never from a slide.
 2. **Or** it fully inlines its artefact: a scoped `<style>` plus an inline

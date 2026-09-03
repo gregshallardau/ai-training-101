@@ -7,7 +7,7 @@
  *
  * Component CSS lives in Shadow DOM (`static styles`). The framework's semantic
  * CSS custom properties still reach it because custom properties inherit through
- * the shadow boundary - so a component reads `var(--accent)` etc. directly.
+ * the shadow boundary - so a component reads `var(--primary)` etc. directly.
  *
  * Subclasses:
  *   - set `static tag` and `static styles`

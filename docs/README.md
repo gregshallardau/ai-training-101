@@ -9,7 +9,7 @@
 Also worth knowing:
 
 - **`deck.css`** (repo root) - the one file you edit to re-skin a deck: a
-  commented menu of brand knobs (`--accent`, `--surface-*`, `--font-*`, type
+  commented menu of brand knobs (`--primary`, `--bg`, `--fg`, `--muted`, `--font-*`, type
   scale), deck-wide element tweaks, and the utility classes (`.text-muted`,
   `.flex-cols`, `.box`, …). Each knob says where you'll see it.
 - **`deck.config.js`** (repo root) - the Reveal knobs a deck tunes: slide size,

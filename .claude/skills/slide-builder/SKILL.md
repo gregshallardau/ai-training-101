@@ -100,7 +100,7 @@ Reject or warn on:
 
 ## Consistency
 
-Prefer the `deck.css` utility classes (`.text-accent`, `.text-muted`,
+Prefer the `deck.css` utility classes (`.text-primary`, `.text-muted`,
 `.text-center`, `.flex-cols`, `.flex-rows`, `.list-compact`, `.box`) over a
 per-slide `<style>`. Never emit a per-slide `<style>` for anything reusable or a
 bespoke component definition inside a slide - a non-trivial visual becomes a

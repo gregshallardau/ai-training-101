@@ -35,7 +35,7 @@ inside the shadow tree. Add the store key in `src/lib/alpine.js`.
 
 ## Styling
 
-Pull `.btn` / `.btn.secondary` / `.chip` / `.chip.ragged` / `.note` / `.meter`
+Pull `.btn` / `.btn.ghost` / `.chip` / `.chip.ragged` / `.note` / `.meter`
 from `component-styles.md` into `static styles`. Do not re-declare them. A
 stagger-in effect is a keyframe with a per-index `animation-delay`, or
 `x-transition` on the `x-for` items.
@@ -76,28 +76,28 @@ class DeckTokeniser extends DeckElement {
 	static tag = 'deck-tokeniser';
 
 	static styles = `
-		:host { display: block; color: var(--surface-fg); font: inherit; }
+		:host { display: block; color: var(--fg); font: inherit; }
 		.line { display: flex; flex-wrap: wrap; gap: var(--space-gap); margin-block: var(--space-block); min-height: 1.8em; }
 		.chip {
 			padding: 0.15em 0.5em; border-radius: var(--radius-control);
-			border: 1px solid var(--accent);
-			background: color-mix(in srgb, var(--accent) 14%, transparent);
+			border: 1px solid var(--primary);
+			background: color-mix(in srgb, var(--primary) 14%, transparent);
 			animation: pop var(--motion-ui-duration) var(--motion-ui-ease) both;
 		}
 		.chip.ragged {
-			border-color: var(--surface-line);
-			background: color-mix(in srgb, var(--surface-fg-muted) 12%, transparent);
+			border-color: var(--line);
+			background: color-mix(in srgb, var(--muted) 12%, transparent);
 		}
 		@keyframes pop { from { opacity: 0; transform: translateY(0.3em); } }
 		.row { display: flex; gap: var(--space-gap); }
 		.btn {
 			font: inherit; padding: var(--space-gap) var(--space-inline); border: 0;
 			border-radius: var(--radius-control);
-			background: var(--accent); color: var(--accent-fg); cursor: pointer;
+			background: var(--primary); color: var(--primary-fg); cursor: pointer;
 		}
 		.btn:disabled { opacity: 0.4; cursor: default; }
-		.btn.secondary { background: transparent; color: var(--accent); border: 1px solid var(--surface-line); }
-		.note { color: var(--surface-fg-muted); margin-top: var(--space-block); }
+		.btn.ghost { background: transparent; color: var(--primary); border: 1px solid var(--line); }
+		.note { color: var(--muted); margin-top: var(--space-block); }
 	`;
 
 	render() {
@@ -114,7 +114,7 @@ class DeckTokeniser extends DeckElement {
 			</template>
 			<div class="row">
 				<button class="btn" @click="next()" :disabled="done" x-text="cta"></button>
-				<button class="btn secondary" @click="reset()">Reset</button>
+				<button class="btn ghost" @click="reset()">Reset</button>
 			</div>
 			<p class="note" x-text="note"></p>
 		`;

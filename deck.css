@@ -35,61 +35,43 @@
 		   Uncomment a line to override the framework default.
 		   ══════════════════════════════════════════════════════════════════ */
 
-		/* --accent  ─────────────────────────────────────────────────────────
-		   Your one brand colour. Where you'll see it:
-		     • hyperlinks in slide body text
-		     • the :focus outline on links when tabbing through
-		     • the ::selection highlight when you drag-select text on a slide
-		     • components that ask for the accent (section-break rules,
-		       the first series in a <deck-chart>, badge / pill fills)
-		   Framework default: #2563eb (a mid blue).
-		*/
-		/* --accent: #2563eb; */
+		/* --primary  ─────────────────────────────────────────────────────────
+		   Your one brand colour. Where you'll see it: hyperlinks, the :focus
+		   outline, the ::selection highlight, `.text-primary`, a `primary`
+		   chip / box, the first series in a <deck-chart>.
+		   Framework default: #2563eb (a mid blue). */
+		/* --primary: #2563eb; */
+		/* --primary-strong: #1d4ed8; */   /* hover / pressed partner */
+		/* --primary-fg: #ffffff; */       /* text on a solid --primary fill */
 
-		/* --accent-strong  ────────────────────────────────────────────────
-		   The darker press/hover partner for --accent. Where you'll see it:
-		     • link colour on hover
-		     • the "pressed" state of buttons and controls
-		   Set this WHENEVER you set --accent, or hover states won't match.
-		   Framework default: #1d4ed8.
-		*/
-		/* --accent-strong: #1d4ed8; */
+		/* --secondary  ───────────────────────────────────────────────────────
+		   A quieter second colour - `.text` nothing, but a `secondary` chip /
+		   box, a second chart series. Default: a dark slate. */
+		/* --secondary: #3a3f4a; */
+		/* --secondary-strong: #24272e; */
+		/* --secondary-fg: #ffffff; */
 
-		/* --accent-fg  ────────────────────────────────────────────────────
-		   Text/'icon colour that sits ON TOP of an --accent fill (e.g. label
-		   text inside a coloured badge). Needs strong contrast with --accent.
-		   Framework default: #ffffff.
-		*/
-		/* --accent-fg: #ffffff; */
+		/* --success / --danger / --warning  ──────────────────────────────────
+		   Status colours for a `success` / `danger` / `warning` chip or box.
+		   Defaults: green #15803d, red #b91c1c, amber #d97706. */
+		/* --success: #15803d;  --success-fg: #ffffff; */
+		/* --danger:  #b91c1c;  --danger-fg:  #ffffff; */
+		/* --warning: #d97706;  --warning-fg: #0b0c0e; */
 
-		/* --surface-bg  ──────────────────────────────────────────────────
-		   The slide background - the colour behind every slide, and the
-		   page colour in the PDF / print export.
-		   Framework default: #ffffff.
-		*/
-		/* --surface-bg: #ffffff; */
+		/* --bg  ─────  slide background / PDF page colour. Default #ffffff. */
+		/* --bg: #ffffff; */
 
-		/* --surface-fg  ──────────────────────────────────────────────────
-		   Default colour for body text AND headings, on top of --surface-bg.
-		   Keep a strong contrast with the background or the back row can't
-		   read it.
-		   Framework default: #0b0c0e (near-black).
-		*/
-		/* --surface-fg: #0b0c0e; */
+		/* --fg  ─────  body + heading text on --bg. Keep strong contrast.
+		               Default #0b0c0e (near-black). */
+		/* --fg: #0b0c0e; */
 
-		/* --surface-fg-muted  ────────────────────────────────────────────
-		   Secondary text: slide subtitles, captions, the <p> under a title,
-		   anything you want to sit back from the main text.
-		   Framework default: #5b616e (grey).
-		*/
-		/* --surface-fg-muted: #5b616e; */
+		/* --muted  ──  secondary text: subtitles, captions, `.text-muted`.
+		               Default #5b616e (grey). */
+		/* --muted: #5b616e; */
 
-		/* --surface-line  ────────────────────────────────────────────────
-		   Hairline colour: <hr>, table borders, the rule under a section
-		   heading, card outlines.
-		   Framework default: #9aa0ac (light grey).
-		*/
-		/* --surface-line: #9aa0ac; */
+		/* --line  ───  hairlines: <hr>, table rules, `.box border`, card
+		               outlines. Default #9aa0ac (light grey). */
+		/* --line: #9aa0ac; */
 
 		/* --font-heading  ────────────────────────────────────────────────
 		   Font stack for <h1>-<h4>. Always end with a real fallback chain.
@@ -198,14 +180,12 @@
 	   custom properties, so they follow a re-skin.
 	   ══════════════════════════════════════════════════════════════════════ */
 
-	/* .text-accent   accent-colour text */
-	.reveal .slides section .text-accent {
-		color: var(--accent);
+	/* .text-primary  brand-colour text   ·   .text-muted  secondary text */
+	.reveal .slides section .text-primary {
+		color: var(--primary);
 	}
-
-	/* .text-muted    secondary / caption text */
 	.reveal .slides section .text-muted {
-		color: var(--surface-fg-muted);
+		color: var(--muted);
 	}
 
 	/* .text-center   centre-align (slide text defaults to left) */
@@ -235,33 +215,61 @@
 		margin-top: 0;
 	}
 
-	/* .box           bordered, padded panel */
+	/* ─── COLOUR MODIFIERS ───────────────────────────────────────────────
+	   Bare classes that pick a colour. They set one local pair (--c / --c-fg)
+	   that every building block below reads, so `class="chip primary"`,
+	   `class="box danger"`, `class="box bar success"` all just work - one
+	   word, nothing redefined per block. */
+	.reveal .slides section .primary   { --c: var(--primary);   --c-fg: var(--primary-fg); }
+	.reveal .slides section .secondary { --c: var(--secondary); --c-fg: var(--secondary-fg); }
+	.reveal .slides section .success   { --c: var(--success);   --c-fg: var(--success-fg); }
+	.reveal .slides section .danger    { --c: var(--danger);    --c-fg: var(--danger-fg); }
+	.reveal .slides section .warning   { --c: var(--warning);   --c-fg: var(--warning-fg); }
+
+	/* ─── .box ───────────────────────────────────────────────────────────
+	   White, borderless panel by default. Opt in:
+	     .border   hairline border (uses the colour modifier if present)
+	     .primary | .secondary | .success | .danger | .warning   tinted fill
+	     .bar      no border/fill, thick left bar (coloured if a modifier set) */
 	.reveal .slides section .box {
-		border: 1px solid var(--surface-line);
-		border-radius: var(--radius-card);
 		padding: var(--space-block);
+		border-radius: var(--radius-card);
+		background: var(--bg);
+		color: var(--fg);
+	}
+	.reveal .slides section .box.border {
+		border: 1px solid var(--c, var(--line));
+	}
+	.reveal .slides section .box:is(.primary, .secondary, .success, .danger, .warning) {
+		background: color-mix(in srgb, var(--c) 8%, var(--bg));
+	}
+	.reveal .slides section .box.bar {
+		border: 0;
+		border-radius: 0;
+		background: none;
+		border-left: 4px solid var(--c, var(--line));
+		padding-left: var(--space-inline);
 	}
 
-	/* .chip          inline text in a box: faint fill, border, pill radius -
-	                  a token, tag, keyword, or highlighted word.
-	   + .accent      solid accent fill (the picked / emphasised one)
-	   + .muted       greyed, de-emphasised
-	   The .accent / .muted modifiers are shared - the same words work on
-	   other components as they gain variants; you never learn a new name. */
+	/* ─── .chip ──────────────────────────────────────────────────────────
+	   Inline text in a small rounded box - a token, tag, keyword. Neutral
+	   outline by default; a colour modifier makes it a solid fill (the
+	   picked / emphasised one). .muted is a greyed, de-emphasised variant. */
 	.reveal .slides section .chip {
 		display: inline-block;
 		padding: 0.1em 0.5em;
 		border-radius: var(--radius-control);
-		border: 1px solid var(--accent);
-		background: color-mix(in srgb, var(--accent) 12%, transparent);
+		border: 1px solid var(--c, var(--line));
+		background: color-mix(in srgb, var(--c, var(--muted)) 12%, transparent);
+		color: var(--fg);
 	}
-	.reveal .slides section .chip.accent {
-		background: var(--accent);
-		color: var(--accent-fg);
+	.reveal .slides section .chip:is(.primary, .secondary, .success, .danger, .warning) {
+		background: var(--c);
+		color: var(--c-fg);
 	}
 	.reveal .slides section .chip.muted {
-		border-color: var(--surface-line);
-		background: color-mix(in srgb, var(--surface-fg-muted) 10%, transparent);
-		color: var(--surface-fg-muted);
+		border-color: var(--line);
+		background: color-mix(in srgb, var(--muted) 10%, transparent);
+		color: var(--muted);
 	}
 }
