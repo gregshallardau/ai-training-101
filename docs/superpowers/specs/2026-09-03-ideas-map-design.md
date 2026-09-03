@@ -506,6 +506,11 @@ Built with the **`artefact-builder`** skill. Its Read step will:
   shared pieces from `reference/component-styles.md`;
 - edit `registry.js` per `reference/registry-edit.md`.
 
+**Customising the map to a presentation** (topics / nodes / links / relations /
+`RELATION_OFFSETS` / `contexts`, and wiring the tag onto slides per beat) is the
+**`ideas-map` skill** (`.claude/skills/ideas-map/`) — it authors content and
+slide state, and hands any component-code change back to `artefact-builder`.
+
 The implementation plan wraps that plus: writing `forceRelations`, the topic
 colour scale, the attention/activation overlay and the label toggle; authoring
 the dataset (starts ~40–60 nodes / ~8 topics, designed to grow to 20+ topics /
