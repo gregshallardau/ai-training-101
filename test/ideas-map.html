@@ -376,6 +376,29 @@
 			assert.strictEqual(el.shadowRoot.querySelectorAll('text.node-label').length, 0, 'labels off after second click');
 		});
 
+		QUnit.module('drag');
+
+		QUnit.test('drag sets fx/fy then releases; neighbours light', (assert) => {
+			const el = mount();
+			el.setAttribute('show-links', '');
+			const sim = el._sim;
+			const king = sim.nodes().find((n) => n.id === 'king');
+
+			// simulate the drag lifecycle via the element's own handlers
+			el._onDragStart({ x: king.x, y: king.y }, king);
+			assert.strictEqual(king.fx, king.x, 'fx pinned on start');
+			el._onDrag({ x: king.x + 40, y: king.y + 10 }, king);
+			assert.strictEqual(king.fx, king.x + 40, 'fx follows pointer');
+
+			const franceCircle = [...el.shadowRoot.querySelectorAll('g.nodes circle.node')]
+				.find((c) => c.dataset.id === 'france'); // king–france is a link
+			assert.ok(franceCircle.classList.contains('lit'), 'linked neighbour lit while dragging');
+
+			el._onDragEnd({}, king);
+			assert.strictEqual(king.fx, null, 'released on drop');
+			assert.strictEqual(king.fy, null, 'released on drop');
+		});
+
 		QUnit.start();
 </script>
 </body>

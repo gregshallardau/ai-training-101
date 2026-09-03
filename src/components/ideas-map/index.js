@@ -95,6 +95,72 @@ class DeckIdeasMap extends DeckElement {
 		this._renderLegend();
 		drawGraph(this._svg, this._state);
 		this._applyScope(true);
+
+		this._wireSim();
+	}
+
+	/** (Re)attach the drag behaviour and the position-sync tick handler to the
+	 *  current `this._sim`. Called after render and after every `_rebuild`, since
+	 *  a rebuild swaps in a fresh simulation object. */
+	_wireSim() {
+		this._sim.on('tick', () => {
+			if (this._sim.alpha() < this._sim.alphaMin()) return;
+			this._syncPositions();
+		});
+		this._wireDrag();
+	}
+
+	_wireDrag() {
+		const self = this;
+		const drag = d3.drag()
+			.subject(function () { return d3.select(this).datum(); })
+			.on('start', function (event, d) { self._onDragStart(event, d); })
+			.on('drag', function (event, d) { self._onDrag(event, d); })
+			.on('end', function (event, d) { self._onDragEnd(event, d); });
+		const byId = new Map(this._sim.nodes().map((n) => [n.id, n]));
+		d3.select(this._svg).selectAll('g.nodes circle.node')
+			.datum(function () { return byId.get(this.dataset.id) || null; })
+			.call(drag);
+	}
+
+	_onDragStart(event, d) {
+		this._sim.alphaTarget(0.3).restart();
+		d.fx = d.x; d.fy = d.y;
+		this._dragId = d.id;
+		this._computeState();
+		drawGraph(this._svg, this._state);
+		this._wireDrag();
+	}
+
+	_onDrag(event, d) {
+		d.fx = event.x; d.fy = event.y;
+		this._syncPositions();
+	}
+
+	_onDragEnd(event, d) {
+		this._sim.alphaTarget(0);
+		d.fx = null; d.fy = null;
+		this._dragId = null;
+		this._computeState();
+		drawGraph(this._svg, this._state);
+		this._wireDrag();
+	}
+
+	/** Move existing DOM coordinates to match `this._sim.nodes()` — no layer
+	 *  rebuild, no `drawGraph`. Used on every drag move and on each re-heat tick. */
+	_syncPositions() {
+		const byId = new Map(this._sim.nodes().map((n) => [n.id, n]));
+		this._svg.querySelectorAll('g.nodes circle.node, g.nodes circle.pulse, g.attention circle.halo')
+			.forEach((c) => {
+				const n = byId.get(c.dataset.id); if (!n) return;
+				c.setAttribute('cx', n.x); c.setAttribute('cy', n.y);
+			});
+		this._svg.querySelectorAll('g.links line').forEach((l) => {
+			const s = byId.get(l.dataset.s); const t = byId.get(l.dataset.t);
+			if (!s || !t) return;
+			l.setAttribute('x1', s.x); l.setAttribute('y1', s.y);
+			l.setAttribute('x2', t.x); l.setAttribute('y2', t.y);
+		});
 	}
 
 	_dur(kind) {
@@ -139,6 +205,7 @@ class DeckIdeasMap extends DeckElement {
 			relations: this._data.relations,
 			offsets: RELATION_OFFSETS,
 			topicOrder,
+			dragId: this._dragId || null,
 		};
 	}
 
@@ -205,6 +272,7 @@ class DeckIdeasMap extends DeckElement {
 		drawGraph(this._svg, this._state);
 		this._renderLegend();
 		this._applyScope();
+		this._wireSim();
 	}
 
 	disconnectedCallback() { this._sim && this._sim.stop(); }

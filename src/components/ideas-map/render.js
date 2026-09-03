@@ -90,6 +90,7 @@ export function drawGraph(svgOrEl, state) {
 		if (state.spotlight && !(spotIds.has(s.id) && spotIds.has(t.id))) strokeOpacity = 0.12;
 		gLinks.appendChild(make('line', {
 			class: 'link',
+			'data-s': s.id, 'data-t': t.id,
 			x1: s.x, y1: s.y, x2: t.x, y2: t.y,
 			stroke: 'var(--line)', 'stroke-width': 1.5,
 			'stroke-opacity': strokeOpacity,
@@ -105,7 +106,7 @@ export function drawGraph(svgOrEl, state) {
 			const w = id === act.from ? 1 : (act.weights.get(id) || 0);
 			const col = (state.colors.get(n.topics[0]) || {}).fill || 'var(--primary)';
 			gAtt.appendChild(make('circle', {
-				class: 'halo', cx: n.x, cy: n.y, r: NODE_R + 4 + w * 60,
+				class: 'halo', 'data-id': id, cx: n.x, cy: n.y, r: NODE_R + 4 + w * 60,
 				fill: col, 'fill-opacity': 0.18,
 			}));
 		}
@@ -157,12 +158,23 @@ export function drawGraph(svgOrEl, state) {
 		else if (dimBySpot) { attrs.opacity = 0.15; }
 		else if (dimByTag && !(state.spotlight && spotIds.has(n.id))) { attrs.opacity = 0.35; }
 
+		if (state.dragId) {
+			const nbr = new Set([state.dragId]);
+			for (const l of state.links) {
+				const sid = l.source.id ?? l.source; const tid = l.target.id ?? l.target;
+				if (sid === state.dragId) nbr.add(tid);
+				if (tid === state.dragId) nbr.add(sid);
+			}
+			attrs.class = 'node ' + (nbr.has(n.id) ? 'lit' : 'dim');
+			if (!nbr.has(n.id)) attrs.opacity = Math.min(attrs.opacity ?? 1, 0.3);
+		}
+
 		const hidden = revealHidden && revealHidden.has(n.topics[0]);
 		if (hidden) attrs.display = 'none';
 
 		if (!hidden && state.highlight.has(n.id)) {
 			gNodes.appendChild(make('circle', {
-				class: 'pulse', cx: n.x, cy: n.y, r: NODE_R + 6,
+				class: 'pulse', 'data-id': n.id, cx: n.x, cy: n.y, r: NODE_R + 6,
 				fill: 'none', stroke: 'var(--primary-strong)', 'stroke-width': 2,
 			}));
 		}
