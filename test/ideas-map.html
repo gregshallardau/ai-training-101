@@ -399,6 +399,33 @@
 			assert.strictEqual(king.fy, null, 'released on drop');
 		});
 
+		QUnit.module('a11y + theming + motion');
+
+		QUnit.test('svg has title and desc', (assert) => {
+			const el = mount();
+			assert.ok(el.shadowRoot.querySelector('svg > title'), 'title');
+			assert.ok(el.shadowRoot.querySelector('svg > desc'), 'desc');
+		});
+
+		QUnit.test('reduced motion => camera duration 0', (assert) => {
+			const el = mount();
+			el._state.reduced = true;               // force it for the assert
+			assert.strictEqual(el._dur('hero'), 0, 'hero duration collapses');
+		});
+
+		QUnit.test('theme change re-colours nodes', async (assert) => {
+			const done = assert.async();
+			const el = mount();
+			const before = el.shadowRoot.querySelector('g.nodes circle.node').getAttribute('fill');
+			document.documentElement.setAttribute('data-theme', 'dark');
+			requestAnimationFrame(() => {
+				const after = el.shadowRoot.querySelector('g.nodes circle.node').getAttribute('fill');
+				document.documentElement.removeAttribute('data-theme');
+				assert.notStrictEqual(before, after, 'fill tracked the theme');
+				done();
+			});
+		});
+
 		QUnit.start();
 </script>
 </body>

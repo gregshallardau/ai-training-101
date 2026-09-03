@@ -97,6 +97,18 @@ class DeckIdeasMap extends DeckElement {
 		this._applyScope(true);
 
 		this._wireSim();
+
+		// Live theme re-colour: a [data-theme] / class swap on <html> changes what
+		// `--primary` (and friends) resolve to, so recompute colours and redraw.
+		this._themeObserver = new MutationObserver(() => {
+			this._computeState();
+			this._renderLegend();
+			drawGraph(this._svg, this._state);
+		});
+		this._themeObserver.observe(document.documentElement, {
+			attributes: true,
+			attributeFilter: ['data-theme', 'class'],
+		});
 	}
 
 	/** (Re)attach the drag behaviour and the position-sync tick handler to the
@@ -207,6 +219,14 @@ class DeckIdeasMap extends DeckElement {
 			topicOrder,
 			dragId: this._dragId || null,
 		};
+
+		// a11y: keep <desc> describing whatever overlay is currently active.
+		const bits = [];
+		if (this._state.scope) bits.push(`focused on ${this._state.scope}`);
+		if (this._state.tag.size) bits.push(`tags: ${[...this._state.tag].join(', ')}`);
+		if (this._state.activate) bits.push(`constellation of ${this._state.activate.ids.size} ideas`);
+		this._svg.querySelector('desc').textContent =
+			bits.length ? bits.join('; ') : 'a force-directed map of ideas';
 	}
 
 	_parseActivate() {
@@ -275,7 +295,10 @@ class DeckIdeasMap extends DeckElement {
 		this._wireSim();
 	}
 
-	disconnectedCallback() { this._sim && this._sim.stop(); }
+	disconnectedCallback() {
+		this._sim && this._sim.stop();
+		this._themeObserver && this._themeObserver.disconnect();
+	}
 }
 
 customElements.define(DeckIdeasMap.tag, DeckIdeasMap);
