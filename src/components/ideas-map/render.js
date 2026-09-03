@@ -41,6 +41,8 @@ export function drawGraph(svgOrEl, state) {
 	const revealHidden = state.reveal == null ? null
 		: new Set(state.topicOrder.slice(state.reveal));
 
+	const tagged = state.scope ? new Set([...state.tag, state.scope]) : state.tag;
+
 	for (const l of state.links) {
 		const s = byId.get(l.source.id ?? l.source);
 		const t = byId.get(l.target.id ?? l.target);
@@ -57,7 +59,6 @@ export function drawGraph(svgOrEl, state) {
 	for (const n of state.nodes) {
 		const c = nodeColor(n, state);
 		const scopedOut = state.scope && n.topics[0] !== state.scope;
-		const tagged = state.scope ? new Set([...state.tag, state.scope]) : state.tag;
 		const dimByTag = tagged.size > 0 && !tagged.has(n.topics[0]);
 
 		const attrs = {
@@ -72,7 +73,7 @@ export function drawGraph(svgOrEl, state) {
 		const hidden = revealHidden && revealHidden.has(n.topics[0]);
 		if (hidden) attrs.display = 'none';
 
-		if (state.highlight.has(n.id)) {
+		if (!hidden && state.highlight.has(n.id)) {
 			gNodes.appendChild(make('circle', {
 				class: 'pulse', cx: n.x, cy: n.y, r: NODE_R + 6,
 				fill: 'none', stroke: 'var(--primary-strong)', 'stroke-width': 2,

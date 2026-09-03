@@ -78,9 +78,9 @@ class DeckIdeasMap extends DeckElement {
 		this.shadowRoot.appendChild(this._legend);
 
 		this._computeState();
+		this._renderLegend();
 		drawGraph(this._svg, this._state);
-		this._camera.zoomTo([W / 2, H / 2, W]);
-		this._applyScope();
+		this._applyScope(true);
 	}
 
 	_dur(kind) {
@@ -138,14 +138,17 @@ class DeckIdeasMap extends DeckElement {
 		drawGraph(this._svg, this._state);
 	}
 
-	_applyScope() {
+	_applyScope(instant = false) {
 		const shown = this._state.nodes.filter((n) =>
 			this._state.reveal == null
 			|| this._state.topicOrder.indexOf(n.topics[0]) < this._state.reveal);
 		const target = this._state.scope
 			? bboxOf(shown.filter((n) => n.topics[0] === this._state.scope), 90)
 			: bboxOf(shown, 90);
-		this._camera.easeTo([target.cx, target.cy, target.w], { duration: this._dur('hero') });
+		this._camera.easeTo(
+			[target.cx, target.cy, target.w],
+			{ duration: instant ? 0 : this._dur('hero') },
+		);
 	}
 
 	_rebuild({ reheat = false } = {}) {
@@ -158,6 +161,8 @@ class DeckIdeasMap extends DeckElement {
 		}
 		this._computeState();
 		drawGraph(this._svg, this._state);
+		this._renderLegend();
+		this._applyScope();
 	}
 
 	disconnectedCallback() { this._sim && this._sim.stop(); }

@@ -271,6 +271,20 @@
 			assert.strictEqual(outside.getAttribute('fill'), 'var(--muted)', 'muted fill');
 		});
 
+		QUnit.test('bare mount has a hidden, empty legend', (assert) => {
+			const el = mount();
+			const legend = el.shadowRoot.querySelector('.legend');
+			assert.ok(legend.hidden, 'legend div hidden with no tag/scope');
+			assert.strictEqual(legend.querySelectorAll('.row').length, 0, 'no rows');
+		});
+
+		QUnit.test('scope alone implies its own topic into the legend', (assert) => {
+			const el = mount();
+			el.setAttribute('scope', 'family');
+			const rows = el.shadowRoot.querySelectorAll('.legend .row');
+			assert.strictEqual(rows.length, 1, 'one row: the scoped topic');
+		});
+
 		QUnit.test('highlight rings the node', (assert) => {
 			const el = mount();
 			el.setAttribute('highlight', 'king,queen');
