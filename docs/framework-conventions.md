@@ -65,25 +65,31 @@ raw context-free values - `--color-*`, `--size-*`, `--radius-*`, `--font-*`,
 role names, each `var(--<primitive>)`. This is the API everything downstream uses:
 
 ```
---surface-bg  --surface-fg  --surface-fg-muted  --surface-line
---accent  --accent-strong  --accent-fg
+--bg  --fg  --muted  --line
+--primary  --primary-strong  --primary-fg
+--secondary  --secondary-strong  --secondary-fg
+--success  --success-fg   --danger  --danger-fg   --warning  --warning-fg
 --space-inline  --space-block  --space-gap
 --radius-control  --radius-card  --radius-round
 --font-heading  --font-body  --font-code
 --motion-hero-duration  --motion-hero-ease  --motion-ui-duration  --motion-ui-ease
 ```
 
+Naming follows the common Bootstrap / shadcn set.
+
 A `[data-theme="name"] { ... }` block re-points semantics at other primitives - that
 is the entire re-skin mechanism. Components and all JS consume **tier 2 only**;
 never a primitive, never a raw literal.
 
 **Deck look** (`deck.css`, repo root, `@layer deck`): the one file a deck author
-edits. A commented menu of the high-value knobs (`--accent`, `--accent-strong`,
-`--accent-fg`, `--surface-*`, `--font-*`, type scale) plus active
-`--text-root-size` (shipped 32px; the primitive default stays Reveal's 40px),
-deck-wide element tweaks (list type-scale), and the **utility classes**
-(`.text-accent`, `.text-muted`, `.text-center`, `.flex-cols`, `.flex-rows`,
-`.list-compact`, `.box`) - a framework surface a slide may use so it never needs
+edits. A commented menu of the high-value knobs (`--primary*`, `--secondary*`,
+status colours, `--bg` / `--fg` / `--muted` / `--line`, `--font-*`, type scale)
+plus active `--text-root-size` (shipped 32px; the primitive default stays
+Reveal's 40px), `--slide-padding`, deck-wide element tweaks (list type-scale),
+and the **utility classes** (`.text-primary`, `.text-muted`, `.text-center`,
+`.flex-cols`, `.flex-rows`, `.list-compact`, `.box` + `.border` / `.bar`,
+`.chip`, and the shared colour modifiers `.primary` / `.secondary` / `.success`
+/ `.danger` / `.warning`) - a framework surface a slide may use so it never needs
 its own `<style>` for common things. `@import`ed last by `src/styles/index.css`.
 Highest layer, so it wins with no `!important`. `skin-builder` still writes
 `[data-theme]` blocks to `semantic.css`, not here - this file is the single look

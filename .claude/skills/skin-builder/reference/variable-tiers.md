@@ -6,14 +6,22 @@ Defined in `src/styles/vars/semantic.css` `:root`. A `[data-theme]` block
 overrides any subset of these.
 
 ```
---surface-bg          page / slide background
---surface-fg          body text
---surface-fg-muted    secondary text
---surface-line        hairlines, borders, table rules
+--bg                   page / slide background
+--fg                   body + heading text
+--muted                secondary text
+--line                 hairlines, borders, table rules
 
---accent              primary accent (links, key fills)
---accent-strong       hover / pressed accent
---accent-fg           text/icon ON an accent fill
+--primary              the one brand colour (links, key fills)
+--primary-strong       hover / pressed
+--primary-fg           text/icon ON a solid --primary fill
+
+--secondary            quieter second colour
+--secondary-strong     hover / pressed
+--secondary-fg         text on a solid --secondary fill
+
+--success  --success-fg     green   status
+--danger   --danger-fg      red     status
+--warning  --warning-fg     amber   status
 
 --space-inline        default horizontal rhythm unit
 --space-block         default vertical rhythm unit
@@ -63,10 +71,10 @@ different base size.
 	/* ...existing :root and [data-theme="dark"]... */
 
 	[data-theme="acme"] {
-		--surface-bg: var(--color-paper-000);
-		--surface-fg: var(--color-acme-ink);      /* new primitive */
-		--accent: var(--color-acme-red-500);      /* new primitive */
-		--accent-strong: var(--color-acme-red-600);
+		--bg: var(--color-paper-000);
+		--fg: var(--color-acme-ink);      /* new primitive */
+		--primary: var(--color-acme-red-500);      /* new primitive */
+		--primary-strong: var(--color-acme-red-600);
 		--font-heading: var(--font-acme-display); /* new primitive */
 		--radius-card: var(--radius-0);           /* sharp feel */
 	}

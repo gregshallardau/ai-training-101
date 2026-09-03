@@ -29,7 +29,7 @@ after merging an upstream update.
 | Tier | File | What |
 |---|---|---|
 | 1 primitive | `src/styles/vars/primitives.css` | raw values (`--color-*`, `--size-*`, ...) |
-| 2 semantic  | `src/styles/vars/semantic.css`   | role names (`--surface-*`, `--accent`, ...) + `[data-theme]` skins |
+| 2 semantic  | `src/styles/vars/semantic.css`   | role names (`--bg`, `--fg`, `--primary`, ...) + `[data-theme]` skins |
 | theme map   | `src/styles/theme/deck.css`      | semantic -> Reveal's `--r-*` API (framework plumbing) |
 | deck look   | **`deck.css`** (repo root)       | the one file you edit per deck: brand knobs + deck-wide element tweaks |
 
@@ -39,7 +39,7 @@ properties / CSS variables - not "tokens".
 ### Making a deck your own
 
 Edit **`deck.css` at the repo root**. It carries a commented menu of brand knobs
-(`--accent`, `--surface-*`, `--font-*`, `--text-root-size`) - uncomment and
+(`--primary`, `--bg`, `--fg`, `--muted`, `--font-*`, `--text-root-size`) - uncomment and
 change - plus the deck-wide element tweaks (list sizing, etc.). It loads last, in
 `@layer deck` (the highest layer), so anything set there wins with no
 `!important`. The tiered files under `src/styles/vars/` hold the full system and

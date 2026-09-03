@@ -66,7 +66,7 @@ places the tag - no `<style>`, no behaviour. Need a new one? run `artefact-build
 <section id="<slug>" data-slug="<slug>">
 	<style>
 		#<slug> .thing {
-			color: var(--surface-fg);
+			color: var(--fg);
 			gap: var(--space-gap);
 			border-radius: var(--radius-card);
 			transition: opacity var(--motion-ui-duration) var(--motion-ui-ease);
@@ -82,7 +82,7 @@ places the tag - no `<style>`, no behaviour. Need a new one? run `artefact-build
 		addEventListener('load', () => {
 			const root = document.getElementById('<slug>');
 			const accent = getComputedStyle(document.documentElement)
-				.getPropertyValue('--accent').trim();
+				.getPropertyValue('--primary').trim();
 		});
 	</script>
 </section>
@@ -106,7 +106,7 @@ multiples of `--text-root-size`.
 | **Sub-heading** | `###` | `<h3>` | `1.15em` | `--r-heading3-size` |
 | Minor label | `####` | `<h4>` | `1em` | `--r-heading4-size` |
 | Body text | plain | `<p>` | `1em` (= `--text-root-size`), capped at `32em` wide | `--text-root-size` |
-| Secondary / caption | _(none)_ | `<p class="text-muted">` | - | `--surface-fg-muted` |
+| Secondary / caption | _(none)_ | `<p class="text-muted">` | - | `--muted` |
 | Smaller run of text | _(none)_ | `<small>` | `~0.6em` | - |
 | Bold | `**x**` | `<strong>` / `<b>` | - | - |
 | Italic | `*x*` | `<em>` / `<i>` | - | - |
@@ -118,7 +118,7 @@ Heading colour / font / weight / case / spacing:
 
 | Aspect | Default | Knob (`deck.css`) |
 |---|---|---|
-| Colour | `--surface-fg` | `--r-heading-color` |
+| Colour | `--fg` | `--r-heading-color` |
 | Font stack | `--font-heading` | `--r-heading-font` |
 | Weight | `600` | `--r-heading-font-weight` |
 | Case | `none` | `--r-heading-text-transform` |
@@ -149,9 +149,27 @@ Framework list rules (in `deck.css`, "Element tweaks"):
 | line-height | `1.3` | tighter than prose |
 
 Change these lines in `deck.css` to taste. To keep **one** list at full size,
-wrap it: `<div style="font-size: 1em"><ul>...</ul></div>`. A 20+ item menu is an
-authoring problem, not a CSS one - split the slide or put the list in CSS
-columns on that slide.
+wrap it: `<div style="font-size: 1em"><ul>...</ul></div>`.
+
+### Glossary / definitions
+
+Use a **`<dl>`** - not `<strong>` + a span, never a `.glossary-*` class. The
+framework styles `<dt>` (term, heading weight) and `<dd>` (definition, muted,
+directly under). For a wall of terms, add `.columns`:
+
+```html
+<dl class="columns box border">
+	<dt>Token</dt><dd>a chunk of text — a word or word-piece.</dd>
+	<dt>Vector</dt><dd>a direction and a distance; similar ideas point the same way.</dd>
+	…
+</dl>
+```
+
+### Newspaper columns
+
+`.columns` (2) / `.columns-3` flow the children of any block into columns -
+a glossary, a long term list. Pairs never split across a column. This is *not*
+`.flex-cols` (that's for a fixed number of equal side-by-side panels).
 
 ---
 
@@ -167,8 +185,8 @@ slide** - a normal slide must not assume its neighbours exist.
 
 | Aspect | Default | Knob (`deck.css`) |
 |---|---|---|
-| Link colour | `--accent` | `--accent` |
-| Hover / active | `--accent-strong` | `--accent-strong` |
+| Link colour | `--primary` | `--primary` |
+| Hover / active | `--primary-strong` | `--primary-strong` |
 
 ---
 
@@ -201,16 +219,29 @@ custom properties, so they follow a re-skin.
 
 | Class | Does |
 |---|---|
-| `.text-accent` | accent-colour text |
-| `.text-muted` | secondary / caption text (`--surface-fg-muted`) |
+| `.text-primary` | brand-colour text |
+| `.text-muted` | secondary / caption text (`--muted`) |
 | `.text-center` | centre-align (slide text defaults to left) |
-| `.flex-cols` | children side by side, equal width, `--space-block` gap |
-| `.flex-rows` | children stacked full width, `--space-block` gap |
+| `.flex-cols` / `.flex-rows` | children in a row / column, `--space-block` gap |
+| `.columns` / `.columns-3` | flow children into 2 / 3 newspaper columns (a `<dl>`, a long list) |
 | `.list-compact` | drop the gap between items of a list inside it |
-| `.box` | bordered, padded panel (`--surface-line`, `--radius-card`, `--space-block`) |
+| `.box` | white padded panel, no border |
+| `.box border` | + hairline border |
+| `.box bar` | no border, thick left bar — a callout / "the answer" block |
+| `.box primary` … | tinted fill (also `secondary` / `success` / `danger` / `warning`) |
+| `.chip` | inline text in a small box — a token / tag / keyword |
+| `.chip primary` … | solid coloured fill — the picked / emphasised one |
+| `.chip muted` | greyed, de-emphasised |
+
+**Colour modifiers** — `primary`, `secondary`, `success`, `danger`, `warning` —
+are bare classes you add after a block class: `class="box bar danger"`,
+`class="chip success"`. One word, works on every block.
 
 ```html
 <p class="text-muted">context for the slide</p>
+
+<p>Predicts <span class="chip primary">toward</span>, not
+<span class="chip muted">on</span> or <span class="chip">for</span>.</p>
 
 <div class="flex-cols">
 	<div class="box">
@@ -254,9 +285,9 @@ Attributes on `<section>` (in `.md`, use `<!-- .slide: ... -->`).
 
 | Attribute | Example |
 |---|---|
-| `data-background-color` | `data-background-color="var(--surface-fg)"` |
+| `data-background-color` | `data-background-color="var(--fg)"` |
 | `data-background-image` | `data-background-image="/public/hero.jpg"` |
-| `data-background-gradient` | `data-background-gradient="linear-gradient(to bottom, var(--accent), #000)"` |
+| `data-background-gradient` | `data-background-gradient="linear-gradient(to bottom, var(--primary), #000)"` |
 | `data-background-video` | `data-background-video="/public/clip.mp4"` |
 | `data-transition` | `data-transition="fade"` (`none` / `slide` / `convex` / `concave` / `zoom`) |
 | `data-auto-animate` | put on two consecutive `<section>`s - matching elements tween between them |
@@ -287,13 +318,13 @@ need in `deck.css`.
 
 | Knob | Role |
 |---|---|
-| `--surface-bg` | slide / page background |
-| `--surface-fg` | body + heading text |
-| `--surface-fg-muted` | secondary text |
-| `--surface-line` | hairlines, table rules, `<hr>` |
-| `--accent` | links, key fills, section accents |
-| `--accent-strong` | hover / pressed accent |
-| `--accent-fg` | text/icon on top of an `--accent` fill |
+| `--bg` | slide / page background |
+| `--fg` | body + heading text |
+| `--muted` | secondary text |
+| `--line` | hairlines, table rules, `<hr>` |
+| `--primary` / `--primary-strong` / `--primary-fg` | brand colour · hover · text-on-fill |
+| `--secondary` / `--secondary-strong` / `--secondary-fg` | second colour · hover · text-on-fill |
+| `--success` / `--danger` / `--warning` (+ `-fg`) | status colours |
 | `--space-inline` | horizontal rhythm unit |
 | `--space-block` | vertical rhythm unit (gap below headings, between blocks) |
 | `--space-gap` | small flex/grid gap |
@@ -311,12 +342,12 @@ A whole alternate palette (light + dark, per-client themes) is a
 
 | Change | Do this |
 |---|---|
-| Accent colour on one element | `class="text-accent"` on it |
+| Brand colour on one element | `class="text-primary"` on it |
 | A caption / secondary line | `class="text-muted"` |
 | Two things side by side | wrap them in `<div class="flex-cols">` |
 | A bordered box | `class="box"` |
-| Link / accent colour (whole deck) | `--accent` (+ `--accent-strong`) in `deck.css` |
-| Slide background colour | `--surface-bg` in `deck.css` |
+| Link / brand colour (whole deck) | `--primary` (+ `--primary-strong`) in `deck.css` |
+| Slide background colour | `--bg` in `deck.css` |
 | Body text size (whole deck) | `--text-root-size` in `deck.css` |
 | Sub-heading (`<h3>`) size | `--r-heading3-size` in `deck.css` |
 | Heading weight / capitalisation | `--r-heading-font-weight` / `--r-heading-text-transform` in `deck.css` |

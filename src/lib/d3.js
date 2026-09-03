@@ -9,7 +9,7 @@ import * as topojson from 'topojson-client';
  * Build a palette from CSS custom properties so a visualisation tracks the deck
  * theme and re-themes live when [data-theme] changes.
  *
- * @param {string[]} varNames  e.g. ['--accent', '--accent-strong', '--surface-fg-muted']
+ * @param {string[]} varNames  e.g. ['--primary', '--primary-strong', '--muted']
  * @returns {string[]} resolved colour strings
  */
 export function readPalette(varNames, root = document.documentElement) {

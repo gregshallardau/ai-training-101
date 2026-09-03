@@ -13,15 +13,27 @@
 		/* --- colour: neutral ramp --- */
 		--color-ink-900: #0b0c0e;
 		--color-ink-700: #24272e;
+		--color-ink-600: #3a3f4a;
 		--color-ink-500: #5b616e;
 		--color-ink-300: #9aa0ac;
 		--color-paper-100: #f6f7f9;
 		--color-paper-000: #ffffff;
 
-		/* --- colour: accent ramp --- */
+		/* --- colour: brand ramp --- */
 		--color-brand-600: #1d4ed8;
 		--color-brand-500: #2563eb;
 		--color-brand-400: #3b82f6;
+
+		/* --- colour: status ramps --- */
+		--color-green-600: #15803d;
+		--color-green-500: #16a34a;
+		--color-green-400: #22c55e;
+		--color-red-600: #b91c1c;
+		--color-red-500: #dc2626;
+		--color-red-400: #ef4444;
+		--color-amber-600: #b45309;
+		--color-amber-500: #d97706;
+		--color-amber-400: #f59e0b;
 
 		/* --- spacing scale (rem) --- */
 		--size-1: 0.25rem;

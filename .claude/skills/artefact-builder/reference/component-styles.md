@@ -12,7 +12,7 @@ boundary and follow a `[data-theme]` re-skin for free.
 /* ---- host ------------------------------------------------------------- */
 :host {
 	display: block;
-	color: var(--surface-fg);
+	color: var(--fg);
 	font: inherit;
 }
 
@@ -22,54 +22,88 @@ boundary and follow a `[data-theme]` re-skin for free.
 	padding: var(--space-gap) var(--space-inline);
 	border: 0;
 	border-radius: var(--radius-control);
-	background: var(--accent);
-	color: var(--accent-fg);
+	background: var(--primary);
+	color: var(--primary-fg);
 	cursor: pointer;
 	transition: opacity var(--motion-ui-duration) var(--motion-ui-ease);
 }
 .btn:hover { opacity: 0.9; }
 .btn:disabled { opacity: 0.4; cursor: default; }
-.btn.secondary {
+.btn.ghost {
 	background: transparent;
-	color: var(--accent);
-	border: 1px solid var(--surface-line);
+	color: var(--primary);
+	border: 1px solid var(--line);
 }
 
+/* ---- colour modifiers ------------------------------------------------- */
+/* Same as deck.css: a bare class picks a colour into --c / --c-fg, every
+   block below reads that pair. `class="chip primary"`, `class="chip danger"`. */
+.primary   { --c: var(--primary);   --c-fg: var(--primary-fg); }
+.secondary { --c: var(--secondary); --c-fg: var(--secondary-fg); }
+.success   { --c: var(--success);   --c-fg: var(--success-fg); }
+.danger    { --c: var(--danger);    --c-fg: var(--danger-fg); }
+.warning   { --c: var(--warning);   --c-fg: var(--warning-fg); }
+
 /* ---- chip / token pill -------------------------------------------------- */
+/* Same vocabulary as the slide-level .chip in deck.css. Neutral outline by
+   default; a colour modifier makes it a solid fill. .muted is the greyed
+   variant. A component may add a domain alias (.chip.ragged { } for a
+   "barely-seen token") on top. */
 .chip {
 	display: inline-block;
 	padding: 0.15em 0.5em;
-	border-radius: var(--radius-round);
-	border: 1px solid var(--accent);
-	background: color-mix(in srgb, var(--accent) 14%, transparent);
-	color: var(--surface-fg);
+	margin: 0.12em 0.2em 0.12em 0; /* gap between chips + wrapped rows */
+	border-radius: var(--radius-control);
+	border: 1px solid var(--c, var(--line));
+	background: color-mix(in srgb, var(--c, var(--muted)) 12%, transparent);
+	color: var(--fg);
 }
-.chip.ragged {                 /* "the model barely saw this" variant */
-	border-color: var(--surface-line);
-	background: color-mix(in srgb, var(--surface-fg-muted) 12%, transparent);
+.chip:is(.primary, .secondary, .success, .danger, .warning) {
+	background: var(--c);
+	color: var(--c-fg);
+}
+.chip.muted {
+	border-color: var(--line);
+	background: color-mix(in srgb, var(--muted) 10%, transparent);
+	color: var(--muted);
 }
 
 /* ---- muted note / caption ------------------------------------------- */
-.note { color: var(--surface-fg-muted); }
+.note { color: var(--muted); }
 
 /* ---- meter (confidence / progress bar) ------------------------------- */
 .meter {
 	height: 0.5em;
 	border-radius: var(--radius-round);
-	background: var(--surface-line);
+	background: var(--line);
 	overflow: hidden;
 }
 .meter > .fill {
 	height: 100%;
-	background: var(--accent);
+	background: var(--primary);
 	transition: width var(--motion-ui-duration) var(--motion-ui-ease);
 }
 
-/* ---- card / panel (same as the deck.css .box utility) ---------------- */
-.card {
-	border: 1px solid var(--surface-line);
-	border-radius: var(--radius-card);
+/* ---- box / panel (same as the deck.css .box utility) ---------------- */
+/* White & borderless by default; add .border, a colour modifier (tinted
+   fill), or .bar (thick left bar). */
+.box {
 	padding: var(--space-block);
+	border-radius: var(--radius-card);
+	background: var(--bg);
+	color: var(--fg);
+	margin-block: var(--space-block);
+}
+.box > :first-child { margin-top: 0; }
+.box > :last-child { margin-bottom: 0; }
+.box.border { border: 1px solid var(--c, var(--line)); }
+.box:is(.primary, .secondary, .success, .danger, .warning) {
+	background: color-mix(in srgb, var(--c) 8%, var(--bg));
+}
+.box.bar {
+	border: 0; border-radius: 0; background: none;
+	border-left: 4px solid var(--c, var(--line));
+	padding-left: var(--space-inline);
 }
 
 /* ---- row / column layout ------------------------------------------- */

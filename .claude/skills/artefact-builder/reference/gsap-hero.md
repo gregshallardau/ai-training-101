@@ -30,7 +30,7 @@ class DeckHeroTitle extends DeckElement {
 
 	static styles = `
 		:host { display: block; }
-		h1 { margin: 0; font: 700 var(--r-heading1-size, 2.5em)/1.1 var(--font-heading); color: var(--surface-fg); }
+		h1 { margin: 0; font: 700 var(--r-heading1-size, 2.5em)/1.1 var(--font-heading); color: var(--fg); }
 		.word { display: inline-block; will-change: transform, opacity; }
 	`;
 

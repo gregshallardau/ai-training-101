@@ -28,10 +28,10 @@ class DeckDiagram extends DeckElement {
 	static styles = `
 		:host { display: block; }
 		svg { width: 100%; height: auto; font: inherit; }
-		.box { fill: color-mix(in srgb, var(--accent) 10%, transparent); stroke: var(--accent); }
-		.box.muted { fill: none; stroke: var(--surface-line); }
-		.label { fill: var(--surface-fg); font-size: 16px; }
-		.edge { stroke: var(--surface-line); stroke-width: 2; marker-end: url(#arrow); }
+		.box { fill: color-mix(in srgb, var(--primary) 10%, transparent); stroke: var(--primary); }
+		.box.muted { fill: none; stroke: var(--line); }
+		.label { fill: var(--fg); font-size: 16px; }
+		.edge { stroke: var(--line); stroke-width: 2; marker-end: url(#arrow); }
 	`;
 
 	render() {
@@ -79,6 +79,6 @@ Slide: `<deck-diagram kind="layers"></deck-diagram>`
 - `viewBox` always; never a fixed pixel `width`/`height` on the `<svg>`.
 - Colour/stroke through a CSS class in `static styles`, not a hard-coded hex and
   not a presentation attribute holding `var(...)` (that does not resolve).
-- `<text>` fill = `var(--surface-fg)` / `var(--surface-fg-muted)` via a class.
+- `<text>` fill = `var(--fg)` / `var(--muted)` via a class.
 - Keep one `render_<kind>()` per diagram; add kinds, do not fork the component.
 - Genuinely reusable box/arrow CSS -> add it to `component-styles.md`.

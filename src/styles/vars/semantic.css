@@ -7,19 +7,36 @@
  * Each semantic is `var(--<primitive>)`. A [data-theme="name"] block re-points the
  * semantics at different primitives (or new ones) - that is the ENTIRE re-skin
  * mechanism. `skin-builder` appends new [data-theme] blocks here.
+ *
+ * Naming follows the common Bootstrap / shadcn set: bg / fg / muted / line for
+ * the neutral surface, then primary / secondary and the status roles
+ * success / danger / warning, each with a `-fg` for text on top of a fill.
  */
 @layer vars.semantic {
 	:root {
-		/* surfaces & text */
-		--surface-bg: var(--color-paper-000);
-		--surface-fg: var(--color-ink-900);
-		--surface-fg-muted: var(--color-ink-500);
-		--surface-line: var(--color-ink-300);
+		/* neutral surface & text */
+		--bg: var(--color-paper-000);
+		--fg: var(--color-ink-900);
+		--muted: var(--color-ink-500);
+		--line: var(--color-ink-300);
 
-		/* accent */
-		--accent: var(--color-brand-500);
-		--accent-strong: var(--color-brand-600);
-		--accent-fg: var(--color-paper-000);
+		/* primary - the one brand colour */
+		--primary: var(--color-brand-500);
+		--primary-strong: var(--color-brand-600); /* hover / pressed */
+		--primary-fg: var(--color-paper-000); /* text on a primary fill */
+
+		/* secondary - a quieter brand / neutral accent */
+		--secondary: var(--color-ink-600);
+		--secondary-strong: var(--color-ink-700);
+		--secondary-fg: var(--color-paper-000);
+
+		/* status */
+		--success: var(--color-green-600);
+		--success-fg: var(--color-paper-000);
+		--danger: var(--color-red-600);
+		--danger-fg: var(--color-paper-000);
+		--warning: var(--color-amber-500);
+		--warning-fg: var(--color-ink-900);
 
 		/* spacing */
 		--space-inline: var(--size-3);
@@ -48,12 +65,21 @@
 	 * Only the semantics that differ from :root are re-pointed.
 	 */
 	[data-theme="dark"] {
-		--surface-bg: var(--color-ink-900);
-		--surface-fg: var(--color-paper-100);
-		--surface-fg-muted: var(--color-ink-300);
-		--surface-line: var(--color-ink-700);
+		--bg: var(--color-ink-900);
+		--fg: var(--color-paper-100);
+		--muted: var(--color-ink-300);
+		--line: var(--color-ink-700);
 
-		--accent: var(--color-brand-400);
-		--accent-strong: var(--color-brand-500);
+		--primary: var(--color-brand-400);
+		--primary-strong: var(--color-brand-500);
+
+		--secondary: var(--color-ink-300);
+		--secondary-strong: var(--color-paper-100);
+		--secondary-fg: var(--color-ink-900);
+
+		--success: var(--color-green-400);
+		--danger: var(--color-red-400);
+		--warning: var(--color-amber-400);
+		--warning-fg: var(--color-ink-900);
 	}
 }
