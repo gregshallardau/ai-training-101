@@ -127,9 +127,17 @@
 		pointer-events: none;
 	}
 
-	/* footer: small, muted, body font. ~0.55x the slide's base text size. */
+	/* footer: fine print - small, muted, in the deck's body font. Longhands,
+	   NOT the `font` shorthand: the shorthand is invalid-at-computed-value if
+	   `--font-body` ever resolves oddly, which would drop the size too and
+	   the footer jumps to the full 32px base. 0.45em of the slide base
+	   (~14px in the 1920 space) reads as a caption. A deck that sets only
+	   --font-heading still gets the system stack here - set --font-body too
+	   for a fully-branded footer, or override .reveal .deck-footer in deck.css. */
 	.reveal .deck-footer {
-		font: 0.55em/1.3 var(--font-body);
+		font-family: var(--font-body);
+		font-size: 0.45em;
+		line-height: 1.4;
 		color: var(--muted);
 	}
 
