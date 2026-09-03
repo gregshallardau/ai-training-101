@@ -96,13 +96,13 @@
 		   If it's a webfont, <link> or @import it in index.html <head> first.
 		   Framework default: the system UI sans stack.
 		*/
-		/* --font-heading: "Your Font", ui-sans-serif, system-ui, sans-serif; */
+		--font-heading: Helvetica, ui-sans-serif, system-ui, sans-serif;
 
 		/* --font-body  ───────────────────────────────────────────────────
 		   Font stack for everything that isn't a heading or a code span.
 		   Framework default: the system UI sans stack.
 		*/
-		/* --font-body: "Your Font", ui-sans-serif, system-ui, sans-serif; */
+		--font-body: Helvetica, ui-sans-serif, system-ui, sans-serif;
 
 		/* --font-code  ───────────────────────────────────────────────────
 		   Font stack for <code>, <pre>, and syntax-highlighted blocks.
@@ -234,5 +234,60 @@
 		border: 1px solid var(--surface-line);
 		border-radius: var(--radius-card);
 		padding: var(--space-block);
+	}
+
+	/* ══════════════════════════════════════════════════════════════════════
+	   GLOSSARY  (shared by slides/05, 07, 10, 14, 31)
+	   Editorial "reference card" look: bold term, em dash, muted definition,
+	   in a left-aligned two-column layout with a hairline rule between. A
+	   slide puts these classes on a .glossary-book block and carries no
+	   <style> of its own — deck.css is the single home for the look, so every
+	   glossary slide stays in sync. Semantic custom properties only.
+	   ══════════════════════════════════════════════════════════════════════ */
+
+	/* dense reference text, generous side margins (slide text is left-aligned) */
+	.reveal .slides section .glossary-book {
+		font-size: 0.55em;
+		max-width: 88%;
+	}
+
+	/* hairline rule under the slide heading */
+	.reveal .slides section .glossary-book > .glossary-rule {
+		border: 0;
+		border-top: thin solid var(--surface-line);
+		margin: 0 0 calc(var(--space-block) * 0.9);
+	}
+
+	/* a single column; add .two for the full-wall two-column layout */
+	.reveal .slides section .glossary-cols {
+		columns: 1;
+	}
+	.reveal .slides section .glossary-cols.two {
+		columns: 2;
+		column-gap: calc(var(--space-inline) * 2.5);
+		column-rule: thin solid var(--surface-line);
+	}
+
+	/* one term: bold term, em dash, muted plain-English definition */
+	.reveal .slides section .glossary-entry {
+		break-inside: avoid;
+		margin: 0 0 calc(var(--space-block) * 0.8);
+		line-height: 1.4;
+	}
+	.reveal .slides section .glossary-term {
+		font-family: var(--font-heading);
+		font-weight: 700;
+	}
+	.reveal .slides section .glossary-def {
+		color: var(--surface-fg-muted);
+	}
+
+	/* small-caps chrome at the foot of the card */
+	.reveal .slides section .glossary-book > .glossary-foot {
+		margin: calc(var(--space-block) * 1.1) 0 0;
+		font-variant: small-caps;
+		letter-spacing: 0.08em;
+		font-size: 0.75em;
+		color: var(--surface-fg-muted);
 	}
 }
