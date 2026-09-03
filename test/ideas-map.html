@@ -17,6 +17,7 @@
 		import { DATASET, RELATION_OFFSETS } from '/src/components/ideas-map/dataset.js';
 		import { topicColors } from '/src/components/ideas-map/palette.js';
 		import { buildSimulation, topicCentroids } from '/src/components/ideas-map/simulation.js';
+		import { bboxOf, makeCamera } from '/src/components/ideas-map/camera.js';
 
 		const clone = (o) => JSON.parse(JSON.stringify(o));
 
@@ -152,6 +153,35 @@
 				Math.atan2(byId.get(b).y - byId.get(a).y, byId.get(b).x - byId.get(a).x));
 			const spread = Math.max(...angs) - Math.min(...angs);
 			assert.ok(spread < 0.25, `tense arrows near-parallel (spread ${spread.toFixed(3)} rad)`);
+		});
+
+		QUnit.module('camera');
+
+		QUnit.test('bboxOf centre and width', (assert) => {
+			const bb = bboxOf([{ x: 100, y: 100 }, { x: 300, y: 200 }], 0);
+			assert.deepEqual([bb.cx, bb.cy], [200, 150], 'centre');
+			assert.strictEqual(bb.w, 200, 'width = larger span');
+		});
+
+		QUnit.test('bboxOf empty -> whole field', (assert) => {
+			const bb = bboxOf([], 0);
+			assert.deepEqual([bb.cx, bb.cy, bb.w], [800, 500, 1600], 'defaults to full field');
+		});
+
+		QUnit.test('zoomTo sets a transform with the right scale', (assert) => {
+			const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+			const cam = makeCamera(g, 1600);
+			cam.zoomTo([800, 500, 800]);
+			const tr = g.getAttribute('transform');
+			assert.ok(/scale\(2\b/.test(tr), `scale is width/w = 2 (got "${tr}")`);
+			assert.deepEqual(cam.view(), [800, 500, 800], 'view() records last applied');
+		});
+
+		QUnit.test('easeTo duration 0 is immediate', (assert) => {
+			const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+			const cam = makeCamera(g, 1600);
+			cam.easeTo([400, 400, 400], { duration: 0 });
+			assert.ok(/scale\(4\b/.test(g.getAttribute('transform')), 'jumped straight to scale 4');
 		});
 
 		QUnit.start();
