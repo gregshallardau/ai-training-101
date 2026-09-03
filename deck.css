@@ -159,7 +159,7 @@
 		   base text size. Default 0.45em (~14px in the 1920 space). Lower for
 		   a discreet legal line, raise if it needs to be readable from the
 		   back row. */
-		/* --footer-size: 0.45em; */
+		--footer-size: 0.35em;
 
 		/* --footer-font
 		   Font stack for the footer line. Defaults to the deck's --font-body,
