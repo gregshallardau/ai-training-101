@@ -205,6 +205,21 @@
 	.reveal .slides section .text-muted {
 		color: var(--muted);
 	}
+	.reveal .slides section .text-success {
+		color: var(--success);
+	}
+
+	.reveal .slides section .text-warning {
+		color: var(--warning);
+	}
+
+	.reveal .slides section .text-danger {
+		color: var(--danger);
+	}
+
+	.reveal .slides section .text-secondary {
+		color: var(--secondary);
+	}
 
 	/* .text-center   centre-align (slide text defaults to left) */
 	.reveal .slides section .text-center {
