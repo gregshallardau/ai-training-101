@@ -27,7 +27,7 @@ export const DATASET = {
 		{ id: 'places',   name: 'Places' },
 		{ id: 'sciences', name: 'Sciences' },
 		{ id: 'grammar',  name: 'Word forms' },
-		{ id: 'music',    name: 'Music' },
+		{ id: 'music',    name: 'Music' },   // 'music' is intentionally both a topic id and a node id — the spec §4.2 cross-topic overlap pattern
 		{ id: 'arts',     name: 'Arts' },
 	],
 	nodes: [

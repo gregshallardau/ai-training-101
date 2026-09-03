@@ -249,6 +249,34 @@
 			assert.deepEqual([...shownTopics].sort(), first2.sort(), 'only first two topics visible');
 		});
 
+		QUnit.module('tag + scope + highlight');
+
+		QUnit.test('tag builds a legend and dims other topics', (assert) => {
+			const el = mount();
+			el.setAttribute('tag', 'family,places');
+			const rows = el.shadowRoot.querySelectorAll('.legend .row');
+			assert.strictEqual(rows.length, 2, 'one legend row per tagged topic');
+			const other = [...el.shadowRoot.querySelectorAll('g.nodes circle.node')]
+				.find((c) => c.dataset.topic === 'sciences');
+			assert.ok(Number(other.getAttribute('opacity')) <= 0.4, 'non-tagged topic dimmed');
+		});
+
+		QUnit.test('scope keeps out-of-scope nodes but mutes them', (assert) => {
+			const el = mount();
+			el.setAttribute('scope', 'family');
+			const circles = el.shadowRoot.querySelectorAll('g.nodes circle.node');
+			const outside = [...circles].find((c) => c.dataset.topic !== 'family');
+			assert.ok(outside, 'out-of-scope node still in the DOM');
+			assert.ok(Number(outside.getAttribute('opacity')) <= 0.2, 'and muted, not removed');
+			assert.strictEqual(outside.getAttribute('fill'), 'var(--muted)', 'muted fill');
+		});
+
+		QUnit.test('highlight rings the node', (assert) => {
+			const el = mount();
+			el.setAttribute('highlight', 'king,queen');
+			assert.strictEqual(el.shadowRoot.querySelectorAll('g.nodes circle.pulse').length, 2, 'two pulse rings');
+		});
+
 		QUnit.start();
 	</script>
 </body>

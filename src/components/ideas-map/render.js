@@ -23,7 +23,8 @@ function nodeColor(n, state) {
 function labelled(n, state) {
 	if (state.labelsMode === 'none' || state.labelsMode === 'topics') return false;
 	if (state.labelsMode === 'all') return true;
-	return true; // 'auto' — Task 8 refines with scope/highlight
+	// 'auto' — highlighted nodes always label; in-scope topic labels, else all
+	return state.highlight.has(n.id) || (state.scope ? n.topics[0] === state.scope : true);
 }
 
 export function drawGraph(svgOrEl, state) {
@@ -55,13 +56,28 @@ export function drawGraph(svgOrEl, state) {
 
 	for (const n of state.nodes) {
 		const c = nodeColor(n, state);
+		const scopedOut = state.scope && n.topics[0] !== state.scope;
+		const tagged = state.scope ? new Set([...state.tag, state.scope]) : state.tag;
+		const dimByTag = tagged.size > 0 && !tagged.has(n.topics[0]);
+
 		const attrs = {
 			class: 'node', 'data-id': n.id, 'data-topic': n.topics[0],
 			cx: n.x, cy: n.y, r: NODE_R,
-			fill: c.fill, stroke: c.stroke, 'stroke-width': 1.5,
+			fill: scopedOut ? 'var(--muted)' : c.fill,
+			stroke: c.stroke, 'stroke-width': 1.5,
 		};
+		if (scopedOut) attrs.opacity = 0.15;
+		else if (dimByTag) attrs.opacity = 0.35;
+
 		const hidden = revealHidden && revealHidden.has(n.topics[0]);
 		if (hidden) attrs.display = 'none';
+
+		if (state.highlight.has(n.id)) {
+			gNodes.appendChild(make('circle', {
+				class: 'pulse', cx: n.x, cy: n.y, r: NODE_R + 6,
+				fill: 'none', stroke: 'var(--primary-strong)', 'stroke-width': 2,
+			}));
+		}
 		gNodes.appendChild(make('circle', attrs));
 		if (hidden) continue; // no label
 		if (labelled(n, state)) {

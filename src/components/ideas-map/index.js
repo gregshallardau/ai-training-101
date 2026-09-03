@@ -4,7 +4,7 @@ import { d3 } from '@/lib/d3.js';
 import { W, H, DATASET, RELATION_OFFSETS, WARMUP } from './dataset.js';
 import { buildSimulation } from './simulation.js';
 import { topicColors } from './palette.js';
-import { makeCamera } from './camera.js';
+import { makeCamera, bboxOf } from './camera.js';
 import { drawGraph } from './render.js';
 
 class DeckIdeasMap extends DeckElement {
@@ -16,10 +16,27 @@ class DeckIdeasMap extends DeckElement {
 	];
 
 	static styles = `
-		:host { display: block; color: var(--fg); font: inherit; }
+		:host { display: block; color: var(--fg); font: inherit; position: relative; }
 		svg { width: 100%; height: auto; display: block; background: transparent; }
 		text { fill: var(--fg); }
 		circle.node { cursor: grab; }
+		.legend {
+			position: absolute; top: var(--space-gap); right: var(--space-gap);
+			background: var(--bg); border: 1px solid var(--line);
+			border-radius: var(--radius-card); padding: var(--space-gap);
+			display: flex; flex-direction: column; gap: var(--space-gap);
+		}
+		.legend[hidden] { display: none; }
+		.row { display: flex; gap: var(--space-gap); align-items: center; font-size: 0.8em; }
+		.row .chip {
+			display: inline-block; width: 0.8em; height: 0.8em; border-radius: var(--radius-round);
+		}
+		.btn.ghost {
+			font: inherit; position: absolute; bottom: var(--space-gap); right: var(--space-gap);
+			padding: var(--space-gap) var(--space-inline);
+			background: transparent; color: var(--primary);
+			border: 1px solid var(--line); border-radius: var(--radius-control); cursor: pointer;
+		}
 	`;
 
 	_readDataset() {
@@ -55,9 +72,39 @@ class DeckIdeasMap extends DeckElement {
 		this._camera = makeCamera(view, W);
 		this._data = this._readDataset();
 		this._sim = buildSimulation(this._data, { showLinks: this.hasAttribute('show-links') });
+		this._legend = document.createElement('div');
+		this._legend.className = 'legend';
+		this._legend.hidden = true;
+		this.shadowRoot.appendChild(this._legend);
+
 		this._computeState();
 		drawGraph(this._svg, this._state);
 		this._camera.zoomTo([W / 2, H / 2, W]);
+		this._applyScope();
+	}
+
+	_dur(kind) {
+		if (this._state.reduced) return 0;
+		const v = parseFloat(this.cssVar(kind === 'hero' ? '--motion-hero-duration' : '--motion-ui-duration'));
+		return Number.isFinite(v) ? v : (kind === 'hero' ? 600 : 150);
+	}
+
+	_renderLegend() {
+		const tags = this._state.scope
+			? new Set([...this._state.tag, this._state.scope])
+			: this._state.tag;
+		this._legend.textContent = '';
+		this._legend.hidden = tags.size === 0;
+		for (const id of tags) {
+			const t = this._data.topics.find((x) => x.id === id);
+			const row = document.createElement('div');
+			row.className = 'row';
+			const chip = document.createElement('span');
+			chip.className = 'chip';
+			chip.style.background = (this._state.colors.get(id) || {}).fill || 'var(--primary)';
+			row.append(chip, document.createTextNode(t ? t.name : id));
+			this._legend.appendChild(row);
+		}
 	}
 
 	_computeState() {
@@ -86,11 +133,20 @@ class DeckIdeasMap extends DeckElement {
 		if (name === 'data') { this._data = this._readDataset(); this._rebuild(); return; }
 		if (name === 'show-links') { this._rebuild({ reheat: true }); return; }
 		this._computeState();
-		if (this._state.scope) this._applyScope();
+		this._renderLegend();
+		this._applyScope();
 		drawGraph(this._svg, this._state);
 	}
 
-	_applyScope() {} // real body lands in Task 8
+	_applyScope() {
+		const shown = this._state.nodes.filter((n) =>
+			this._state.reveal == null
+			|| this._state.topicOrder.indexOf(n.topics[0]) < this._state.reveal);
+		const target = this._state.scope
+			? bboxOf(shown.filter((n) => n.topics[0] === this._state.scope), 90)
+			: bboxOf(shown, 90);
+		this._camera.easeTo([target.cx, target.cy, target.w], { duration: this._dur('hero') });
+	}
 
 	_rebuild({ reheat = false } = {}) {
 		this._sim && this._sim.stop();
