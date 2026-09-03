@@ -23,8 +23,9 @@ Authoring skills (in `.claude/skills/`), in workflow order: `presentation-planne
 (`<deck-*>` components) and `skin-builder` (`[data-theme]` skins) alongside.
 
 `artefact-builder` builds each `<deck-*>` from a kind recipe in its `reference/`
-folder (`d3-chart`, `svg-diagram`, `gsap-hero`, `alpine-interactive`), all
-drawing from one shared style vocabulary (`component-styles.md`).
+folder (`d3-chart`, `d3-circle-pack`, `svg-diagram`, `gsap-hero`,
+`alpine-interactive`), all drawing from one shared style vocabulary
+(`component-styles.md`).
 
 ## Credits
 
@@ -32,3 +33,6 @@ drawing from one shared style vocabulary (`component-styles.md`).
   [chrisvoncsefalvay/claude-d3js-skill](https://github.com/chrisvoncsefalvay/claude-d3js-skill)
   (MIT), re-homed onto this framework's shadow-DOM component + semantic-variable
   model.
+- `artefact-builder/reference/d3-circle-pack.md` follows d3's
+  [Zoomable circle packing](https://observablehq.com/@d3/zoomable-circle-packing)
+  example (ISC), similarly re-homed.

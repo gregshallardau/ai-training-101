@@ -117,8 +117,8 @@ hacks. `deck` (the root `deck.css`) is highest. Nothing of ours is left unlayere
   the shared style vocabulary in `artefact-builder/reference/component-styles.md` -
   never a bespoke per-component class pile.
 - A component may `import` from `@/lib/*`; a slide may not. `artefact-builder`
-  builds each one from a kind recipe (`d3-chart`, `svg-diagram`, `gsap-hero`,
-  `alpine-interactive`); Alpine markup in a shadow root needs
+  builds each one from a kind recipe (`d3-chart`, `d3-circle-pack`, `svg-diagram`,
+  `gsap-hero`, `alpine-interactive`); Alpine markup in a shadow root needs
   `Alpine.initTree(this.shadowRoot)` behind a ready-guard.
 - Register it: one `import './<kebab>/index.js';` line **and** one `COMPONENTS`
   entry in `src/components/registry.js`.

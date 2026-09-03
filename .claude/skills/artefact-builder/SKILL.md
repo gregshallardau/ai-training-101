@@ -3,8 +3,9 @@ name: artefact-builder
 description: >-
   Generate a canonical <deck-*> Custom Element for this reveal.js presentation
   framework - a reusable slide widget defined once and referenced by tag: a D3
-  chart, an SVG diagram, a GSAP hero animation, or an interactive Alpine demo
-  (stepper, quiz, meter, tokeniser-style click-through). Use when the user says
+  chart, a zoomable concept map / circle packing, an SVG diagram, a GSAP hero
+  animation, or an interactive Alpine demo (stepper, quiz, meter, tokeniser-style
+  click-through). Use when the user says
   "build me a component/widget", "new reusable slide element", "make a
   <deck-...>", "a chart/diagram/interactive component", "an animated demo", or
   "something reusable across slides". Creates src/components/<kebab>/index.js,
@@ -45,6 +46,7 @@ description: >-
    | Kind (from the purpose) | Recipe |
    |---|---|
    | chart, graph, plot, data-bound viz | `reference/d3-chart.md` |
+   | concept map, topics/ideas in space, circle packing, zoom-into-a-topic | `reference/d3-circle-pack.md` |
    | diagram, schematic, layers, flow, boxes-and-arrows, labelled picture | `reference/svg-diagram.md` |
    | hero title, section-break, one big entrance animation | `reference/gsap-hero.md` |
    | interactive: stepper, quiz, game, meter, tokeniser-style click-through | `reference/alpine-interactive.md` |
