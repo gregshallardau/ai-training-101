@@ -77,10 +77,19 @@ document.documentElement.dataset.theme = 'dark';
 
 A skin is a `[data-theme="<name>"]` block in `src/styles/vars/semantic.css`.
 
+## Docs
+
+- `docs/cheatsheet.md` - authoring reference: what tag / class / attribute to
+  write on a slide, and the knob that restyles it. Start here.
+- `docs/framework-conventions.md` - the architecture in full (custom-property
+  tiers, cascade layers, component + portability contracts, assembly).
+
 ## Authoring skills
 
-`.claude/skills/` - `slide-builder`, `artefact-builder`, `deck-builder`,
-`skin-builder`, plus the shared `framework-conventions.md` they all read first.
+`.claude/skills/` - `slide-builder` (add / edit / reorder slides),
+`artefact-builder` (`<deck-*>` components), `deck-builder` (scaffold a deck from
+an outline), `skin-builder` (`[data-theme]` skins). Each reads
+`docs/framework-conventions.md` first.
 
 ## Deviations from a plain reveal.js 6.0.1 checkout
 

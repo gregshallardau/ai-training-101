@@ -11,9 +11,8 @@ description: >-
 
 # deck-builder
 
-**Before anything: read `.claude/skills/framework-conventions.md`,
-`slides/README.md`, and
-`.claude/skills/slide-builder/reference/slide-templates.md`.**
+**Before anything: read `docs/framework-conventions.md`, `slides/README.md`, and
+`docs/cheatsheet.md`.**
 
 ## Inputs
 
@@ -25,7 +24,7 @@ description: >-
 
 ## Read (detect state)
 
-1. `framework-conventions.md`, `slides/README.md`, the slide templates.
+1. `docs/framework-conventions.md`, `slides/README.md`, `docs/cheatsheet.md`.
 2. The outline file.
 3. `slides/` current contents.
 4. `src/components/registry.js` - which `<deck-*>` already exist.
