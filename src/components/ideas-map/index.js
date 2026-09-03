@@ -81,8 +81,23 @@ class DeckIdeasMap extends DeckElement {
 		};
 	}
 
-	attributeChangedCallback() {
+	attributeChangedCallback(name) {
 		if (!this._upgraded) return;
+		if (name === 'data') { this._data = this._readDataset(); this._rebuild(); return; }
+		if (name === 'show-links') { this._rebuild({ reheat: true }); return; }
+		this._computeState();
+		if (this._state.scope) this._applyScope();
+		drawGraph(this._svg, this._state);
+	}
+
+	_rebuild({ reheat = false } = {}) {
+		this._sim && this._sim.stop();
+		this._sim = buildSimulation(this._data, { showLinks: this.hasAttribute('show-links') });
+		if (reheat) {
+			this._sim.alpha(0.6);
+			for (let i = 0; i < 160; i++) this._sim.tick();
+			this._sim.alpha(0).stop();
+		}
 		this._computeState();
 		drawGraph(this._svg, this._state);
 	}

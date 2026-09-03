@@ -37,11 +37,16 @@ export function drawGraph(svgOrEl, state) {
 
 	const byId = new Map(state.nodes.map((n) => [n.id, n]));
 
+	const revealHidden = state.reveal == null ? null
+		: new Set(state.topicOrder.slice(state.reveal));
+
 	for (const l of state.links) {
 		const s = byId.get(l.source.id ?? l.source);
 		const t = byId.get(l.target.id ?? l.target);
 		if (!s || !t) continue;
+		if (revealHidden && (revealHidden.has(s.topics[0]) || revealHidden.has(t.topics[0]))) continue;
 		gLinks.appendChild(make('line', {
+			class: 'link',
 			x1: s.x, y1: s.y, x2: t.x, y2: t.y,
 			stroke: 'var(--line)', 'stroke-width': 1.5,
 			'stroke-opacity': state.showLinks ? 0.55 : 0,
@@ -50,11 +55,14 @@ export function drawGraph(svgOrEl, state) {
 
 	for (const n of state.nodes) {
 		const c = nodeColor(n, state);
-		gNodes.appendChild(make('circle', {
+		const attrs = {
 			class: 'node', 'data-id': n.id, 'data-topic': n.topics[0],
 			cx: n.x, cy: n.y, r: NODE_R,
 			fill: c.fill, stroke: c.stroke, 'stroke-width': 1.5,
-		}));
+		};
+		if (revealHidden && revealHidden.has(n.topics[0])) attrs.display = 'none';
+		gNodes.appendChild(make('circle', attrs));
+		if (revealHidden && revealHidden.has(n.topics[0])) continue; // no label
 		if (labelled(n, state)) {
 			const t = make('text', {
 				class: 'node-label', x: n.x, y: n.y + NODE_R + 14,

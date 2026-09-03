@@ -228,6 +228,27 @@
 			assert.strictEqual(settle(b).querySelectorAll('g.labels text.node-label').length, DATASET.nodes.length, 'all');
 		});
 
+		QUnit.module('show-links + reveal');
+
+		QUnit.test('show-links makes edges visible', (assert) => {
+			const el = mount();
+			el.setAttribute('show-links', '');
+			const lines = el.shadowRoot.querySelectorAll('g.links line');
+			assert.ok(lines.length >= DATASET.links.length, 'at least the plain links draw');
+			assert.ok([...lines].some((l) => Number(l.getAttribute('stroke-opacity')) > 0), 'some edge visible');
+		});
+
+		QUnit.test('reveal="2" hides later topics', (assert) => {
+			const el = mount();
+			el.setAttribute('reveal', '2');
+			const shownTopics = new Set();
+			el.shadowRoot.querySelectorAll('g.nodes circle.node').forEach((c) => {
+				if (c.getAttribute('display') !== 'none') shownTopics.add(c.dataset.topic);
+			});
+			const first2 = DATASET.topics.slice(0, 2).map((t) => t.id);
+			assert.deepEqual([...shownTopics].sort(), first2.sort(), 'only first two topics visible');
+		});
+
 		QUnit.start();
 	</script>
 </body>
