@@ -13,7 +13,8 @@ Also worth knowing:
   scale), deck-wide element tweaks, and the utility classes (`.text-muted`,
   `.flex-cols`, `.box`, …). Each knob says where you'll see it.
 - **`deck.config.js`** (repo root) - the Reveal knobs a deck tunes: slide size,
-  transition, `slideNumber`, `hash`. The `src/` tree stays untouched.
+  transition, `slideNumber`, `hash`, and `chrome` (a logo + footer drawn on
+  every slide). The `src/` tree stays untouched.
 - **`slides/README.md`** - the slide numbering + portability contract in full.
 - **`src/components/README.md`** - the `<deck-*>` component contract.
 

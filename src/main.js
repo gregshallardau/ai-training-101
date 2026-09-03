@@ -18,14 +18,55 @@ import { initGsap } from '@/lib/gsap.js';
 import { initAlpine } from '@/lib/alpine.js';
 // d3.js is imported lazily by the components that use it.
 
+const { chrome, ...revealConfig } = deckConfig;
+
 const deck = new Reveal({
-	...deckConfig,
+	...revealConfig,
 	plugins: [RevealNotes, RevealMarkdown],
 });
 
 deck.initialize().then(() => {
+	if (chrome) mountChrome(chrome);
 	initGsap();
 	initAlpine();
 });
 
 window.Reveal = deck;
+
+/**
+ * Persistent deck chrome (logo + footer) from deck.config.js `chrome`.
+ * Appended to .reveal so it sits over every slide, outside the slide transform.
+ */
+function mountChrome({ logo, footer, hideOnTitle = true }) {
+	const root = document.querySelector('.reveal');
+
+	if (logo?.src) {
+		const el = document.createElement('div');
+		el.className = 'deck-logo';
+		el.dataset.pos = logo.position || 'top-right';
+		if (logo.height) el.style.setProperty('--logo-height', logo.height);
+		const img = document.createElement('img');
+		img.src = logo.src;
+		img.alt = logo.alt || '';
+		el.append(img);
+		root.append(el);
+	}
+
+	if (footer?.text) {
+		const el = document.createElement('div');
+		el.className = 'deck-footer';
+		el.dataset.pos = footer.position || 'bottom-left';
+		el.innerHTML = footer.text; // deck-author string; may carry simple markup
+		root.append(el);
+	}
+
+	const sync = () => {
+		const cur = deck.getCurrentSlide();
+		const hide =
+			cur?.hasAttribute('data-hide-chrome') ||
+			(hideOnTitle && deck.getIndices().h === 0 && deck.getIndices().v === 0);
+		root.classList.toggle('deck-chrome-hidden', !!hide);
+	};
+	deck.on('slidechanged', sync);
+	sync();
+}

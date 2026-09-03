@@ -311,6 +311,28 @@ hero). Defined once in `src/components/<name>/index.js`, listed in
 
 ---
 
+## Logo & footer (deck chrome)
+
+A logo and/or a footer line on every slide - set in **`deck.config.js`**, not on
+each slide:
+
+```js
+chrome: {
+	logo:   { src: '/logo.svg', alt: 'Acme', position: 'top-right', height: '4vh' },
+	footer: { text: '&copy; 2026 Acme &middot; Confidential', position: 'bottom-left' },
+	hideOnTitle: true,
+}
+```
+
+- Logo file goes in `public/` (served at `/`). `position`: any of `top-left`
+  `top-right` `top-center` `bottom-left` `bottom-right` `bottom-center` (logo
+  defaults `top-right`, footer `bottom-left`).
+- Hidden on the title slide by default (`hideOnTitle: false` to keep them). Any
+  slide opts out with `<section … data-hide-chrome>`.
+- Restyle `.reveal .deck-logo` / `.reveal .deck-footer` in `deck.css`.
+
+---
+
 ## The style knobs (semantic custom properties)
 
 Full role set - defaults in `src/styles/vars/semantic.css`, override the ones you
@@ -355,6 +377,7 @@ A whole alternate palette (light + dark, per-client themes) is a
 | List text too big / small | the `:is(ul, ol)` font-size in `deck.css` |
 | Fonts | `--font-heading` / `--font-body` in `deck.css` (load the webfont in `index.html` first) |
 | Slide size / default transition / slide numbers | `deck.config.js` (repo root) |
+| Logo / footer on every slide | `chrome` in `deck.config.js` |
 | A full brand theme / dark mode | run `skin-builder` → `[data-theme]` block in `semantic.css` |
 | Add a chart / diagram / animated widget | run `artefact-builder` → a `<deck-*>` |
 | Add / rewrite / reorder a slide | run `slide-builder` |
