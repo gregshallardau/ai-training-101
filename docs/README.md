@@ -21,3 +21,14 @@ Authoring skills (in `.claude/skills/`), in workflow order: `presentation-planne
 (interview -> `presentation-plan.md`) -> `deck-builder` (plan/outline ->
 `slides/` stubs) -> `slide-builder` (per-slide edits), with `artefact-builder`
 (`<deck-*>` components) and `skin-builder` (`[data-theme]` skins) alongside.
+
+`artefact-builder` builds each `<deck-*>` from a kind recipe in its `reference/`
+folder (`d3-chart`, `svg-diagram`, `gsap-hero`, `alpine-interactive`), all
+drawing from one shared style vocabulary (`component-styles.md`).
+
+## Credits
+
+- D3 chart technique in `artefact-builder/reference/d3-chart.md` is adapted from
+  [chrisvoncsefalvay/claude-d3js-skill](https://github.com/chrisvoncsefalvay/claude-d3js-skill)
+  (MIT), re-homed onto this framework's shadow-DOM component + semantic-variable
+  model.

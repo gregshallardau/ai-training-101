@@ -1,0 +1,152 @@
+# Recipe: chart artefact (D3)
+
+For **data-bound** visuals - bar, line, area, scatter, pie, and the layout
+families (hierarchies, chord, force, geo). Anything where marks are computed
+from data through scales.
+
+Not for: boxes-and-arrows (`svg-diagram.md`), a click-through demo
+(`alpine-interactive.md`).
+
+D3 technique below is adapted from
+<https://github.com/chrisvoncsefalvay/claude-d3js-skill> (MIT). The **technique**
+transfers; the **integration** does not - re-home every one of these:
+
+| Generic D3 idiom | This framework |
+|---|---|
+| `import * as d3` / CDN `d3.v7.min.js` | `import { d3 } from '@/lib/d3.js'` (lazy - only in a component) |
+| React `useEffect` / `svgRef` | `render()` + `attributeChangedCallback` on the DeckElement |
+| `d3.select('#chart')` | `d3.select(this.shadowRoot.querySelector('svg'))` |
+| `d3.select('body').append('div.tooltip')` | a tooltip `<div>` appended **inside** `this.shadowRoot`, positioned in host coords |
+| `"steelblue"`, `d3.schemeCategory10` | `this.cssVar('--accent')`, or `readPalette([...])` from `@/lib/d3.js` |
+| `window.addEventListener('resize', ...)` | `ResizeObserver` on `this`, redraw |
+| fixed `width`/`height` px | `viewBox="0 0 W H"` on the `<svg>`, CSS `width:100%` - it scales within the 1920x1080 slide |
+
+Add `role="img"` + `<title>`/`<desc>` to the `<svg>` for accessibility - that
+guidance from the source transfers directly.
+
+## Worked example - `<deck-chart kind="bar">`
+
+```js
+// src/components/chart/index.js
+import { DeckElement } from '../deck-element.js';
+import { d3, readPalette } from '@/lib/d3.js';
+
+const W = 800, H = 400, M = { top: 16, right: 16, bottom: 32, left: 40 };
+
+class DeckChart extends DeckElement {
+	static tag = 'deck-chart';
+	static observedAttributes = ['kind', 'data'];
+
+	static styles = `
+		:host { display: block; }
+		svg { width: 100%; height: auto; font: inherit; }
+		.axis text { fill: var(--surface-fg-muted); font-size: 12px; }
+		.axis path, .axis line { stroke: var(--surface-line); }
+		.tip {
+			position: absolute; pointer-events: none; opacity: 0;
+			padding: var(--space-gap) var(--space-inline);
+			border: 1px solid var(--surface-line); border-radius: var(--radius-control);
+			background: var(--surface-bg); color: var(--surface-fg); font-size: 0.8em;
+		}
+	`;
+
+	get data() {
+		try { return JSON.parse(this.getAttribute('data') || '[]'); }
+		catch { return []; }
+	}
+
+	render() {
+		this.style.position = 'relative';
+		const svg = d3.select(this.shadowRoot)
+			.append('svg')
+			.attr('viewBox', `0 0 ${W} ${H}`)
+			.attr('role', 'img')
+			.attr('aria-label', this.getAttribute('label') || 'chart');
+		svg.append('title').text(this.getAttribute('label') || 'chart');
+		this._tip = this.shadowRoot.appendChild(
+			Object.assign(document.createElement('div'), { className: 'tip' })
+		);
+		this._draw();
+
+		this._ro = new ResizeObserver(() => this._draw());
+		this._ro.observe(this);
+	}
+
+	disconnectedCallback() { this._ro?.disconnect(); }
+
+	attributeChangedCallback() {
+		if (!this._upgraded) return;
+		this.shadowRoot.querySelector('svg')?.querySelectorAll('g').forEach((n) => n.remove());
+		this._draw();
+	}
+
+	_draw() {
+		const data = this.data;
+		if (!data.length) return;
+		const [accent, muted] = readPalette(['--accent', '--surface-fg-muted']);
+		const svg = d3.select(this.shadowRoot.querySelector('svg'));
+		svg.selectAll('g').remove();
+
+		const iw = W - M.left - M.right, ih = H - M.top - M.bottom;
+		const g = svg.append('g').attr('transform', `translate(${M.left},${M.top})`);
+
+		const x = d3.scaleBand().domain(data.map((d) => d.label)).range([0, iw]).padding(0.15);
+		const y = d3.scaleLinear().domain([0, d3.max(data, (d) => d.value)]).nice().range([ih, 0]);
+
+		g.append('g').attr('class', 'axis').attr('transform', `translate(0,${ih})`).call(d3.axisBottom(x));
+		g.append('g').attr('class', 'axis').call(d3.axisLeft(y).ticks(5));
+
+		g.selectAll('rect').data(data).join('rect')
+			.attr('x', (d) => x(d.label)).attr('y', (d) => y(d.value))
+			.attr('width', x.bandwidth()).attr('height', (d) => ih - y(d.value))
+			.attr('fill', accent)
+			.on('mousemove', (e, d) => {
+				const r = this.getBoundingClientRect();
+				this._tip.style.opacity = 1;
+				this._tip.style.left = `${e.clientX - r.left + 8}px`;
+				this._tip.style.top = `${e.clientY - r.top + 8}px`;
+				this._tip.textContent = `${d.label}: ${d.value}`;
+			})
+			.on('mouseleave', () => (this._tip.style.opacity = 0));
+	}
+}
+
+customElements.define(DeckChart.tag, DeckChart);
+```
+
+Slide: `<deck-chart kind="bar" label="Renewals by month"
+data='[{"label":"Jan","value":12},{"label":"Feb","value":19}]'></deck-chart>`
+
+## Scales (quick reference)
+
+| Need | Scale |
+|---|---|
+| continuous number -> pixels | `d3.scaleLinear()` |
+| category -> band (bars) | `d3.scaleBand().padding(0.1)` |
+| category -> point (line/scatter x) | `d3.scalePoint()` |
+| dates -> pixels | `d3.scaleTime()` |
+| value -> sequential colour | `d3.scaleSequential(d3.interpolateBlues)` - but prefer `--accent` ramps |
+| exponential data | `d3.scaleLog()` |
+| circle area encoding | `d3.scaleSqrt()` |
+
+`.nice()` rounds a domain to tidy bounds. `y` range is `[innerHeight, 0]`
+(inverted for SVG).
+
+## Other mark types (swap into `_draw`)
+
+```js
+// line
+const line = d3.line().x((d) => x(d.date)).y((d) => y(d.value)).curve(d3.curveMonotoneX);
+g.append('path').datum(data).attr('fill', 'none').attr('stroke', accent).attr('stroke-width', 2).attr('d', line);
+
+// area
+const area = d3.area().x((d) => x(d.date)).y0(ih).y1((d) => y(d.value)).curve(d3.curveMonotoneX);
+g.append('path').datum(data).attr('fill', accent).attr('fill-opacity', 0.2).attr('d', area);
+
+// scatter
+g.selectAll('circle').data(data).join('circle')
+	.attr('cx', (d) => x(d.x)).attr('cy', (d) => y(d.y)).attr('r', 4).attr('fill', accent).attr('opacity', 0.7);
+```
+
+Transitions: `sel.transition().duration(parseFloat(this.cssVar('--motion-ui-duration')))`.
+For >1000 marks, draw to `<canvas>` instead of SVG.

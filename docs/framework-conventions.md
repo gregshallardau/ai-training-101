@@ -113,8 +113,13 @@ hacks. `deck` (the root `deck.css`) is highest. Nothing of ours is left unlayere
 - The class `extends DeckElement` (`src/components/deck-element.js`): `attachShadow`,
   idempotent `connectedCallback`, `static styles` (CSS string in Shadow DOM),
   `static tag`, `cssVar(name)` helper.
-- **Consume tier-2 semantic custom properties only** (plus Reveal's `--r-*`).
-- A component may `import` from `@/lib/*`; a slide may not.
+- **Consume tier-2 semantic custom properties only** (plus Reveal's `--r-*`), and
+  the shared style vocabulary in `artefact-builder/reference/component-styles.md` -
+  never a bespoke per-component class pile.
+- A component may `import` from `@/lib/*`; a slide may not. `artefact-builder`
+  builds each one from a kind recipe (`d3-chart`, `svg-diagram`, `gsap-hero`,
+  `alpine-interactive`); Alpine markup in a shadow root needs
+  `Alpine.initTree(this.shadowRoot)` behind a ready-guard.
 - Register it: one `import './<kebab>/index.js';` line **and** one `COMPONENTS`
   entry in `src/components/registry.js`.
 - **"Does component X exist?" is answered by reading `registry.js` alone.**
