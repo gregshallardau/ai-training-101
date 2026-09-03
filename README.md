@@ -30,15 +30,25 @@ after merging an upstream update.
 |---|---|---|
 | 1 primitive | `src/styles/vars/primitives.css` | raw values (`--color-*`, `--size-*`, ...) |
 | 2 semantic  | `src/styles/vars/semantic.css`   | role names (`--surface-*`, `--accent`, ...) + `[data-theme]` skins |
-| theme map   | `src/styles/theme/deck.css`      | semantic -> Reveal's `--r-*` API |
+| theme map   | `src/styles/theme/deck.css`      | semantic -> Reveal's `--r-*` API (framework plumbing) |
+| deck look   | **`deck.css`** (repo root)       | the one file you edit per deck: brand knobs + deck-wide element tweaks |
 
 Components, GSAP, D3 and Alpine consume **tier 2 only**. These are CSS custom
 properties / CSS variables - not "tokens".
 
+### Making a deck your own
+
+Edit **`deck.css` at the repo root**. It carries a commented menu of brand knobs
+(`--accent`, `--surface-*`, `--font-*`, `--text-root-size`) - uncomment and
+change - plus the deck-wide element tweaks (list sizing, etc.). It loads last, in
+`@layer deck` (the highest layer), so anything set there wins with no
+`!important`. The tiered files under `src/styles/vars/` hold the full system and
+sane defaults; `deck.css` is the 90% surface.
+
 ### Cascade layers (low -> high)
 
 ```
-reveal.reset, reveal.base, reveal.theme, vars.primitive, vars.semantic, theme, components
+reveal.reset, reveal.base, reveal.theme, vars.primitive, vars.semantic, theme, components, deck
 ```
 
 Reveal's own CSS is wrapped into the `reveal.*` layers by

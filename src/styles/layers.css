@@ -7,10 +7,13 @@
  *   reveal.theme   - Reveal's theme-template element rules (headings, links, tables...)
  *   vars.primitive - tier 1 CSS custom properties (raw values)   [declarations only]
  *   vars.semantic  - tier 2 CSS custom properties (role names)   [declarations only]
- *   theme          - deck-level look: maps semantics -> Reveal --r-* + element tweaks
+ *   theme          - framework plumbing: maps semantics -> Reveal --r-*
  *   components      - light-DOM component hooks (most component CSS is in Shadow DOM)
+ *   deck           - the root-level deck.css: deck brand knobs + element tweaks.
+ *                    Highest layer, so what a deck author writes wins with no
+ *                    !important or specificity games.
  *
  * Anything left UNLAYERED deliberately outranks every layer above - reserved as an
  * explicit escape hatch, used by nothing in the scaffold.
  */
-@layer reveal.reset, reveal.base, reveal.theme, vars.primitive, vars.semantic, theme, components;
+@layer reveal.reset, reveal.base, reveal.theme, vars.primitive, vars.semantic, theme, components, deck;

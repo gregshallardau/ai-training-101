@@ -7,8 +7,9 @@
  * consumes, each pointing at a semantic custom property, so re-skinning via
  * [data-theme] flows straight through to Reveal with no other edits.
  *
- * Add deck-wide element tweaks in the @layer theme block at the bottom; they
- * outrank @layer reveal.theme.
+ * This file is framework plumbing - the semantic -> --r-* map only. Deck-level
+ * look (brand colours, fonts, base type size, element tweaks) lives in the
+ * root-level deck.css, in @layer deck, which outranks everything here.
  */
 @layer theme {
 	:root {
@@ -53,30 +54,11 @@
 		--r-overlay-element-fg-color: 0, 0, 0;
 	}
 
-	/* deck-wide element tweaks (win over @layer reveal.theme) */
+	/* structural default - element look lives in root deck.css (@layer deck) */
 	.reveal .slides section {
 		text-align: left;
 	}
 	.reveal .slides section.stack {
 		text-align: initial;
-	}
-
-	/*
-	 * List type scale. Reveal's theme template leaves <li> at the full root size
-	 * (var(--text-root-size)) with 1.3 leading - fine for a 3-bullet demo, but any
-	 * content slide with a wrapping bullet or 6+ items runs off the slide. Step
-	 * list text down from prose, tighten leading, and give items their own rhythm
-	 * so a realistic bullet list fits. Deep-nested lists step down once more.
-	 * (A 20+ item jump menu is still an authoring problem, not a CSS one.)
-	 */
-	.reveal .slides section :is(ul, ol) {
-		font-size: 0.85em;
-		line-height: 1.3;
-	}
-	.reveal .slides section :is(ul, ol) :is(ul, ol) {
-		font-size: 0.92em;
-	}
-	.reveal .slides section li + li {
-		margin-top: 0.4em;
 	}
 }
