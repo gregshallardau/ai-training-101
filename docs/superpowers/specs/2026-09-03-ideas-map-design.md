@@ -32,7 +32,10 @@ Figure 2 / Table 1 regularities.
 - No live force simulation. Positions are authored, not computed.
 - No real embeddings / PCA bake step. (Authored coordinates only — same nature as
   the paper's arranged projection figures.)
-- No keyboard navigation of nodes. Noted for a later pass.
+- No keyboard navigation of nodes or arrows. Pointer click on an arrow (§6.3)
+  *is* in v1; the keyboard equivalent is the later pass.
+- No cross-slide state — a tagged move (§6.3) lives only on its slide; no
+  `Alpine.store`.
 - No per-word frequency sizing. All nodes are one size.
 - Slide placements beyond slide 3 are **follow-up slide work**, not part of this
   component build.
@@ -151,7 +154,7 @@ relation above with ≥3 pairs where the paper does; ~40–60 leaf nodes total.
 
 `class DeckIdeasMap extends DeckElement`, `static tag = 'deck-ideas-map'`.
 
-`static observedAttributes = ['data','focus','highlight','show-links','links','reveal','relation','vector','analogy','measure','label']`
+`static observedAttributes = ['data','focus','highlight','show-links','links','reveal','relation','vector','analogy','measure','tag','label']`
 
 | Attribute | Type | Effect | Absent |
 |---|---|---|---|
@@ -165,6 +168,7 @@ relation above with ≥3 pairs where the paper does; ~40–60 leaf nodes total.
 | `vector` | `a→b` / `a->b` / `a,b` | single labelled offset arrow a→b | none |
 | `analogy` | `a-b+c` | `a−b+c` ghost point, nearest-node ring, parallelogram guides, caption | none |
 | `measure` | `a,b` | segment a–b with midpoint distance label | none |
+| `tag` | `a→b` | arm a "same move" on load — identical to clicking that arrow (§6.3) | nothing armed |
 | `label` | string | `aria-label` / `<title>` of the svg | `"ideas in space"` |
 
 Tokens in `vector`, `analogy`, `measure` (and the pairs in `relation`) are all
@@ -213,6 +217,9 @@ One `<g class="camera">` receives the pan/zoom transform. Layers, bottom to top:
    `<line>` + `<marker>` triangle in `--primary-strong`; analogy ghost point is a
    hollow `--primary-strong` ring, the matched nearest node a solid `--success`
    ring with a short connector; guides are dashed `--muted`. Captions in `--fg`.
+   Every arrow in this layer carries `cursor: pointer` and a click handler (§6.3);
+   matched "same move" arrows render here too, at full `--primary-strong`, with
+   non-matches dropped to `--muted` low opacity.
 4. **nodes** — uniform `<circle r="7">`, fill `--primary`, `--primary-strong`
    stroke. A separate `<circle class="pulse">` per highlighted node.
 5. **labels** — `<text>` in `--fg`, `text-anchor` middle, dy just below the node,
@@ -238,6 +245,44 @@ One `<g class="camera">` receives the pan/zoom transform. Layers, bottom to top:
 Leaves/hulls/labels for domains after index N get `opacity: 0` and
 `pointer-events: none`; links with an endpoint in a hidden domain are also
 withheld. Camera fit considers visible leaves only.
+
+### 6.3 Same-move matching (click an arrow, or `tag`)
+
+The interaction that turns "a relationship is one constant vector" into something
+the room discovers rather than something the slide asserts.
+
+**Trigger.** Any arrow in the vector layer is clickable (`cursor: pointer`).
+Clicking one, or setting `tag="man→king"` (applied after render, re-run on
+change), arms that offset as the *reference move* `Δ = coord(b) − coord(a)`.
+
+**Search.** All ordered leaf pairs `(i, j)`, `i ≠ j`, over the currently visible
+nodes (`reveal` respected) — ~n² comparisons, trivial at this scale. A pair
+`(i, j)` is a match when both:
+
+- **direction:** angle between `coord(j) − coord(i)` and `Δ` ≤ `θ_TOL`
+- **magnitude:** `| ‖coord(j) − coord(i)‖ − ‖Δ‖ | ≤ m_TOL`
+
+Degenerate offsets (`‖·‖` below a floor) are skipped. `θ_TOL` (~8°) and `m_TOL`
+(~12 % of `‖Δ‖`) are JS constants, tuned during the build (§11). This pool is
+**every possible pair**, not just curated `relations` — so a near-miss can show
+up, which is a feature: word analogies are not perfect and the map should be
+honest about that.
+
+**Render.** Draw an arrow for every match in `--primary-strong`, ring their
+endpoint nodes; drop all other arrows, nodes, and labels to `--muted` low
+opacity. A DOM readout (`.box.bar` + `.note` from `component-styles.md`) names
+the move and the count: `man → king  ·  same move: 6 pairs`. If the reference
+move coincides with a named relation from §4.3, the readout adds its label
+(`looks like: gender`).
+
+**Clear.** Clicking the background (recipe idiom: `svg.on('click', …)`) returns
+to whatever the attributes describe — `relation` / `vector` / `focus` state is
+re-asserted, not lost. Removing `tag` does the same.
+
+**Scope.** Session-only, single slide — no persistence, no `Alpine.store`. A
+later slide that wants the same move re-declares `tag=` (or `relation=`).
+Pointer only in v1; a keyboard equivalent is the same later pass as node
+keyboard-nav. Honors reduced motion (instant, no fade).
 
 ## 7. Determinism, theming, motion, a11y
 
@@ -283,12 +328,19 @@ root `deck.css`.
   `analogy="king-man+woman"` rings `queen` with guides + caption;
   `reveal="2"` shows two domains; `highlight="gene,cell"` pulses two nodes;
   `measure="cell,gene"` shows a distance.
-- **`prefers-reduced-motion`** emulation: no tweens, static rings.
+- **Same-move (§6.3):** clicking the `man→king` arrow highlights `woman→queen`
+  (and any other pair at that offset) and dims the rest with a readout;
+  `tag="man→king"` produces the identical state on load; clicking the background
+  restores the prior `relation` / `focus` state.
+- **`prefers-reduced-motion`** emulation: no tweens, static rings, instant
+  same-move highlight.
 - **`[data-theme="dark"]`** on the section: palette tracks.
 - **`test/ideas-map.html` (QUnit):** component upgrades; `DATASET` parses; every
   `links` / `relations` endpoint id resolves to a real leaf; every leaf has
-  numeric `x`/`y`; `analogy` parser handles `a-b+c`; `attributeChangedCallback`
-  does not re-create node geometry (positions stable across a `focus` change).
+  numeric `x`/`y`; `analogy` parser handles `a-b+c`; the same-move matcher
+  returns the expected set for a known `Δ` within tolerance (and excludes
+  off-axis pairs); `attributeChangedCallback` does not re-create node geometry
+  (positions stable across a `focus` change).
 
 ## 10. Build path
 
@@ -315,5 +367,8 @@ mandatory (artefact-builder's own opening instruction).
 
 - Final word list per region and the exact authored coordinates (the plan's first
   task: lay out ~40–60 words on paper/grid so each relation's pairs are parallel).
+- `θ_TOL` / `m_TOL` for same-move matching (§6.3) — start ~8° / ~12 %, tune
+  against the real coordinate set so `gender` matches cleanly without dragging in
+  unrelated pairs.
 - Whether slide 6's placement lands in this branch or a follow-up (default:
   follow-up).
