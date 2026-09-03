@@ -247,20 +247,26 @@ const RELATION_OFFSETS = {
 
 ```jsonc
 "contexts": {
-  "customer-email": {
-    "from": "question",
-    "nodes": ["question", "recipient", "tone", "product", "deadline", "policy"],
-    "weights": { "product": 1, "policy": 0.9, "tone": 0.7, "deadline": 0.5, "recipient": 0.4 }
-  }
+  "role":     { "from": "question", "nodes": ["question","tone","audience"],           "weights": { "tone": 0.6, "audience": 0.5 } },
+  "industry": { "nodes": ["sector","regulation","jargon","competitor"],                "weights": { "sector": 0.9, "regulation": 0.7 } },
+  "product":  { "nodes": ["product","spec","price","warranty","policy"],               "weights": { "product": 1, "spec": 0.9, "policy": 0.8 } }
 }
 ```
 
 A context is a **saved activation set**: which nodes light up, an optional `from`
-node the attention edges fan out of, and optional per-node `weights` (0–1) that
-scale the attention-edge width and the node halo. `activate="customer-email"`
-(§5) plays it; `activate` can also take a raw csv of node ids for an ad-hoc
-constellation. Unknown node id ⇒ `console.warn`, skipped. Purely visual — no
-force change (§7).
+node the attention edges fan from, and optional per-node `weights` (0–1) that
+scale the attention-edge width and the node halo.
+
+- `activate="product"` plays one; `activate` can also take a raw csv of node ids.
+- **`activate="role,industry,product"` composes** — the union of all three
+  `nodes`, weights summed per node, then **renormalised so the attention from
+  `from` still sums to a constant** (the fixed budget, §6 layer 3). A focused,
+  heavily-weighted layer therefore pulls budget toward its region and the
+  vaguer layers thin out — the "adding specific context sharpens attention"
+  effect. Adding an off-topic layer visibly bleeds budget to junk.
+- Optional `order: [...]` on a context gives its nodes a reading sequence for the
+  `sequence` / `causal` overlays (§12).
+- Unknown node id ⇒ `console.warn`, skipped. Purely visual — no force change (§7).
 
 ## 5. Component API
 
@@ -277,14 +283,18 @@ force change (§7).
 | `scope` | one topic id | camera eases to fit that topic's nodes; out-of-scope nodes → `--muted` @ ~0.15 (kept, not hidden — the overlap stays visible); implies `tag` of that topic | camera fits whole graph |
 | `highlight` | csv of node ids | ring each; pull their labels forward; dim the rest slightly | nothing highlighted |
 | `spotlight` | a `rel` id (from §4.4) | draw the **offset arrow** for every pair in that relationship — parallel and equal because `forceRelations` made them so, and **across every topic the relationship touches** (family, animals, work…) — dim everything not involved | no arrows |
-| `activate` | a `contexts` key **or** csv of node ids | light the listed nodes (halo + brighten, staggered), fade every other node to a dim "star" (~0.12); draw the **attention** layer (§6, layer 3) among them; this is the star-map → constellation move | nothing activated — plain star map |
+| `activate` | one or more `contexts` keys (csv) **or** csv of node ids | light the listed nodes (halo + brighten, staggered), fade every other node to a dim "star" (~0.12); draw the **attention** layer (§6, layer 3) among them; multiple context keys compose (§4.5). The star-map → constellation move. | nothing activated — plain star map |
 | `attention-from` | one node id | the attention edges fan from this node to the rest of the activated set (overrides the context's `from`); absent ⇒ context `from`, else the activated set is connected as a light mesh | per context / mesh |
 | `constellation` | boolean | also draw the "connect-the-dots" outline — a thin polyline through the activated nodes in list order — for the literal constellation look | attention edges only |
 | `label` | string | `aria-label` / `<title>` of the svg | `"ideas in space"` |
 
 `tag`, `scope`, `highlight`, `spotlight`, `activate` are independent and stack.
 Progressive reveal across fragments = a slide grows its `activate` list step by
-step (or swaps to successively larger `contexts` keys).
+step (or stacks more `contexts` keys — §4.5).
+
+**Deferred attributes** (`budget`, `heads`, `sequence`, `causal`, `layer`,
+`matrix`) are spec'd in **§12** and not built in v1; each extends
+`observedAttributes` if/when a slide calls for it.
 
 ### 5.1 Drag
 
@@ -335,12 +345,15 @@ from `zoomTo`. Layers, bottom to top:
    drop to ~0.15. Present only while `spotlight` is set.
 3. **attention** — on `activate`: for the activated set, either edges **fanning
    from** `attention-from` / the context `from` node to each other activated node,
-   or (no `from`) a light mesh among them. Stroke `--primary-strong`, width scaled
-   by the node's `weight` (0–1 → 1…4), `stroke-opacity` ~0.8, drawn with a quick
-   sweep (`--motion-ui`). If `constellation`, add a thin `--primary-strong`
-   polyline through the activated nodes in list order. Activated nodes get a halo
-   (`<circle>` blur/soft ring in the node's hue, radius ∝ weight); every
-   non-activated node drops to a `--muted` "star" at ~0.12.
+   or (no `from`) a light mesh among them. **Fixed budget:** the fan edge widths
+   from one query are **normalised to sum to a constant** — so growing the
+   activated set (or composing context layers) *redistributes* width, it does not
+   just add more bright lines. Width `1…5` per normalised weight,
+   `stroke-opacity` ~0.8, `--primary-strong`, drawn with a quick sweep
+   (`--motion-ui`). If `constellation`, add a thin `--primary-strong` polyline
+   through the activated nodes in list (or `order`) order. Activated nodes get a
+   halo (`<circle>` soft ring in the node's hue, radius ∝ normalised weight);
+   every non-activated node drops to a `--muted` "star" at ~0.12.
 4. **nodes** — `<circle r="NODE_R">`. Fill: **always** the node's first-topic
    colour from the categorical scale (§7); under `scope`, out-of-scope nodes →
    `--muted` @ 0.15; under `tag`, non-tagged topics → their colour @ ~0.35; under
@@ -532,3 +545,28 @@ mandatory.
   (`activate=…` growing), plus tag/scope/spotlight beats. That mapping is a
   slide-work follow-up, not this component build.
 - Confirm drag **releases** on drop (current default) vs pins until clicked off.
+- Which of the §12 transformer overlays (if any) land in the first build vs stay
+  spec'd-only.
+
+## 12. Optional transformer overlays (pre-accounted, deferred)
+
+From *Attention Is All You Need* (Vaswani et al. 2017). **Spec'd here so they can
+be switched on later without a redesign** — none are built in v1 unless a slide
+needs one. Each is a pure visual overlay on the same graph (no force change), and
+each extends `observedAttributes` when adopted.
+
+| Overlay | Attribute(s) | Behaviour | Data it needs | Teaching beat |
+|---|---|---|---|---|
+| **Fixed attention budget** | `budget` | show a small meter — "attention: 100%, split N ways" — next to the fan; makes the §6 layer-3 normalisation explicit: as the activated set grows the meter's slices get thinner | none (normalisation already default) | "you can only keep so much on topic at once; junk context steals the budget" |
+| **Multi-head** | `heads="2..4"` | draw the fan as N overlaid sets in N distinct hues, each head selecting edges by a different rule (0 = `rel` steps, 1 = same-topic proximity, 2 = association links, 3 = long-range / cross-topic); a head legend | a `HEADS` constant mapping head→rule | "the model looks several ways at once" |
+| **Sequence / position** | `sequence` | activated nodes get ordinal badges; the `constellation` polyline follows `order` (reading order), not list order; a faint baseline shows the sequence | `contexts[].order` | "order isn't inherent — it's added" |
+| **Causal mask** | `causal` (needs `sequence`) | a query's fan edges reach only **earlier**-index nodes; forward edges greyed to ~0.1 | `order` | "it builds the answer left-to-right from what's already there" |
+| **Layers ×N** | `layer="1..6"` | each step re-weights: raise normalised weights to a power and re-normalise, so the constellation **tightens** — strong edges thicken, weak ones fade | none | "look again, sharper — six times over" |
+| **Attention matrix** | `matrix` | swap the readout for a small N×N heat grid of the activated set, row = query, col = key, cell = weight | none | the literal Fig-3 view; a bit technical |
+
+**Context-layers composition** (already in §4.5, not deferred): `activate` accepts
+several comma-separated `contexts` keys; their `nodes` union and `weights` sum,
+then the fan renormalises. A specific, heavily-weighted layer pulls budget toward
+its region; a vague layer spreads it; an off-topic layer bleeds it to junk. This
+is the visual for the "add a layer of specific context → more lights *and*
+sharper attention" story on the context-builder slides.

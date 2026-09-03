@@ -111,6 +111,16 @@
 		margin-top: 32px; display: grid; gap: 22px;
 		grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
 	}
+	.sleeve-head {
+		margin: 56px 0 4px; padding-top: 26px; border-top: 1px solid var(--hair);
+	}
+	.sleeve-head .eyebrow { color: var(--accent); }
+	.sleeve-head h2 {
+		font: 700 clamp(22px, 3.4vw, 30px)/1.1 "Archivo", sans-serif;
+		margin: 10px 0 4px; letter-spacing: -0.015em;
+	}
+	.sleeve-head p { margin: 6px 0 0; color: var(--muted); font-size: 14px; max-width: 62ch; }
+	figure.sleeve { border-style: dashed; }
 	figure {
 		margin: 0; background: var(--panel); border: 1px solid var(--hair);
 		border-radius: 14px; overflow: hidden; display: flex; flex-direction: column;
@@ -174,6 +184,17 @@
 
 	<div class="legend" id="legend"><h2>Legend</h2></div>
 	<div class="board" id="board"></div>
+
+	<div class="sleeve-head">
+		<div class="eyebrow">Up the sleeve · not committed</div>
+		<h2>Transformer beats</h2>
+		<p>
+			From <a href="https://proceedings.neurips.cc/paper_files/paper/2017/file/3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf">Attention Is All You Need</a>.
+			Spec'd as optional attributes (design §12) so any of these can be brought
+			into a slide later without a redesign. None are built yet.
+		</p>
+	</div>
+	<div class="board" id="board2"></div>
 
 	<footer>
 		Static mock — no simulation running. Node positions are hand-placed to look
@@ -302,7 +323,7 @@
 
 	// ---- render one frame ----------------------------------------------
 	function frame(o) {
-		o = Object.assign({ links: false, tags: [], scope: null, spotlight: null, steps: false, drag: null, labelAll: false, activate: null, attnFrom: null, constellation: false }, o);
+		o = Object.assign({ links: false, tags: [], scope: null, spotlight: null, steps: false, drag: null, labelAll: false, activate: null, attnFrom: null, constellation: false, heads: false, causal: false, sequence: false, budget: false, readout: null }, o);
 		const act = o.activate ? new Set(o.activate) : null;
 		const svg = el('svg', { viewBox: `0 0 ${VB.w} ${VB.h}`, role: 'img' });
 		const fg = css('--m-fg'), muted = css('--m-muted'), line = css('--m-line');
@@ -368,18 +389,36 @@
 			const ids = o.activate;
 			const from = o.attnFrom;
 			const g = el('g');
-			// halos
+			// fixed budget: raw weights (decreasing), normalised to sum 1
+			const raw = ids.map((id, i) => (id === from ? 0 : 1 / (i + 1)));
+			const tot = raw.reduce((a, b) => a + b, 0) || 1;
+			const wnorm = raw.map((v) => v / tot);
+			// halos (radius ∝ normalised weight, so a big set = small halos)
 			ids.forEach((id, i) => {
 				const [px, py] = P(...N[id].slice(0, 2));
-				const w = from ? (id === from ? 1 : 0.9 - i * 0.13) : 0.7;
-				g.appendChild(el('circle', { cx: px, cy: py, r: R + 5 + w * 5, fill: css(TOPIC_COLOR[N[id][2]]), 'fill-opacity': 0.18 }));
+				const w = id === from ? 1 : wnorm[i] * ids.length * 0.6;
+				g.appendChild(el('circle', { cx: px, cy: py, r: R + 4 + w * 6, fill: css(TOPIC_COLOR[N[id][2]]), 'fill-opacity': 0.18 }));
 			});
-			// attention edges
-			if (from) {
+			// heads: N coloured fans, each a different rule; else single fan / mesh
+			const HEAD_C = ['--m-primary-strong', '--m-r2', '--m-r3'];
+			if (o.heads && from) {
 				const pf = P(...N[from].slice(0, 2));
-				ids.filter((id) => id !== from).forEach((id, i) => {
+				const rules = [
+					ids.filter((id) => stepRels().some((pr) => pr[0] === from && pr[1] === id || pr[1] === from && pr[0] === id)),
+					ids.filter((id) => id !== from && N[id][2] === N[from][2]),
+					ids.filter((id) => id !== from && N[id][2] !== N[from][2]),
+				];
+				rules.forEach((set, h) => set.forEach((id) => {
 					const pt = P(...N[id].slice(0, 2));
-					g.appendChild(el('line', { x1: pf[0], y1: pf[1], x2: pt[0], y2: pt[1], stroke: strong, 'stroke-width': 3.4 - i * 0.5, 'stroke-opacity': 0.8, 'stroke-linecap': 'round' }));
+					g.appendChild(el('line', { x1: pf[0] + (h - 1) * 2, y1: pf[1], x2: pt[0], y2: pt[1], stroke: css(HEAD_C[h]), 'stroke-width': 2.4, 'stroke-opacity': 0.75, 'stroke-linecap': 'round' }));
+				}));
+			} else if (from) {
+				const pf = P(...N[from].slice(0, 2));
+				ids.forEach((id, i) => {
+					if (id === from) return;
+					if (o.causal && i > ids.indexOf(from)) return;   // causal: earlier only
+					const pt = P(...N[id].slice(0, 2));
+					g.appendChild(el('line', { x1: pf[0], y1: pf[1], x2: pt[0], y2: pt[1], stroke: strong, 'stroke-width': 1 + wnorm[i] * 14, 'stroke-opacity': 0.8, 'stroke-linecap': 'round' }));
 				});
 			} else {
 				for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) {
@@ -387,13 +426,35 @@
 					g.appendChild(el('line', { x1: p1[0], y1: p1[1], x2: p2[0], y2: p2[1], stroke: strong, 'stroke-width': 1.4, 'stroke-opacity': 0.55 }));
 				}
 			}
-			// constellation outline
+			// constellation outline (reading order)
 			if (o.constellation) {
 				const pts = ids.map((id) => P(...N[id].slice(0, 2)).join(',')).join(' ');
 				g.appendChild(el('polyline', { points: pts, fill: 'none', stroke: strong, 'stroke-width': 1, 'stroke-dasharray': '2 4', 'stroke-opacity': 0.7 }));
 			}
+			// sequence: ordinal badges
+			if (o.sequence) ids.forEach((id, i) => {
+				const [px, py] = P(...N[id].slice(0, 2));
+				const t = el('text', { x: px + R + 4, y: py - R - 2, 'font-family': '"IBM Plex Mono", monospace', 'font-size': 8.5, fill: muted });
+				t.textContent = i + 1;
+				g.appendChild(t);
+			});
+			// budget meter
+			if (o.budget) {
+				const mx = 14, my = VB.h - 84, mw = 150;
+				const lab = el('text', { x: mx, y: my - 4, 'font-family': '"IBM Plex Mono", monospace', 'font-size': 9, fill: muted });
+				lab.textContent = `attention budget · split ${ids.length - (from ? 1 : 0)} ways`;
+				g.appendChild(lab);
+				g.appendChild(el('rect', { x: mx, y: my, width: mw, height: 8, fill: 'none', stroke: line }));
+				let cx = mx;
+				wnorm.forEach((w, i) => {
+					if (ids[i] === from) return;
+					const seg = w * mw;
+					g.appendChild(el('rect', { x: cx, y: my, width: Math.max(0.5, seg - 1), height: 8, fill: css(TOPIC_COLOR[N[ids[i]][2]]) }));
+					cx += seg;
+				});
+			}
 			svg.appendChild(g);
-			readout(svg, [from ? `attention from · ${from}` : `activate · ${ids.length} ideas`,
+			readout(svg, o.readout || [from ? `attention from · ${from}` : `activate · ${ids.length} ideas`,
 				'these light up; everything else fades to a star',
 				'add more context → more of the constellation'], strong);
 		}
@@ -494,11 +555,38 @@
 			opts: { links: true, activate: ['king', 'queen', 'father', 'uncle', 'france', 'paris'], attnFrom: 'king', constellation: true } },
 	];
 
-	const board = document.getElementById('board');
-	function build() {
-		board.textContent = '';
-		FRAMES.forEach((f) => {
+	const SLEEVE = [
+		{ step: 'S1', title: 'Fixed attention budget', attrs: ['budget'],
+			sees: 'A 100% bar split among the lit ideas. Six ideas → six fat slices. Add six more and every slice — and every fan edge — gets thinner.',
+			teaches: 'You can only hold so much on topic at once. Irrelevant context steals budget from what matters.',
+			opts: { links: true, budget: true, constellation: false, attnFrom: 'king',
+				activate: ['king', 'queen', 'father', 'uncle', 'france', 'paris', 'italy', 'rome', 'gene', 'cell', 'music', 'walk'],
+				readout: ['attention · one fixed pool', 'more lit ideas → thinner slice each', 'junk context dilutes the signal'] } },
+		{ step: 'S2', title: 'Context layers sharpen it', attrs: ['activate="role,industry,product"'],
+			sees: 'Each context layer lights its own cluster; because the budget is fixed, the most specific layer pulls the fan toward its region and the vaguer ones thin out.',
+			teaches: 'Add a layer of specific context → more lights AND sharper attention. The visual argument for "you are a context builder".',
+			opts: { links: true, attnFrom: 'king', constellation: true,
+				activate: ['king', 'father', 'uncle', 'france', 'paris', 'rome'],
+				readout: ['+ role  + industry  + product', 'union lights up, budget renormalises', 'specific layer wins the attention'] } },
+		{ step: 'S3', title: 'Multi-head', attrs: ['heads="3"'],
+			sees: 'Three fans from the same query in three colours — one follows the relationship steps, one stays inside the topic, one reaches across topics.',
+			teaches: 'The model looks several ways at once: syntax, nearby meaning, and long-range links, in parallel.',
+			opts: { links: true, heads: true, attnFrom: 'king',
+				activate: ['king', 'queen', 'father', 'uncle', 'france', 'paris'],
+				readout: ['3 heads · 3 lenses on the same words', 'step · same-topic · long-range', 'run in parallel, then combined'] } },
+		{ step: 'S4', title: 'Sequence + causal mask', attrs: ['sequence', 'causal'],
+			sees: 'The lit ideas get an order (badges); the connect-the-dots line is reading order; attention from a word only reaches earlier words.',
+			teaches: 'Order is added, not built in — and the answer is built left-to-right from what is already there.',
+			opts: { links: true, sequence: true, constellation: true, causal: true, attnFrom: 'paris',
+				activate: ['king', 'father', 'france', 'paris', 'rome', 'italy'],
+				readout: ['position is added, not inherent', 'attention: earlier words only', 'answer builds left → right'] } },
+	];
+
+	function build(list, mount, sleeve) {
+		mount.textContent = '';
+		list.forEach((f) => {
 			const fig = document.createElement('figure');
+			if (sleeve) fig.className = 'sleeve';
 			const top = document.createElement('div');
 			top.className = 'cap-top';
 			top.innerHTML = `<div class="step">${f.step}</div><h3>${f.title}</h3>`;
@@ -519,7 +607,7 @@
 			bot.innerHTML = `<div class="row"><dt>Sees</dt><dd>${f.sees}</dd></div>` +
 				`<div class="row"><dt>Teaches</dt><dd>${f.teaches}</dd></div>`;
 			fig.append(top, frm, bot);
-			board.appendChild(fig);
+			mount.appendChild(fig);
 		});
 	}
 
@@ -549,7 +637,13 @@
 		});
 	}
 
-	function renderAll() { build(); legend(); }
+	const board = document.getElementById('board');
+	const board2 = document.getElementById('board2');
+	function renderAll() {
+		build(FRAMES, board, false);
+		build(SLEEVE, board2, true);
+		legend();
+	}
 	renderAll();
 
 	document.getElementById('themebtn').addEventListener('click', () => {
