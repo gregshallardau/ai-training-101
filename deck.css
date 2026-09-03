@@ -301,21 +301,10 @@
 
 	/* ══════════════════════════════════════════════════════════════════════
 	   GLOSSARY  (shared by slides/05, 07, 10, 14, 31)
-	   A glossary entry is just a term in <strong> and a definition in the
-	   framework's .text-muted utility, joined by an em dash — no bespoke
-	   class needed. The only thing that needs CSS is the two-column layout
-	   of the full wall, which uses CSS multi-columns with a hairline rule
-	   between the columns.
+	   A glossary term is a <dt> and its definition a <dd>, inside a <dl>. The
+	   framework's theme styles that as a glossary already (term in heading
+	   weight, definition in muted, tight — src/styles/theme/deck.css), and the
+	   .columns utility flows the full wall into two columns (above). No
+	   bespoke glossary classes are needed.
 	   ══════════════════════════════════════════════════════════════════════ */
-
-	/* two-column full wall; add `.two` to the container */
-	.reveal .slides section .glossary-cols.two {
-		columns: 2;
-		column-gap: calc(var(--space-inline) * 2.5);
-		column-rule: thin solid var(--line);
-	}
-	/* keep a definition from splitting across the two columns */
-	.reveal .slides section .glossary-cols.two > p {
-		break-inside: avoid;
-	}
 }
