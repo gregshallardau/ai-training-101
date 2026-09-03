@@ -16,6 +16,9 @@
 		import '/src/components/ideas-map/index.js';
 		import { DATASET, RELATION_OFFSETS } from '/src/components/ideas-map/dataset.js';
 		import { topicColors } from '/src/components/ideas-map/palette.js';
+		import { buildSimulation, topicCentroids } from '/src/components/ideas-map/simulation.js';
+
+		const clone = (o) => JSON.parse(JSON.stringify(o));
 
 		const mount = () => {
 			const el = document.createElement('deck-ideas-map');
@@ -85,6 +88,43 @@
 				[...topicColors(['a', 'b'], r).entries()],
 				'same input -> same output',
 			);
+		});
+
+		QUnit.module('simulation');
+
+		QUnit.test('seeded layout is deterministic', (assert) => {
+			const a = buildSimulation(clone(DATASET), { seed: 123, warmup: 60 });
+			const b = buildSimulation(clone(DATASET), { seed: 123, warmup: 60 });
+			const pa = a.nodes().map((n) => [Math.round(n.x), Math.round(n.y)]);
+			const pb = b.nodes().map((n) => [Math.round(n.x), Math.round(n.y)]);
+			assert.deepEqual(pa, pb, 'same seed -> same settled positions');
+		});
+
+		QUnit.test('no NaN positions', (assert) => {
+			const s = buildSimulation(clone(DATASET), { seed: 7, warmup: 80 });
+			assert.ok(s.nodes().every((n) => Number.isFinite(n.x) && Number.isFinite(n.y)), 'all finite');
+		});
+
+		QUnit.test('nodes cluster near their topic centroid', (assert) => {
+			const ds = clone(DATASET);
+			const s = buildSimulation(ds, { seed: 42, warmup: 200 });
+			const cents = topicCentroids(ds.nodes, ds.topics);
+			const globalC = { x: 800, y: 500 };
+			let closer = 0;
+			for (const n of s.nodes()) {
+				const c = cents.get(n.topics[0]);
+				const dC = Math.hypot(n.x - c.x, n.y - c.y);
+				const dG = Math.hypot(n.x - globalC.x, n.y - globalC.y);
+				if (dC < dG + 120) closer++;
+			}
+			assert.ok(closer / s.nodes().length > 0.7, 'most nodes sit toward their topic centroid');
+		});
+
+		QUnit.test('link force only present with showLinks', (assert) => {
+			const off = buildSimulation(clone(DATASET), { seed: 1, warmup: 5, showLinks: false });
+			const on = buildSimulation(clone(DATASET), { seed: 1, warmup: 5, showLinks: true });
+			assert.strictEqual(off.force('link'), undefined, 'no link force by default');
+			assert.ok(on.force('link'), 'link force added with showLinks');
 		});
 
 		QUnit.start();
