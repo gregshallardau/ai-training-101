@@ -9,13 +9,20 @@
 ## 1. Purpose
 
 One recurring visual that threads the whole deck: a **map of meaning**, drawn as a
-**force-directed graph** of ideas. It starts (slide 3, "Ideas in Space") as loose
-clusters of disconnected word-nodes grouped by topic — "our brain keeps different
-ideas in different places; similar things sit together, and the groups overlap."
-Later slides drive the *same* graph from slide attributes: switch the association
-web on (slide 6, "Word Association Game") and watch related words pull together;
-**tag** a topic so it takes a legend colour; **zoom** into a tagged topic so the
-view scopes down to just that idea and its neighbours.
+**force-directed graph** of ideas. Its arc across the deck:
+
+1. **Star map** (slide 3, "Ideas in Space") — loose clusters of dim, disconnected
+   word-nodes grouped by topic. "Our brain keeps different ideas in different
+   places; similar things sit together, and the groups overlap."
+2. **Association web** (slide 6, "Word Association Game") — the link force switches
+   on and related words wire together and pull closer.
+3. **Constellation** (the context slides) — as each layer of context is added, the
+   ideas it touches **activate** (brighten, halo) and **attention** edges light up
+   between them. A shape emerges from the star field: the lit subgraph *is* what
+   the model is attending to. More context → more of the constellation appears.
+
+Along the way, slide attributes also **tag** a topic (legend colour + emphasis)
+and **scope** the camera into one topic while the rest stays faintly visible.
 
 The concept behind it is **Mikolov et al. 2013** (word2vec):
 
@@ -236,11 +243,30 @@ const RELATION_OFFSETS = {
 - Dataset is expected to grow to **~20+ topics / 150+ nodes** over the deck; the
   data shape and the colour scale (§7) must scale to that.
 
+### 4.5 `contexts` — named constellations (the context slides)
+
+```jsonc
+"contexts": {
+  "customer-email": {
+    "from": "question",
+    "nodes": ["question", "recipient", "tone", "product", "deadline", "policy"],
+    "weights": { "product": 1, "policy": 0.9, "tone": 0.7, "deadline": 0.5, "recipient": 0.4 }
+  }
+}
+```
+
+A context is a **saved activation set**: which nodes light up, an optional `from`
+node the attention edges fan out of, and optional per-node `weights` (0–1) that
+scale the attention-edge width and the node halo. `activate="customer-email"`
+(§5) plays it; `activate` can also take a raw csv of node ids for an ad-hoc
+constellation. Unknown node id ⇒ `console.warn`, skipped. Purely visual — no
+force change (§7).
+
 ## 5. Component API
 
 `class DeckIdeasMap extends DeckElement`, `static tag = 'deck-ideas-map'`.
 
-`static observedAttributes = ['data','show-links','reveal','tag','scope','highlight','spotlight','label']`
+`static observedAttributes = ['data','show-links','reveal','tag','scope','highlight','spotlight','activate','attention-from','constellation','label']`
 
 | Attribute | Type | Effect | Absent |
 |---|---|---|---|
@@ -251,9 +277,14 @@ const RELATION_OFFSETS = {
 | `scope` | one topic id | camera eases to fit that topic's nodes; out-of-scope nodes → `--muted` @ ~0.15 (kept, not hidden — the overlap stays visible); implies `tag` of that topic | camera fits whole graph |
 | `highlight` | csv of node ids | ring each; pull their labels forward; dim the rest slightly | nothing highlighted |
 | `spotlight` | a `rel` id (from §4.4) | draw the **offset arrow** for every pair in that relationship — parallel and equal because `forceRelations` made them so, and **across every topic the relationship touches** (family, animals, work…) — dim everything not involved | no arrows |
+| `activate` | a `contexts` key **or** csv of node ids | light the listed nodes (halo + brighten, staggered), fade every other node to a dim "star" (~0.12); draw the **attention** layer (§6, layer 3) among them; this is the star-map → constellation move | nothing activated — plain star map |
+| `attention-from` | one node id | the attention edges fan from this node to the rest of the activated set (overrides the context's `from`); absent ⇒ context `from`, else the activated set is connected as a light mesh | per context / mesh |
+| `constellation` | boolean | also draw the "connect-the-dots" outline — a thin polyline through the activated nodes in list order — for the literal constellation look | attention edges only |
 | `label` | string | `aria-label` / `<title>` of the svg | `"ideas in space"` |
 
-`tag`, `scope`, `highlight`, `spotlight` are independent and stack.
+`tag`, `scope`, `highlight`, `spotlight`, `activate` are independent and stack.
+Progressive reveal across fragments = a slide grows its `activate` list step by
+step (or swaps to successively larger `contexts` keys).
 
 ### 5.1 Drag
 
@@ -272,9 +303,23 @@ This is "drag an idea around to see what it's linked to."
 
 `attributeChangedCallback` (after `_upgraded`): the node/link **data and settled
 positions are not rebuilt** — only forces toggle (`show-links`), the camera tween
-runs (`scope`), and layer colours/opacities recompute (`tag` / `highlight` /
-`spotlight`). Cheap on every fragment step. `data` changing is the one case that
-tears down and rebuilds the simulation.
+runs (`scope`), and layer colours/opacities/overlays recompute (`tag` /
+`highlight` / `spotlight` / `activate`). Cheap on every fragment step. `data`
+changing is the one case that tears down and rebuilds the simulation.
+
+### 5.3 `labels` + the live label toggle
+
+| Attribute | Effect |
+|---|---|
+| `labels` | `none` — no node labels (bare star map, for talking over regions and planting seeds); `topics` — only the topic captions; `all` — every node labelled; `auto` (default) — the §6 layer-5 rules (labels on where the view is legible; in-scope + `highlight` + dragged neighbourhood otherwise) |
+
+`labels` sets the **initial** state. A small **toggle control** rides in a corner
+of the component (shadow-DOM `<button class="btn ghost">` from
+`component-styles.md`, `Aa` glyph) that flips node labels on/off live during the
+talk without needing a fragment — so slide 3 can be walked with labels off, then
+switched on in the moment. The toggle's state resets to the `labels` attribute
+when the slide is re-shown (idempotent mount). Hidden under
+`prefers-reduced-motion`? No — it is a control, not motion; it stays.
 
 ## 6. Rendering
 
@@ -288,18 +333,27 @@ from `zoomTo`. Layers, bottom to top:
    in `--primary-strong` from each pair's source to target; a short `--muted`
    caption near the first arrow (`one step = <rel>`). Non-involved nodes/links
    drop to ~0.15. Present only while `spotlight` is set.
+3. **attention** — on `activate`: for the activated set, either edges **fanning
+   from** `attention-from` / the context `from` node to each other activated node,
+   or (no `from`) a light mesh among them. Stroke `--primary-strong`, width scaled
+   by the node's `weight` (0–1 → 1…4), `stroke-opacity` ~0.8, drawn with a quick
+   sweep (`--motion-ui`). If `constellation`, add a thin `--primary-strong`
+   polyline through the activated nodes in list order. Activated nodes get a halo
+   (`<circle>` blur/soft ring in the node's hue, radius ∝ weight); every
+   non-activated node drops to a `--muted` "star" at ~0.12.
 4. **nodes** — `<circle r="NODE_R">`. Fill: **always** the node's first-topic
    colour from the categorical scale (§7); under `scope`, out-of-scope nodes →
-   `--muted` @ 0.15; under `tag`, non-tagged topics → their colour @ ~0.35. Stroke
-   a darkened form of the same hue. `<circle class="pulse">` behind each
-   `highlight` node.
+   `--muted` @ 0.15; under `tag`, non-tagged topics → their colour @ ~0.35; under
+   `activate`, non-activated → `--muted` @ ~0.12. Stroke a darkened form of the
+   same hue. `<circle class="pulse">` behind each `highlight` node.
 5. **labels** — `<text>` in `--fg`, `text-anchor` middle, dy below the node,
-   `font: inherit`. All labels show when the graph is small enough; under
-   `scope`, only in-scope + `highlight` labels; a dragged node's neighbourhood
-   always labels.
-6. **legend** (DOM, not SVG) — an absolutely-positioned `<div>` inside the shadow
-   root, built from `.row` + `.chip` (`component-styles.md`): one row per tagged
-   topic, a colour swatch + `topic.name`. Hidden when `tag`/`scope` unset.
+   `font: inherit`. Governed by `labels` (§5.3) / the live toggle: `none` → none;
+   `topics` → topic captions only; `all` → every node; `auto` → legible-view
+   rule, plus in-scope / `highlight` / activated / dragged-neighbourhood always.
+6. **controls & legend** (DOM, not SVG) — absolutely-positioned inside the shadow
+   root: the label toggle `<button class="btn ghost">` (§5.3) in one corner; the
+   legend (`.row` + `.chip` from `component-styles.md`, one row per tagged topic,
+   swatch + name) in another, shown only when `tag`/`scope` set.
 
 A `simulation.on('tick', …)` handler updates line endpoints and node
 `transform`s. On a settled graph (no re-heat active) there is no ticking — it is
@@ -338,6 +392,10 @@ only revealed nodes, so the frame grows sensibly as topics come in.
   is `SEED` + `WARMUP`-determined: recognisably the same shape, not
   pixel-identical, and a drag nudges that slide's instance until re-mount.
   Accepted trade for overlap + drag.
+- **`activate` / `labels` are pure overlays** — they never touch the simulation
+  or node positions, only opacities, halos, the attention layer, and which
+  `<text>` render. So the constellation lights up in exactly the same place every
+  time and costs nothing to toggle mid-talk.
 - **Theming & the topic colour scale:** `readPalette` at render and inside the
   draw pass so a live `[data-theme]` swap re-colours. Structure colours are
   semantic custom properties: `--bg --fg --muted --line --primary
@@ -366,7 +424,7 @@ only revealed nodes, so the frame grows sensibly as topics come in.
 
 | File | Change |
 |---|---|
-| `src/components/ideas-map/index.js` | **new** — class, `DATASET`, force sim, drag, camera, legend |
+| `src/components/ideas-map/index.js` | **new** — class, `DATASET`, force sim + `forceRelations`, drag, camera, attention/activation overlay, label toggle, legend |
 | `src/components/registry.js` | **edit** — one `import './ideas-map/index.js';` line + one `COMPONENTS` entry `'ideas-map': { tag: 'deck-ideas-map', dir: 'ideas-map' }` (per `reference/registry-edit.md`) |
 | `slides/03-ideas-in-space.html` | **edit** — keep `<section id="ideas-in-space" data-slug="ideas-in-space">` + `<h2>`; replace the five `TODO` bullets with `<deck-ideas-map label="Ideas in space"></deck-ideas-map>`; narration into `<aside class="notes">` |
 | `test/ideas-map.html` | **new** — QUnit smoke test (`scripts/test.js` / `test/*.html` convention) |
@@ -380,6 +438,14 @@ Slide file stays Shape 2 from `docs/cheatsheet.md` (section + `<h2>` + tag, no
 - **`npm start`, slide 3:** overlapping topic clusters, no edges, no legend,
   whole-graph camera; drag a node → its links light up (nothing to light yet
   pre-`show-links`, so drag just moves it).
+- **`labels`:** `labels="none"` renders the bare star map (no node labels); the
+  corner toggle flips them on/off live and its state survives a re-show back to
+  the attribute value.
+- **`activate`:** `activate="customer-email"` (a `contexts` key) — those nodes
+  halo + brighten, all others fade to ~0.12 stars, attention edges fan from the
+  `from` node with widths tracking `weights`; `constellation` adds the
+  connect-the-dots polyline. Node positions do **not** move. Growing the
+  `activate` list adds nodes to the constellation without disturbing the rest.
 - **`show-links`:** link force added, edges fade in, related words visibly pull
   together, then settle.
 - **Colour by topic always:** every node is its topic's colour in every frame,
@@ -406,7 +472,9 @@ Slide file stays Shape 2 from `docs/cheatsheet.md` (section + `<h2>` + tag, no
   settled positions within ε; the topic colour scale returns distinct hues for
   20+ topics and re-resolves when `--primary` changes; a `gender` pair in
   `animals` gets the same `Δ` as one in `family`; `scope` leaves out-of-scope
-  nodes in the DOM at reduced opacity (not removed).
+  nodes in the DOM at reduced opacity (not removed); `activate` toggles overlay
+  state with **zero** change to node `x`/`y`; `labels="none"` renders no `<text>`
+  for nodes and the toggle flips it.
 
 ## 10. Build path
 
@@ -425,11 +493,13 @@ Built with the **`artefact-builder`** skill. Its Read step will:
   shared pieces from `reference/component-styles.md`;
 - edit `registry.js` per `reference/registry-edit.md`.
 
-The implementation plan wraps that plus: writing `forceRelations` and the topic
-colour scale, authoring the dataset (starts ~40–60 nodes / ~8 topics, designed to
-grow to 20+ topics / 150+ nodes — topics; nodes with `topics[]`; plain `links`;
-`relations` with `pairs` spanning topics; the `RELATION_OFFSETS` map), the
-slide-3 edit, and `test/ideas-map.html`. Reading `docs/framework-conventions.md`,
+The implementation plan wraps that plus: writing `forceRelations`, the topic
+colour scale, the attention/activation overlay and the label toggle; authoring
+the dataset (starts ~40–60 nodes / ~8 topics, designed to grow to 20+ topics /
+150+ nodes — topics; nodes with `topics[]`; plain `links`; `relations` with
+`pairs` spanning topics; `RELATION_OFFSETS`; the `contexts` map for the context
+slides); the slide-3 edit; and `test/ideas-map.html`. Reading
+`docs/framework-conventions.md`,
 `src/components/README.md`, and `reference/component-styles.md` first is
 mandatory.
 
@@ -451,6 +521,14 @@ mandatory.
 - How relationships get authored at scale — a growing `relations` list by hand is
   fine to ~20 relationships; beyond that consider a compact table format.
 - `spotlight` — keep in v1 or defer? (It is the lightest of the overlays.)
-- Whether slide 6's placement lands in this branch or a follow-up (default:
-  follow-up).
+- **Attention topology** — with no `from` node, is the activated set a full mesh,
+  a nearest-neighbour graph, or does every `contexts` entry always name a `from`?
+  Default assumed: `from` if given, else light mesh; revisit once a real context
+  slide is drafted.
+- **`weights` shape** — per-node 0–1 (current) vs per-edge. Per-node is simpler
+  and enough for "how strongly is this attended to"; confirm.
+- Which slides get `<deck-ideas-map>` and in which state — slide 3 (star map,
+  `labels="none"`), slide 6 (`show-links`), the context slides
+  (`activate=…` growing), plus tag/scope/spotlight beats. That mapping is a
+  slide-work follow-up, not this component build.
 - Confirm drag **releases** on drop (current default) vs pins until clicked off.

@@ -154,14 +154,15 @@
 			<div class="eyebrow">Component storyboard · pre-build</div>
 			<h1><span class="tag">&lt;deck-ideas-map&gt;</span><br>key views &amp; moments</h1>
 			<p class="lede">
-				A force-directed graph of ideas that recurs through the deck.
-				Clusters are colour-coded by topic and overlap; nodes drag; a custom
-				force keeps the <a href="https://arxiv.org/pdf/1301.3781">word2vec</a>
-				regularity — <em>one step in a fixed direction is the same
-				relationship everywhere</em>, and it holds across topics
-				(<code>man→woman</code> in family is the same step as
-				<code>bull→cow</code> in animals). Each frame is one attribute-driven
-				state of the same graph.
+				A force-directed graph of ideas that recurs through the deck, from a
+				dim <strong>star map</strong> (slide 3) to a lit
+				<strong>constellation</strong> on the context slides. Clusters are
+				colour-coded by topic and overlap; nodes drag; a custom force keeps
+				the <a href="https://arxiv.org/pdf/1301.3781">word2vec</a> regularity
+				— <em>one step in a fixed direction is the same relationship
+				everywhere</em>, across topics (<code>man→woman</code> in family is
+				the same step as <code>bull→cow</code> in animals). Each frame is one
+				attribute-driven state of the same graph.
 			</p>
 			<div class="meta">
 				spec&nbsp;·&nbsp;docs/superpowers/specs/2026-09-03-ideas-map-design.md<br>
@@ -301,13 +302,14 @@
 
 	// ---- render one frame ----------------------------------------------
 	function frame(o) {
-		o = Object.assign({ links: false, tags: [], scope: null, spotlight: null, steps: false, drag: null, labelAll: false }, o);
+		o = Object.assign({ links: false, tags: [], scope: null, spotlight: null, steps: false, drag: null, labelAll: false, activate: null, attnFrom: null, constellation: false }, o);
+		const act = o.activate ? new Set(o.activate) : null;
 		const svg = el('svg', { viewBox: `0 0 ${VB.w} ${VB.h}`, role: 'img' });
 		const fg = css('--m-fg'), muted = css('--m-muted'), line = css('--m-line');
 		const primary = css('--m-primary'), strong = css('--m-primary-strong');
 		const P = o.scope ? scopeProj(o.scope) : baseProj;
 		const tags = new Set(o.scope ? [...o.tags, o.scope] : o.tags);
-		const active = !!(o.spotlight || o.steps || o.drag);
+		const active = !!(o.spotlight || o.steps || o.drag || act);
 
 		const dragLinks = new Set();
 		const dragNbr = new Set();
@@ -317,11 +319,13 @@
 		const stepRels = () => [...RELATIONS.gender, ...RELATIONS.parent, ...RELATIONS.capital];
 		const nodeColor = (id) => {
 			const tp = N[id][2];
+			if (act && !act.has(id)) return muted;
 			if (o.scope && tp !== o.scope) return muted;
 			return css(TOPIC_COLOR[tp] || '--m-muted');
 		};
 		const nodeOpacity = (id) => {
 			const tp = N[id][2];
+			if (act) return act.has(id) ? 1 : 0.12;
 			if (o.scope && tp !== o.scope) return 0.16;
 			if (o.drag) return dragNbr.has(id) ? 1 : 0.32;
 			if (o.spotlight) return RELATIONS[o.spotlight].some((pr) => pr.includes(id)) ? 1 : 0.16;
@@ -359,6 +363,41 @@
 			readout(svg, [`spotlight · ${o.spotlight}`, 'every arrow: same direction, same length'], strong);
 		}
 
+		// attention / activation — star map → constellation
+		if (act) {
+			const ids = o.activate;
+			const from = o.attnFrom;
+			const g = el('g');
+			// halos
+			ids.forEach((id, i) => {
+				const [px, py] = P(...N[id].slice(0, 2));
+				const w = from ? (id === from ? 1 : 0.9 - i * 0.13) : 0.7;
+				g.appendChild(el('circle', { cx: px, cy: py, r: R + 5 + w * 5, fill: css(TOPIC_COLOR[N[id][2]]), 'fill-opacity': 0.18 }));
+			});
+			// attention edges
+			if (from) {
+				const pf = P(...N[from].slice(0, 2));
+				ids.filter((id) => id !== from).forEach((id, i) => {
+					const pt = P(...N[id].slice(0, 2));
+					g.appendChild(el('line', { x1: pf[0], y1: pf[1], x2: pt[0], y2: pt[1], stroke: strong, 'stroke-width': 3.4 - i * 0.5, 'stroke-opacity': 0.8, 'stroke-linecap': 'round' }));
+				});
+			} else {
+				for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) {
+					const p1 = P(...N[ids[i]].slice(0, 2)), p2 = P(...N[ids[j]].slice(0, 2));
+					g.appendChild(el('line', { x1: p1[0], y1: p1[1], x2: p2[0], y2: p2[1], stroke: strong, 'stroke-width': 1.4, 'stroke-opacity': 0.55 }));
+				}
+			}
+			// constellation outline
+			if (o.constellation) {
+				const pts = ids.map((id) => P(...N[id].slice(0, 2)).join(',')).join(' ');
+				g.appendChild(el('polyline', { points: pts, fill: 'none', stroke: strong, 'stroke-width': 1, 'stroke-dasharray': '2 4', 'stroke-opacity': 0.7 }));
+			}
+			svg.appendChild(g);
+			readout(svg, [from ? `attention from · ${from}` : `activate · ${ids.length} ideas`,
+				'these light up; everything else fades to a star',
+				'add more context → more of the constellation'], strong);
+		}
+
 		// nodes + labels
 		Object.keys(N).forEach((id) => {
 			const [x, y] = N[id];
@@ -366,7 +405,8 @@
 			const g = el('g', { opacity: nodeOpacity(id) });
 			if (o.drag && id === o.drag) g.appendChild(el('circle', { cx: px, cy: py, r: R + 6, fill: 'none', stroke: strong, 'stroke-width': 1.5, 'stroke-dasharray': '3 3' }));
 			g.appendChild(el('circle', { cx: px, cy: py, r: o.scope && N[id][2] === o.scope ? R + 1.5 : R, fill: nodeColor(id), stroke: strong, 'stroke-width': 0.8 }));
-			const involved = o.steps ? stepRels().some((pr) => pr.includes(id))
+			const involved = act ? act.has(id)
+				: o.steps ? stepRels().some((pr) => pr.includes(id))
 				: o.spotlight ? RELATIONS[o.spotlight].some((pr) => pr.includes(id))
 				: o.drag ? dragNbr.has(id)
 				: o.scope ? N[id][2] === o.scope
@@ -407,14 +447,22 @@
 			});
 		}
 
+		// label-toggle control (present in the real component; decorative here)
+		const tg = el('g', { opacity: 0.9 });
+		tg.appendChild(el('rect', { x: VB.w - 40, y: VB.h - 26, width: 28, height: 16, rx: 5, fill: css('--m-bg'), stroke: line }));
+		const tt = el('text', { x: VB.w - 26, y: VB.h - 14, 'text-anchor': 'middle', 'font-family': '"IBM Plex Mono", monospace', 'font-size': 9, fill: muted });
+		tt.textContent = 'Aa';
+		tg.appendChild(tt);
+		svg.appendChild(tg);
+
 		return svg;
 	}
 
 	// ---- frames -------------------------------------------------------
 	const FRAMES = [
-		{ step: '01', title: 'Ideas in space', attrs: ['(no attributes)'],
-			sees: 'Colour-coded clusters of word-points, one hue per topic, overlapping where topics share ideas. Nothing joined yet.',
-			teaches: 'Similar ideas sit together; the groups blur into each other, they are not boxes.',
+		{ step: '01', title: 'Ideas in space — the star map', attrs: ['labels="none"', 'Aa toggle'],
+			sees: 'Colour-coded clusters of word-points, overlapping where topics share ideas. Labels are off; the corner Aa toggle turns them on live.',
+			teaches: 'Talk over the regions and plant seeds ("we’ll come back to this") without committing to words yet.',
 			opts: {} },
 		{ step: '02', title: 'One step is one relationship', attrs: ['(built-in RELATION_OFFSETS)'],
 			sees: 'gender arrows (man→woman, king→queen, bull→cow…) all identical; parent arrows identical at another angle; country→capital identical on the diagonal.',
@@ -440,6 +488,10 @@
 			sees: 'One arrow per gender pair — family and animals both — all parallel, all the same length.',
 			teaches: 'The regularity is not cherry-picked, and not tied to one topic: the same step repeats everywhere it applies.',
 			opts: { links: true, spotlight: 'gender' } },
+		{ step: '08', title: 'Add context — the constellation lights up', attrs: ['activate="…"', 'attention-from="king"'],
+			sees: 'The ideas the context touches halo and brighten; every other node drops to a faint star. Attention edges fan out from the focus, thickest to what matters most.',
+			teaches: 'Attention made literal: the lit subgraph is what the model is looking at. Add another layer of context and more of the constellation appears.',
+			opts: { links: true, activate: ['king', 'queen', 'father', 'uncle', 'france', 'paris'], attnFrom: 'king', constellation: true } },
 	];
 
 	const board = document.getElementById('board');
@@ -476,7 +528,9 @@
 		['topic hue', (g) => { g.appendChild(el('circle', { cx: 4, cy: 9, r: 3.4, fill: css('--m-r2') })); g.appendChild(el('circle', { cx: 11, cy: 9, r: 3.4, fill: css('--m-r5') })); g.appendChild(el('circle', { cx: 17, cy: 6, r: 3.4, fill: css('--m-r7') })); }],
 		['link', (g) => g.appendChild(el('line', { x1: 1, y1: 9, x2: 17, y2: 9, stroke: css('--m-line'), 'stroke-width': 1.5 }))],
 		['consistent step', (g) => arrow(g, [1, 13], [17, 5], css('--m-primary-strong'))],
-		['out of scope', (g) => g.appendChild(el('circle', { cx: 9, cy: 9, r: 4, fill: css('--m-muted'), opacity: 0.2 }))],
+		['activated', (g) => { g.appendChild(el('circle', { cx: 9, cy: 9, r: 8, fill: css('--m-r1'), 'fill-opacity': 0.22 })); g.appendChild(el('circle', { cx: 9, cy: 9, r: 3.6, fill: css('--m-r1') })); }],
+		['attention', (g) => g.appendChild(el('line', { x1: 1, y1: 13, x2: 17, y2: 5, stroke: css('--m-primary-strong'), 'stroke-width': 2.6, 'stroke-opacity': 0.8 }))],
+		['faint star / out of scope', (g) => g.appendChild(el('circle', { cx: 9, cy: 9, r: 4, fill: css('--m-muted'), opacity: 0.2 }))],
 		['dragged', (g) => { g.appendChild(el('circle', { cx: 9, cy: 9, r: 6, fill: 'none', stroke: css('--m-primary-strong'), 'stroke-width': 1.2, 'stroke-dasharray': '3 3' })); g.appendChild(el('circle', { cx: 9, cy: 9, r: 3.6, fill: css('--m-primary') })); }],
 	];
 	function legend() {
