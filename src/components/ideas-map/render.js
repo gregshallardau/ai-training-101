@@ -16,7 +16,8 @@ function layer(view, cls) {
 }
 
 function nodeColor(n, state) {
-	const c = state.colors.get(n.topics[0]) || { fill: 'currentColor', stroke: 'currentColor' };
+	// Empty / unknown topic (spec §4.2): drawn in --muted, still placed by forces.
+	const c = state.colors.get(n.topics[0]) || { fill: 'var(--muted)', stroke: 'var(--muted)' };
 	return c;
 }
 
@@ -87,7 +88,8 @@ export function drawGraph(svgOrEl, state) {
 		if (!s || !t) continue;
 		if (revealHidden && (revealHidden.has(s.topics[0]) || revealHidden.has(t.topics[0]))) continue;
 		let strokeOpacity = state.showLinks ? 0.55 : 0;
-		if (state.spotlight && !(spotIds.has(s.id) && spotIds.has(t.id))) strokeOpacity = 0.12;
+		// only dim links that are ALREADY visible — never turn a hidden link on
+		if (state.spotlight && strokeOpacity > 0 && !(spotIds.has(s.id) && spotIds.has(t.id))) strokeOpacity = 0.12;
 		gLinks.appendChild(make('line', {
 			class: 'link',
 			'data-s': s.id, 'data-t': t.id,
@@ -146,17 +148,27 @@ export function drawGraph(svgOrEl, state) {
 		const dimByTag = tagged.size > 0 && !tagged.has(n.topics[0]);
 		const dimBySpot = state.spotlight && !spotIds.has(n.id);
 		const dimByAct = act && !act.ids.has(n.id);
+		// A node that any overlay is actively pointing at must never be dimmed to
+		// near-invisible by a *different* overlay (spec §5 / review I4).
+		const emphasised = (act && act.ids.has(n.id))
+			|| (state.spotlight && spotIds.has(n.id))
+			|| state.highlight.has(n.id)
+			|| (state.scope && n.topics[0] === state.scope);
 
 		const attrs = {
-			class: 'node', 'data-id': n.id, 'data-topic': n.topics[0],
+			class: 'node', 'data-id': n.id, 'data-topic': n.topics[0] || '',
 			cx: n.x, cy: n.y, r: NODE_R,
 			fill: scopedOut ? 'var(--muted)' : c.fill,
 			stroke: c.stroke, 'stroke-width': 1.5,
 		};
-		if (scopedOut) { attrs.opacity = 0.15; }
+		// `scopedOut` still mutes the *fill* of an out-of-scope node, but an
+		// emphasised one keeps full opacity — the opacity-dim cascade is skipped.
+		if (emphasised) { /* full opacity; fill may still be --muted if scopedOut */ }
+		else if (scopedOut) { attrs.opacity = 0.15; }
 		else if (dimByAct) { attrs.fill = 'var(--muted)'; attrs.opacity = 0.12; }
 		else if (dimBySpot) { attrs.opacity = 0.15; }
 		else if (dimByTag && !(state.spotlight && spotIds.has(n.id))) { attrs.opacity = 0.35; }
+		else if (state.highlight.size > 0 && !state.highlight.has(n.id)) { attrs.opacity = 0.5; }
 
 		if (state.dragId) {
 			const nbr = new Set([state.dragId]);
