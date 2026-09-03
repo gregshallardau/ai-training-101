@@ -1,0 +1,29 @@
+/*
+ * FRAGMENT STEP-EMPHASIS - @layer fx (above `deck`, see src/styles/layers.css).
+ *
+ * Reveal's `highlight-red / -green / -blue` fragments recolour an element when
+ * its step fires. Reveal ships those `color` rules unscoped in @layer reveal.base,
+ * so a deck-author colour utility (`.text-muted`, `.text-primary`) in @layer deck
+ * silently outranks them and the highlight never shows.
+ *
+ * Re-assert the highlight colour here, one layer above `deck`, mapped to the
+ * deck's semantic palette so it follows a [data-theme] re-skin:
+ *   red   -> --danger    green -> --success    blue -> --primary
+ *
+ * `.visible` = a non-current `highlight-*` (stays coloured after its step);
+ * `.current-fragment` = a `highlight-current-*` (coloured only while current).
+ */
+@layer fx {
+	.reveal .slides section .fragment.highlight-red.visible,
+	.reveal .slides section .fragment.highlight-current-red.current-fragment {
+		color: var(--danger);
+	}
+	.reveal .slides section .fragment.highlight-green.visible,
+	.reveal .slides section .fragment.highlight-current-green.current-fragment {
+		color: var(--success);
+	}
+	.reveal .slides section .fragment.highlight-blue.visible,
+	.reveal .slides section .fragment.highlight-current-blue.current-fragment {
+		color: var(--primary);
+	}
+}

@@ -12,5 +12,9 @@
 @import './theme/deck.css';
 
 /* Deck-level look. Root-level file (the one a deck author edits); @layer deck,
-   which the order in layers.css pins as the highest layer. Imported last. */
+   which the order in layers.css pins as the second-highest layer. */
 @import '../../deck.css';
+
+/* Framework-owned overrides that must beat a deck-author utility; @layer fx,
+   pinned above `deck` in layers.css. Imported last. */
+@import './theme/fragments.css';
