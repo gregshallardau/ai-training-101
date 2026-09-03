@@ -71,6 +71,13 @@
 		text-align: initial;
 	}
 
+	/* <h1> is a hero (a title slide, a section divider), not a run-of-slide
+	   heading like <h2>. Give it its own breathing room - a little above, a
+	   clear gap below - rather than the tight shared --r-heading-margin. */
+	.reveal .slides section h1 {
+		margin: 0.3em 0 0.9em 0;
+	}
+
 	/* slide gutter - on the horizontal slide and on each vertical child, but
 	   not on a stack wrapper (it would double up). box-sizing keeps the slide
 	   box the size Reveal set. A full-bleed slide sets its own padding: 0. */
@@ -101,5 +108,65 @@
 	.reveal .slides section dd {
 		margin: 0 0 var(--space-gap) 0;
 		color: var(--muted);
+	}
+
+	/* ── DECK CHROME (logo + footer) ─────────────────────────────────────
+	   src/main.js injects <div class="deck-logo"> / <div class="deck-footer">
+	   into .reveal (NOT .slides) when deck.config.js has a `chrome` block, so
+	   they stay put on every slide instead of sliding with the transition.
+	   `data-pos` on each element is one of the six corner keywords; the rules
+	   below turn that keyword into top/bottom + left/right/centre offsets.
+	   A deck restyles any of this from deck.css (`@layer deck` wins). */
+
+	/* both: float above the slide, ignore the mouse so they never block a
+	   click on slide content underneath. */
+	.reveal .deck-logo,
+	.reveal .deck-footer {
+		position: absolute;
+		z-index: 12;
+		pointer-events: none;
+	}
+
+	/* footer: small, muted, body font. ~0.55x the slide's base text size. */
+	.reveal .deck-footer {
+		font: 0.55em/1.3 var(--font-body);
+		color: var(--muted);
+	}
+
+	/* logo: sized by --logo-height (set from `chrome.logo.height`, default
+	   4vh = 4% of the viewport height so it stays constant as the deck
+	   scales); width follows the image's aspect ratio. */
+	.reveal .deck-logo img {
+		display: block;
+		height: var(--logo-height, 4vh);
+		width: auto;
+	}
+
+	/* corner offsets, driven by the `data-pos` keyword prefix / suffix.
+	   Percentages are of the .reveal box; the bottom inset is deliberately
+	   large so a bottom-anchored logo/footer clears Reveal's progress bar
+	   and its prev/next arrows. */
+	.reveal :is(.deck-logo, .deck-footer)[data-pos^="top"] {
+		top: 3%;
+	}
+	.reveal :is(.deck-logo, .deck-footer)[data-pos^="bottom"] {
+		bottom: 4%;
+	}
+	.reveal :is(.deck-logo, .deck-footer)[data-pos$="left"] {
+		left: 3.5%;
+	}
+	.reveal :is(.deck-logo, .deck-footer)[data-pos$="right"] {
+		right: 3.5%;
+	}
+	.reveal :is(.deck-logo, .deck-footer)[data-pos$="center"] {
+		left: 50%;
+		transform: translateX(-50%);
+	}
+
+	/* src/main.js adds .deck-chrome-hidden to .reveal on the title slide
+	   (unless chrome.hideOnTitle is false) and on any slide carrying a
+	   data-hide-chrome attribute. */
+	.reveal.deck-chrome-hidden :is(.deck-logo, .deck-footer) {
+		display: none;
 	}
 }

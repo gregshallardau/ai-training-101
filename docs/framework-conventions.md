@@ -17,8 +17,10 @@ deck.css                       ROOT-level deck look: brand knobs (commented menu
                                deck-wide element tweaks + utility classes.
                                @layer deck (highest). Edit per deck to re-skin.
 deck.config.js                 ROOT-level Reveal knobs a deck author tunes: slide
-                               size, transition, slideNumber, hash. src/main.js
-                               spreads it into new Reveal({...}); plugins stay in src.
+                               size, transition, slideNumber, hash, and `chrome`
+                               (a logo + footer on every slide). src/main.js spreads
+                               the rest into new Reveal({...}) and mounts `chrome`
+                               into .reveal; plugins stay in src.
 build/vite-plugin-slides.js     stitches slides/*.{html,md} into that marker (dev + build)
 vite.config.ts                  Reveal's config + `@ -> /src` alias + slides() plugin
 vite.config.deck.js             `npm run build:deck` -> static export in deck-dist/
