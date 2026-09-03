@@ -79,7 +79,7 @@ class DeckTokeniser extends DeckElement {
 		:host { display: block; color: var(--surface-fg); font: inherit; }
 		.line { display: flex; flex-wrap: wrap; gap: var(--space-gap); margin-block: var(--space-block); min-height: 1.8em; }
 		.chip {
-			padding: 0.15em 0.5em; border-radius: var(--radius-round);
+			padding: 0.15em 0.5em; border-radius: var(--radius-control);
 			border: 1px solid var(--accent);
 			background: color-mix(in srgb, var(--accent) 14%, transparent);
 			animation: pop var(--motion-ui-duration) var(--motion-ui-ease) both;

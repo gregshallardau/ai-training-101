@@ -43,7 +43,7 @@ boundary and follow a `[data-theme]` re-skin for free.
 .chip {
 	display: inline-block;
 	padding: 0.15em 0.5em;
-	border-radius: var(--radius-round);
+	border-radius: var(--radius-control);
 	border: 1px solid var(--accent);
 	background: color-mix(in srgb, var(--accent) 12%, transparent);
 	color: var(--surface-fg);
