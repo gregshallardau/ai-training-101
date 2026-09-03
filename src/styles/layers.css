@@ -10,10 +10,15 @@
  *   theme          - framework plumbing: maps semantics -> Reveal --r-*
  *   components      - light-DOM component hooks (most component CSS is in Shadow DOM)
  *   deck           - the root-level deck.css: deck brand knobs + element tweaks.
- *                    Highest layer, so what a deck author writes wins with no
- *                    !important or specificity games.
+ *                    What a deck author writes wins with no !important or
+ *                    specificity games.
+ *   fx             - framework-owned overrides that must beat a deck-author
+ *                    utility: Reveal fragment step-emphasis (highlight-red/green/
+ *                    blue) whose colour would otherwise lose to `.text-muted`
+ *                    et al. in `deck`. Kept above `deck` on purpose, tiny by
+ *                    design - a transient per-step effect, not deck styling.
  *
  * Anything left UNLAYERED deliberately outranks every layer above - reserved as an
  * explicit escape hatch, used by nothing in the scaffold.
  */
-@layer reveal.reset, reveal.base, reveal.theme, vars.primitive, vars.semantic, theme, components, deck;
+@layer reveal.reset, reveal.base, reveal.theme, vars.primitive, vars.semantic, theme, components, deck, fx;

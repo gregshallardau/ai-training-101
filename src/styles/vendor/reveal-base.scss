@@ -3,25 +3,30 @@
  *
  * Reveal ships these unlayered; unlayered CSS outranks every @layer rule regardless
  * of source order, so a deck could never override Reveal's look. Sass inlines these
- * extension-less imports INSIDE the @layer blocks below, fixing the layer assignment
- * before Vite / PostCSS ever see the CSS (this also sidesteps known Vite @layer
- * inlining-order bugs).
+ * extension-less files INSIDE the @layer blocks below with meta.load-css(), fixing
+ * the layer assignment before Vite / PostCSS ever see the CSS (this also sidesteps
+ * known Vite @layer inlining-order bugs).
+ *
+ * meta.load-css() is used rather than @import (deprecated in Dart Sass, removed in
+ * 3.0) because @use cannot be nested inside a @layer block and does not inline.
  *
  * Paths are relative to this file: src/styles/vendor/ -> repo root css/
  */
 
+@use 'sass:meta';
+
 @layer reveal.reset {
-	@import '../../../css/reset';
+	@include meta.load-css('../../../css/reset');
 }
 
 @layer reveal.base {
-	@import '../../../css/layout';
-	@import '../../../css/reveal';
+	@include meta.load-css('../../../css/layout');
+	@include meta.load-css('../../../css/reveal');
 }
 
 @layer reveal.theme {
 	/* Reveal's theme-template element rules (headings, paragraphs, links, tables,
 	   blockquotes, code...). It only consumes var(--r-*) - which src/styles/theme/deck.css
 	   supplies - so no Reveal theme .scss under css/theme/ is compiled or linked. */
-	@import '../../../css/theme/template/theme';
+	@include meta.load-css('../../../css/theme/template/theme');
 }
