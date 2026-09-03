@@ -128,6 +128,9 @@ Heading colour / font / weight / case / spacing:
 Body copy (`<p>`, `<ul>`, `<ol>`, `<blockquote>`) is capped at `32em` wide so it
 reads as a column, not a full-width slab. Wrap in a `<div>` to opt a block out.
 
+Every slide is inset from the frame by `--slide-padding` (default `4% 6%`, set in
+`deck.css`). For a full-bleed slide, put `style="padding: 0"` on its `<section>`.
+
 ---
 
 ## Lists

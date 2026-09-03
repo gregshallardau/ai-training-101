@@ -160,6 +160,13 @@
 		   deck; lower it (28px) for dense reference slides.
 		*/
 		--text-root-size: 32px;
+
+		/* --slide-padding
+		   The gutter between slide content and the frame - `<block> <inline>`
+		   as % of the slide. Default 4% 6%. Set `0` for a full-bleed deck, or
+		   raise it for a more editorial, airy feel. A single slide can still
+		   go edge-to-edge with its own `padding: 0`. */
+		/* --slide-padding: 4% 6%; */
 	}
 
 	/* ══════════════════════════════════════════════════════════════════════
