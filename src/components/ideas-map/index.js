@@ -295,6 +295,19 @@ class DeckIdeasMap extends DeckElement {
 		this._wireSim();
 	}
 
+	connectedCallback() {
+		super.connectedCallback();
+		// Reveal relocates slide nodes: disconnectedCallback tears the observer
+		// down on every move, so re-attach it here on each reconnect. The guard
+		// makes the very first connect (before render() created it) a no-op;
+		// MutationObserver ignores a duplicate observe() with identical options.
+		if (this._themeObserver) {
+			this._themeObserver.observe(document.documentElement, {
+				attributes: true, attributeFilter: ['data-theme', 'class'],
+			});
+		}
+	}
+
 	disconnectedCallback() {
 		this._sim && this._sim.stop();
 		this._themeObserver && this._themeObserver.disconnect();

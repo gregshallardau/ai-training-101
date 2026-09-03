@@ -421,8 +421,22 @@
 			requestAnimationFrame(() => {
 				const after = el.shadowRoot.querySelector('g.nodes circle.node').getAttribute('fill');
 				document.documentElement.removeAttribute('data-theme');
-				assert.notStrictEqual(before, after, 'fill tracked the theme');
-				done();
+				try { assert.notStrictEqual(before, after, 'fill tracked the theme'); }
+				finally { done(); }
+			});
+		});
+
+		QUnit.test('theme observer survives a Reveal relocation', async (assert) => {
+			const done = assert.async();
+			const el = mount();
+			document.getElementById('qunit-fixture').appendChild(el); // disconnect -> reconnect
+			const before = el.shadowRoot.querySelector('g.nodes circle.node').getAttribute('fill');
+			document.documentElement.setAttribute('data-theme', 'dark');
+			requestAnimationFrame(() => {
+				const after = el.shadowRoot.querySelector('g.nodes circle.node').getAttribute('fill');
+				document.documentElement.removeAttribute('data-theme');
+				try { assert.notStrictEqual(before, after, 'fill still tracks the theme after relocation'); }
+				finally { done(); }
 			});
 		});
 
