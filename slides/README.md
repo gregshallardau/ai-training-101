@@ -52,4 +52,5 @@ A slide file is portable - drop it into any framework deck and it renders - iff:
 Anything that needs a library import must become a registered `<deck-*>` component
 via the `artefact-builder` skill.
 
-See `.claude/skills/framework-conventions.md` for the full picture.
+See `docs/framework-conventions.md` for the full picture, and `docs/cheatsheet.md`
+for the tag / class / knob reference.

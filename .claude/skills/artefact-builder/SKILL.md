@@ -12,7 +12,7 @@ description: >-
 
 # artefact-builder
 
-**Before anything: read `.claude/skills/framework-conventions.md` and
+**Before anything: read `docs/framework-conventions.md` and
 `src/components/README.md`.**
 
 ## Inputs
@@ -26,7 +26,7 @@ description: >-
 
 ## Read (detect state)
 
-1. `framework-conventions.md`, `src/components/README.md`,
+1. `docs/framework-conventions.md`, `src/components/README.md`,
    `src/components/deck-element.js` (base-class API).
 2. **`src/components/registry.js`** - parse the import lines and the `COMPONENTS`
    map. **If `deck-<name>` (or the `<name>` key) already exists -> STOP.** Print
@@ -51,7 +51,7 @@ description: >-
   `<section id="<slug>" data-slug="<slug>"><deck-<name> ...></deck-<name>></section>`
   using `slide-builder` numbering (read `slides/` for the next free number).
 
-Never touch other components, `src/styles/vars/*`, or `src/styles/theme/*`.
+Never touch other components, `src/styles/**`, or the root `deck.css`.
 
 ## Procedure
 

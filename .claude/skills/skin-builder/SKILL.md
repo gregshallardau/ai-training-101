@@ -11,7 +11,7 @@ description: >-
 
 # skin-builder
 
-**Before anything: read `.claude/skills/framework-conventions.md` and
+**Before anything: read `docs/framework-conventions.md` and
 `reference/variable-tiers.md`.**
 
 ## Inputs
@@ -25,7 +25,7 @@ description: >-
 
 ## Read (detect state)
 
-1. `framework-conventions.md`, `reference/variable-tiers.md`.
+1. `docs/framework-conventions.md`, `reference/variable-tiers.md`.
 2. **`src/styles/vars/primitives.css`** - parse every `--name: value;` under
    `:root` into a map (the tier-1 inventory).
 3. **`src/styles/vars/semantic.css`** - parse the `:root` semantic names and the

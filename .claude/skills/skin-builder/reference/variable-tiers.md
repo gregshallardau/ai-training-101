@@ -50,6 +50,12 @@ overrides any subset of these.
 Add new primitives here (never inside a `[data-theme]` block) when the brand
 needs a value with no existing equivalent.
 
+`--text-root-size` is Reveal's stock `40px` here, but the root `deck.css`
+(`@layer deck`, highest) ships it active at `32px` and also carries the
+commented brand-knob menu. `skin-builder` does not touch `deck.css`; a
+`[data-theme]` block can still re-point `--text-root-size` if a skin needs a
+different base size.
+
 ## Example [data-theme] block
 
 ```css
