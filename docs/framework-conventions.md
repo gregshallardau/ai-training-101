@@ -76,11 +76,15 @@ never a primitive, never a raw literal.
 
 **Deck look** (`deck.css`, repo root, `@layer deck`): the one file a deck author
 edits. A commented menu of the high-value knobs (`--accent`, `--accent-strong`,
-`--accent-fg`, `--surface-*`, `--font-*`) plus active `--text-root-size` (shipped
-32px; the primitive default stays Reveal's 40px) and deck-wide element tweaks
-(list type-scale). `@import`ed last by `src/styles/index.css`. Highest layer, so
-it wins with no `!important`. `skin-builder` still writes `[data-theme]` blocks to
-`semantic.css`, not here - this file is the single look the deck ships with.
+`--accent-fg`, `--surface-*`, `--font-*`, type scale) plus active
+`--text-root-size` (shipped 32px; the primitive default stays Reveal's 40px),
+deck-wide element tweaks (list type-scale), and the **utility classes**
+(`.text-accent`, `.text-muted`, `.text-center`, `.flex-cols`, `.flex-rows`,
+`.list-compact`, `.box`) - a framework surface a slide may use so it never needs
+its own `<style>` for common things. `@import`ed last by `src/styles/index.css`.
+Highest layer, so it wins with no `!important`. `skin-builder` still writes
+`[data-theme]` blocks to `semantic.css`, not here - this file is the single look
+the deck ships with.
 
 ---
 
@@ -121,8 +125,8 @@ hacks. `deck` (the root `deck.css`) is highest. Nothing of ours is left unlayere
 Full text in `slides/README.md`. In short, a slide file is portable iff:
 
 1. it references shared things only via framework-guaranteed surfaces - registered
-   `<deck-*>` tags, tier-2 semantic custom properties, Reveal `--r-*` (and `@/lib/*`
-   only from inside a component);
+   `<deck-*>` tags, tier-2 semantic custom properties, Reveal `--r-*`, the
+   `deck.css` utility classes (and `@/lib/*` only from inside a component);
 2. **or** it fully inlines its artefact: scoped `<style>` + an inline
    `<script type="module">` with **zero imports**, browser-native APIs only, DOM
    lookups scoped by the slide's own `#slug` (never `document.currentScript` - it is

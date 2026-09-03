@@ -100,9 +100,11 @@ Reject or warn on:
 
 ## Consistency
 
-Never emit a per-slide `<style>` for anything reusable or a bespoke component
-definition inside a slide - a non-trivial visual becomes a `<deck-*>` via
-`artefact-builder`. Never edit `deck.css`, `src/styles/**`, or components from
+Prefer the `deck.css` utility classes (`.text-accent`, `.text-muted`,
+`.text-center`, `.flex-cols`, `.flex-rows`, `.list-compact`, `.box`) over a
+per-slide `<style>`. Never emit a per-slide `<style>` for anything reusable or a
+bespoke component definition inside a slide - a non-trivial visual becomes a
+`<deck-*>` via `artefact-builder`. Never edit `deck.css`, `src/styles/**`, or components from
 this skill - a slide adapts to the framework's surfaces, it does not change them.
 Say "CSS custom property" / "CSS variable", never "token", in any comment or note
 you add. Slide *content* text may use "token" as the user wrote it.

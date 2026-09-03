@@ -9,7 +9,8 @@ Also worth knowing:
 
 - **`deck.css`** (repo root) - the one file you edit to re-skin a deck: a
   commented menu of brand knobs (`--accent`, `--surface-*`, `--font-*`, type
-  scale) plus deck-wide element tweaks. Each knob says where you'll see it.
+  scale), deck-wide element tweaks, and the utility classes (`.text-muted`,
+  `.flex-cols`, `.box`, …). Each knob says where you'll see it.
 - **`slides/README.md`** - the slide numbering + portability contract in full.
 - **`src/components/README.md`** - the `<deck-*>` component contract.
 
