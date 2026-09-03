@@ -291,6 +291,37 @@
 			assert.strictEqual(el.shadowRoot.querySelectorAll('g.nodes circle.pulse').length, 2, 'two pulse rings');
 		});
 
+		QUnit.module('spotlight');
+
+		QUnit.test('draws one arrow per relation pair, parallel and equal', (assert) => {
+			const el = mount();
+			el.setAttribute('spotlight', 'gender');
+			const lines = [...el.shadowRoot.querySelectorAll('g.spotlight line')];
+			const genderPairs = DATASET.relations.find((r) => r.rel === 'gender').pairs.length;
+			assert.strictEqual(lines.length, genderPairs, 'an arrow per pair');
+			const vecs = lines.map((l) => [
+				Number(l.getAttribute('x2')) - Number(l.getAttribute('x1')),
+				Number(l.getAttribute('y2')) - Number(l.getAttribute('y1')),
+			]);
+			const angs = vecs.map(([x, y]) => Math.atan2(y, x));
+			// measure spread relative to the first arrow's heading, wrapped to (-PI, PI],
+			// so a relation whose offset sits on the atan2 branch cut (gender = [-D, 0])
+			// is not reported as a ~2*PI spread when the arrows are in fact parallel
+			const spread = angs.map((a) => Math.atan2(Math.sin(a - angs[0]), Math.cos(a - angs[0])));
+			assert.ok(Math.max(...spread) - Math.min(...spread) < 0.2, 'arrows near-parallel');
+			const lens = vecs.map(([x, y]) => Math.hypot(x, y));
+			assert.ok(Math.max(...lens) - Math.min(...lens) < 30, 'arrows near-equal length');
+		});
+
+		QUnit.test('non-involved nodes dim', (assert) => {
+			const el = mount();
+			el.setAttribute('spotlight', 'tense');
+			const involved = new Set(DATASET.relations.find((r) => r.rel === 'tense').pairs.flat());
+			const other = [...el.shadowRoot.querySelectorAll('g.nodes circle.node')]
+				.find((c) => !involved.has(c.dataset.id));
+			assert.ok(Number(other.getAttribute('opacity')) <= 0.2, 'uninvolved node dimmed');
+		});
+
 		QUnit.start();
 	</script>
 </body>
