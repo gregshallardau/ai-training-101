@@ -319,7 +319,8 @@
 			const involved = new Set(DATASET.relations.find((r) => r.rel === 'tense').pairs.flat());
 			const other = [...el.shadowRoot.querySelectorAll('g.nodes circle.node')]
 				.find((c) => !involved.has(c.dataset.id));
-			assert.ok(Number(other.getAttribute('opacity')) <= 0.2, 'uninvolved node dimmed');
+			const op = other.getAttribute('opacity');
+			assert.ok(op != null && Number(op) >= 0.1 && Number(op) <= 0.2, 'uninvolved node dimmed to ~0.15');
 		});
 
 		QUnit.start();

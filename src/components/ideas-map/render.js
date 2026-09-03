@@ -50,6 +50,7 @@ export function drawGraph(svgOrEl, state) {
 			rel.pairs.forEach(([aId, bId], i) => {
 				const a = byId.get(aId); const b = byId.get(bId);
 				if (!a || !b) return;
+				if (revealHidden && (revealHidden.has(a.topics[0]) || revealHidden.has(b.topics[0]))) return;
 				spotIds.add(aId); spotIds.add(bId);
 				gSpotlight.appendChild(make('line', {
 					class: 'vec',
