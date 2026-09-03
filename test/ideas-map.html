@@ -127,6 +127,33 @@
 			assert.ok(on.force('link'), 'link force added with showLinks');
 		});
 
+		QUnit.module('forceRelations');
+
+		QUnit.test('pairs settle to the shared offset vector', (assert) => {
+			const ds = clone(DATASET);
+			const s = buildSimulation(ds, { seed: 42, warmup: 320 });
+			const byId = new Map(s.nodes().map((n) => [n.id, n]));
+			const rel = ds.relations.find((r) => r.rel === 'gender');
+			const off = RELATION_OFFSETS.gender;
+			for (const [a, b] of rel.pairs) {
+				const dx = byId.get(b).x - byId.get(a).x;
+				const dy = byId.get(b).y - byId.get(a).y;
+				assert.ok(Math.abs(dx - off[0]) < 22 && Math.abs(dy - off[1]) < 22,
+					`${a}->${b} offset (${dx.toFixed(0)},${dy.toFixed(0)}) ~ (${off[0]},${off[1]})`);
+			}
+		});
+
+		QUnit.test('a relation family is parallel (angles agree)', (assert) => {
+			const ds = clone(DATASET);
+			const s = buildSimulation(ds, { seed: 42, warmup: 320 });
+			const byId = new Map(s.nodes().map((n) => [n.id, n]));
+			const rel = ds.relations.find((r) => r.rel === 'tense');
+			const angs = rel.pairs.map(([a, b]) =>
+				Math.atan2(byId.get(b).y - byId.get(a).y, byId.get(b).x - byId.get(a).x));
+			const spread = Math.max(...angs) - Math.min(...angs);
+			assert.ok(spread < 0.25, `tense arrows near-parallel (spread ${spread.toFixed(3)} rad)`);
+		});
+
 		QUnit.start();
 	</script>
 </body>
