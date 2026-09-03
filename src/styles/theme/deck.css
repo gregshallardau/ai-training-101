@@ -127,9 +127,17 @@
 		pointer-events: none;
 	}
 
-	/* footer: small, muted, body font. ~0.55x the slide's base text size. */
+	/* footer: fine print - small, muted. Two deck.css knobs:
+	     --footer-size  its size, as em of the slide base (default 0.45em,
+	                    ~14px in the 1920 space);
+	     --footer-font  its font stack (default: the deck's --font-body).
+	   Longhands, NOT the `font` shorthand - the shorthand is
+	   invalid-at-computed-value if a custom property resolves oddly, which
+	   would drop the size too and jump the footer to the full 32px base. */
 	.reveal .deck-footer {
-		font: 0.55em/1.3 var(--font-body);
+		font-family: var(--footer-font, var(--font-body));
+		font-size: var(--footer-size, 0.45em);
+		line-height: 1.4;
 		color: var(--muted);
 	}
 

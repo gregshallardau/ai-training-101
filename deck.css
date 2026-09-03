@@ -149,6 +149,24 @@
 		   raise it for a more editorial, airy feel. A single slide can still
 		   go edge-to-edge with its own `padding: 0`. */
 		/* --slide-padding: 4% 6%; */
+
+		/* ══════════════════════════════════════════════════════════════════
+		   DECK CHROME  (only matters if deck.config.js has a `chrome` block)
+		   ══════════════════════════════════════════════════════════════════ */
+
+		/* --footer-size
+		   Size of the deck.config.js `chrome.footer` line, as em of the slide
+		   base text size. Default 0.45em (~14px in the 1920 space). Lower for
+		   a discreet legal line, raise if it needs to be readable from the
+		   back row. */
+		/* --footer-size: 0.45em; */
+
+		/* --footer-font
+		   Font stack for the footer line. Defaults to the deck's --font-body,
+		   so it usually just follows your brand. Set it here to point the
+		   footer at a different family (e.g. a condensed face for fine print)
+		   without a full CSS override. */
+		/* --footer-font: var(--font-body); */
 	}
 
 	/* ══════════════════════════════════════════════════════════════════════
