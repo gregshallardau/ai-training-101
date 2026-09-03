@@ -169,8 +169,12 @@ Array order drives `reveal="N"` and the legend-colour assignment order.
 ```
 
 - `topics` is a **list** — a node in more than one topic is pulled between
-  clusters (the overlap). Empty/unknown topic ⇒ `console.warn`, node still placed
-  by link + charge forces alone.
+  clusters (the overlap) and takes the colour of its **first** topic. Empty/
+  unknown topic ⇒ `console.warn`, node still placed by link + charge forces alone
+  and drawn in `--muted`.
+- **Every node is drawn in its topic's colour from the start** (§7 scale) — the
+  graph is colour-coded by topic in every state, not only when tagged. `tag` /
+  `scope` change *emphasis*, not whether colour is present.
 - `weight` is reserved for later frequency sizing; ignored in v1.
 
 ### 4.3 `links` — the association web (hidden until `show-links`)
@@ -190,32 +194,47 @@ Plain associations — they drive `forceLink` and draw as edges on `show-links`.
 
 ```jsonc
 "relations": [
-  { "rel": "gender", "pairs": [["son","daughter"],["king","queen"],["man","woman"],["uncle","aunt"]] },
-  { "rel": "parent", "pairs": [["son","father"],["daughter","mother"],["nephew","uncle"]] },
+  { "rel": "gender", "pairs": [
+      ["man","woman"],["king","queen"],["uncle","aunt"],   // family
+      ["bull","cow"],["lion","lioness"],["stag","doe"],     // animals
+      ["waiter","waitress"]                                 // work
+  ]},
+  { "rel": "parent", "pairs": [["son","father"],["daughter","mother"],["calf","cow"],["cub","lioness"]] },
   { "rel": "tense",  "pairs": [["walk","walked"],["run","ran"],["go","went"]] },
   { "rel": "capital","pairs": [["france","paris"],["italy","rome"],["japan","tokyo"]] }
 ]
 ```
 
-`RELATION_OFFSETS` — one authored direction per `rel`, in coordinate units
-(`D ≈ 90` on the 1600×1000 field), the **only authored geometry in the whole
-component**:
+**A relationship is topic-agnostic.** `gender` is *one* step vector that connects
+pairs wherever they live — `man→woman` in **family**, `bull→cow` in **animals**,
+`waiter→waitress` in **work**. `forceRelations` applies the same Δ to all of
+them, so the arrows are parallel across the whole graph regardless of cluster.
+That is a teaching beat in itself: "female is female everywhere."
+
+`RELATION_OFFSETS` — one authored 2-D vector per `rel`, in coordinate units
+(`D ≈ 90` on the 1600×1000 field). **Any angle, any length** — the only authored
+geometry in the whole component:
 
 ```js
 const RELATION_OFFSETS = {
-  gender:  [-D, 0],     // one step left  = male → female
-  parent:  [0, -D],     // one step up    = child → parent
-  tense:   [D, 0],
-  capital: [D * 0.6, -D * 0.5],
+  gender:  [-D, 0],          // one step left      = male → female
+  parent:  [0, -D],          // one step up        = child → parent
+  tense:   [D, 0],           // one step right
+  capital: [D * 0.7, -D * 0.55],  // a diagonal step
+  // …one entry per relationship; pick distinct angles so arrows don't overlap
 };
 ```
 
 - Every `pairs` entry also implicitly acts as a link for `forceLink` and can draw
-  as an edge (so `son–daughter` is both a consistent step *and* an association).
+  as an edge (so `bull–cow` is both a consistent step *and* an association).
 - Consistency check at load: a `rel` with no `RELATION_OFFSETS` entry ⇒
   `console.warn`, that relation falls back to plain `forceLink` behaviour.
 - Pairs must reference real node ids; unresolved ⇒ `console.warn`, pair skipped.
-- ~40–60 nodes total across §4.2 + §4.4.
+- If one node sits in two relations pulling it different ways (e.g. `cow` is the
+  female of `bull` *and* the parent of `calf`), both forces apply and it settles
+  at the vector sum — which is correct: it *is* both.
+- Dataset is expected to grow to **~20+ topics / 150+ nodes** over the deck; the
+  data shape and the colour scale (§7) must scale to that.
 
 ## 5. Component API
 
@@ -228,10 +247,10 @@ const RELATION_OFFSETS = {
 | `data` | JSON string | override built-in `DATASET` | built-in dataset |
 | `show-links` | boolean | add the link force, draw edges (staggered fade), re-heat + settle | link force off, no edges — just clusters (slide-3 state) |
 | `reveal` | integer N | only the first N topics' nodes participate/draw; rest withheld | all topics |
-| `tag` | csv of topic ids | each listed topic takes the next legend colour; its nodes recolour; a legend row appears | no colours, no legend |
-| `scope` | one topic id | camera eases to fit that topic's nodes; out-of-scope nodes → `--muted` @ ~0.15 (kept, not hidden); implies `tag` of that topic | camera fits whole graph |
+| `tag` | csv of topic ids | show a legend for these topics and lift them — non-tagged topics dim to ~0.35, node labels for tagged topics come forward. (Colour is always on; this changes emphasis.) | no legend, all topics equal |
+| `scope` | one topic id | camera eases to fit that topic's nodes; out-of-scope nodes → `--muted` @ ~0.15 (kept, not hidden — the overlap stays visible); implies `tag` of that topic | camera fits whole graph |
 | `highlight` | csv of node ids | ring each; pull their labels forward; dim the rest slightly | nothing highlighted |
-| `spotlight` | a `rel` id (from §4.4) | draw the **offset arrow** for every pair in that relationship — parallel and equal because `forceRelations` made them so — and dim everything not involved. The "one consistent step" reveal. | no arrows |
+| `spotlight` | a `rel` id (from §4.4) | draw the **offset arrow** for every pair in that relationship — parallel and equal because `forceRelations` made them so, and **across every topic the relationship touches** (family, animals, work…) — dim everything not involved | no arrows |
 | `label` | string | `aria-label` / `<title>` of the svg | `"ideas in space"` |
 
 `tag`, `scope`, `highlight`, `spotlight` are independent and stack.
@@ -269,10 +288,11 @@ from `zoomTo`. Layers, bottom to top:
    in `--primary-strong` from each pair's source to target; a short `--muted`
    caption near the first arrow (`one step = <rel>`). Non-involved nodes/links
    drop to ~0.15. Present only while `spotlight` is set.
-4. **nodes** — `<circle r="NODE_R">`. Fill: base `--primary`; a node whose topic
-   is in `tag`/`scope` takes that topic's assigned colour; out-of-scope (under
-   `scope`) → `--muted` @ 0.15. `--primary-strong` (or colour-strong) stroke.
-   `<circle class="pulse">` behind each `highlight` node.
+4. **nodes** — `<circle r="NODE_R">`. Fill: **always** the node's first-topic
+   colour from the categorical scale (§7); under `scope`, out-of-scope nodes →
+   `--muted` @ 0.15; under `tag`, non-tagged topics → their colour @ ~0.35. Stroke
+   a darkened form of the same hue. `<circle class="pulse">` behind each
+   `highlight` node.
 5. **labels** — `<text>` in `--fg`, `text-anchor` middle, dy below the node,
    `font: inherit`. All labels show when the graph is small enough; under
    `scope`, only in-scope + `highlight` labels; a dragged node's neighbourhood
@@ -318,15 +338,22 @@ only revealed nodes, so the frame grows sensibly as topics come in.
   is `SEED` + `WARMUP`-determined: recognisably the same shape, not
   pixel-identical, and a drag nudges that slide's instance until re-mount.
   Accepted trade for overlap + drag.
-- **Theming:** `readPalette` at render and inside the draw pass so a live
-  `[data-theme]` swap re-colours. Palette used: `--bg --fg --muted --line
-  --primary --primary-strong` for the graph; the **tag colour ramp** is
-  `[--primary, --warning, --success, --danger, --secondary]` (strong hues first,
-  the greyish `--secondary` last) assigned in topic order — all exist in `:root`
-  and `[data-theme="dark"]` of `src/styles/vars/semantic.css`. Semantic custom
-  properties only — no
-  primitive, no literal; numeric geometry constants in JS (`NODE_R`,
-  `LINK_DIST`, `CHARGE`, viewBox) are fine, as the recipes hard-code theirs.
+- **Theming & the topic colour scale:** `readPalette` at render and inside the
+  draw pass so a live `[data-theme]` swap re-colours. Structure colours are
+  semantic custom properties: `--bg --fg --muted --line --primary
+  --primary-strong` (edges `--line`, spotlight arrows `--primary-strong`, rings
+  `--primary-strong`).
+  **Topic colours** need to scale past 20 categories, which the semantic layer
+  cannot supply. Generate them: resolve `--primary` to HCL, then place N topic
+  hues evenly around the wheel at `--primary`'s chroma and lightness
+  (`d3.hcl` / `d3.interpolateRainbow`-style), so the scale is anchored on the
+  brand colour and re-themes when `--primary` does. This is a **documented,
+  deliberate exception** to the "no colour literals" rule — noted here and in
+  §11; if it needs to become a named, designer-controlled ramp, that is a
+  `skin-builder` job. Node stroke = the same hue darkened; legend swatch = the
+  hue itself.
+  Numeric geometry constants in JS (`NODE_R`, `LINK_DIST`, `CHARGE`, `D`,
+  viewBox) are fine, as the recipes hard-code theirs.
 - **Motion:** camera tween → `--motion-hero-*`; edge/colour fades → `--motion-ui-*`;
   no hard-coded ms. `@media (prefers-reduced-motion: reduce)` in `static styles`
   removes the node pulse; `matchMedia('(prefers-reduced-motion: reduce)').matches`
@@ -355,16 +382,18 @@ Slide file stays Shape 2 from `docs/cheatsheet.md` (section + `<h2>` + tag, no
   pre-`show-links`, so drag just moves it).
 - **`show-links`:** link force added, edges fade in, related words visibly pull
   together, then settle.
-- **`tag="family,places"`:** family and places nodes take the first two ramp
-  colours; a two-row legend appears.
+- **Colour by topic always:** every node is its topic's colour in every frame,
+  including bare slide 3. `tag="family,places"` adds a legend and dims the other
+  topics to ~0.35; it does not *introduce* colour.
 - **`scope="family"`:** camera flies (`interpolateZoom`) to fit the family
   cluster; out-of-scope nodes are still visible but muted at ~0.15, so overlap
   reads; background click returns to whole graph.
-- **`spotlight="gender"`** draws one arrow per gender pair; the arrows are
-  visibly **parallel and the same length** (this is the property that must
-  survive `forceRelations` tuning). `spotlight="parent"` arrows are parallel too
-  and **perpendicular** to the gender ones. `highlight="king,queen"` rings two
-  nodes.
+- **`spotlight="gender"`** draws one arrow per gender pair — including
+  `bull→cow` (animals) and `waiter→waitress` (work), not just family — and every
+  arrow is visibly **parallel and the same length** across all those clusters
+  (the property that must survive `forceRelations` tuning). `spotlight="parent"`
+  arrows are parallel too and at a different angle. `highlight="king,queen"`
+  rings two nodes.
 - **drag:** press-drag a node → neighbourhood bolds, rest dims; release → node
   eases back and graph re-settles.
 - **`prefers-reduced-motion`:** no ticking animation, camera cuts, no pulse.
@@ -374,8 +403,10 @@ Slide file stays Shape 2 from `docs/cheatsheet.md` (section + `<h2>` + tag, no
   to real topics; every `rel` has a `RELATION_OFFSETS` entry; after `WARMUP` the
   offset `t − s` for each pair in a relationship matches `Δrel` within ε (the
   parallelogram invariant); two mounts with the same `SEED` produce matching
-  settled positions within ε; `tag` assigns distinct ramp colours in order;
-  `scope` leaves out-of-scope nodes in the DOM at reduced opacity (not removed).
+  settled positions within ε; the topic colour scale returns distinct hues for
+  20+ topics and re-resolves when `--primary` changes; a `gender` pair in
+  `animals` gets the same `Δ` as one in `family`; `scope` leaves out-of-scope
+  nodes in the DOM at reduced opacity (not removed).
 
 ## 10. Build path
 
@@ -384,18 +415,21 @@ Built with the **`artefact-builder`** skill. Its Read step will:
 - confirm `deck-ideas-map` / `ideas-map` is absent from `registry.js` (it is);
 - validate this spec's custom-property list against
   `src/styles/vars/semantic.css` — `--bg --fg --muted --line --primary
-  --primary-strong --secondary --warning --success --danger` + `--motion-hero-*`
-  / `--motion-ui-*`, all present, no primitive invented;
+  --primary-strong` + `--motion-hero-*` / `--motion-ui-*`, all present, no
+  primitive invented. The topic colour scale (§7) is a generated hue wheel off
+  `--primary`, flagged in the spec as a deliberate exception — artefact-builder
+  should surface it, not silently "fix" it;
 - pick the recipe: **`reference/d3-chart.md`** for the force integration (its
   "layout families" include force) with the `zoomTo` camera block from
   `reference/d3-circle-pack.md`, layered on `reference/component-template.js`,
   shared pieces from `reference/component-styles.md`;
 - edit `registry.js` per `reference/registry-edit.md`.
 
-The implementation plan wraps that plus: writing `forceRelations`, authoring the
-~40–60-node dataset (topics; nodes with `topics[]`; plain `links`; `relations`
-with `pairs`; the `RELATION_OFFSETS` direction map), the slide-3 edit, and
-`test/ideas-map.html`. Reading `docs/framework-conventions.md`,
+The implementation plan wraps that plus: writing `forceRelations` and the topic
+colour scale, authoring the dataset (starts ~40–60 nodes / ~8 topics, designed to
+grow to 20+ topics / 150+ nodes — topics; nodes with `topics[]`; plain `links`;
+`relations` with `pairs` spanning topics; the `RELATION_OFFSETS` map), the
+slide-3 edit, and `test/ideas-map.html`. Reading `docs/framework-conventions.md`,
 `src/components/README.md`, and `reference/component-styles.md` first is
 mandatory.
 
@@ -406,11 +440,16 @@ mandatory.
   wins cleanly (parallelograms rigid) while topics still group *and visibly
   overlap*, and the graph fills a 1600×1000 frame at slide size. `REL` too high
   fights clustering into a stiff grid; too low and the steps drift.
-- The authored `RELATION_OFFSETS` directions — pick so gender ⟂ parent reads
-  clearly and no two relationships share a direction (or the arrows collide).
-- The tag colour ramp uses `--warning` / `--danger` as categorical hues, which is
-  a stretch of their semantic role. If it reads wrong, add a dedicated
-  categorical ramp to `semantic.css` via `skin-builder` before the build.
+- The authored `RELATION_OFFSETS` directions — one 2-D vector per relationship,
+  **any angle**; pick so no two relationships share a direction (or their arrows
+  overlap) and the common ones (gender, parent, plural, tense) sit at clearly
+  distinct angles.
+- **Topic colour scale** — a generated hue wheel anchored on `--primary` (§7) is
+  a deliberate exception to "no colour literals". Confirm it holds up at 20+
+  topics in both themes; if a designer needs to hand-pick the palette, formalise
+  it as a named categorical ramp in `semantic.css` via `skin-builder`.
+- How relationships get authored at scale — a growing `relations` list by hand is
+  fine to ~20 relationships; beyond that consider a compact table format.
 - `spotlight` — keep in v1 or defer? (It is the lightest of the overlays.)
 - Whether slide 6's placement lands in this branch or a follow-up (default:
   follow-up).
