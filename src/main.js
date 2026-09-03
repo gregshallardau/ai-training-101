@@ -18,7 +18,11 @@ import { initAlpine } from '@/lib/alpine.js';
 const deck = new Reveal({
 	hash: true,
 	jumpToSlide: true,
-	slideNumber: 'c/t',
+	// Slide numbers off by default. Reveal renders them as a small box bottom-
+	// right (its own `.slide-number` style: monospace on a translucent-black
+	// fill). Turn on per deck with e.g. slideNumber: 'c/t' (current/total),
+	// 'c', or 'h.v'; restyle via `.reveal .slide-number { ... }` in deck.css.
+	slideNumber: false,
 	plugins: [RevealNotes, RevealMarkdown],
 });
 
