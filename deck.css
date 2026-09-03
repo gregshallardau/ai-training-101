@@ -236,6 +236,13 @@
 		border-radius: var(--radius-card);
 		background: var(--bg);
 		color: var(--fg);
+		margin-block: var(--space-block); /* space from neighbouring blocks */
+	}
+	.reveal .slides section .box > :first-child { margin-top: 0; }
+	.reveal .slides section .box > :last-child { margin-bottom: 0; }
+	/* inside a flex layout the container gap spaces children - drop the margin */
+	.reveal .slides section :is(.flex-cols, .flex-rows) > * {
+		margin: 0;
 	}
 	.reveal .slides section .box.border {
 		border: 1px solid var(--c, var(--line));

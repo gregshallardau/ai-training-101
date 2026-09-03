@@ -91,7 +91,10 @@ boundary and follow a `[data-theme]` re-skin for free.
 	border-radius: var(--radius-card);
 	background: var(--bg);
 	color: var(--fg);
+	margin-block: var(--space-block);
 }
+.box > :first-child { margin-top: 0; }
+.box > :last-child { margin-bottom: 0; }
 .box.border { border: 1px solid var(--c, var(--line)); }
 .box:is(.primary, .secondary, .success, .danger, .warning) {
 	background: color-mix(in srgb, var(--c) 8%, var(--bg));
