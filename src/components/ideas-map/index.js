@@ -1,8 +1,8 @@
 // src/components/ideas-map/index.js
 import { DeckElement } from '../deck-element.js';
 import { d3 } from '@/lib/d3.js';
-import { W, H, DATASET, RELATION_OFFSETS, WARMUP } from './dataset.js';
-import { buildSimulation } from './simulation.js';
+import { W, H, DATASET, RELATION_OFFSETS } from './dataset.js';
+import { buildSimulation, makeLinkForce } from './simulation.js';
 import { topicColors } from './palette.js';
 import { makeCamera, bboxOf } from './camera.js';
 import { drawGraph } from './render.js';
@@ -40,8 +40,31 @@ class DeckIdeasMap extends DeckElement {
 	`;
 
 	_readDataset() {
-		try { return JSON.parse(this.getAttribute('data') || 'null') || DATASET; }
-		catch { return DATASET; }
+		// A `data=` attribute is already a fresh object (JSON.parse); the built-in
+		// DATASET is module-level and shared, so every instance takes its OWN deep
+		// clone — buildSimulation mutates node objects (x/y/vx/vy, d3 adds .index)
+		// and two instances must not corrupt each other. (review C2)
+		let ds;
+		try {
+			const parsed = JSON.parse(this.getAttribute('data') || 'null');
+			ds = parsed || structuredClone(DATASET);
+		} catch {
+			ds = structuredClone(DATASET);
+		}
+		return this._normaliseDataset(ds);
+	}
+
+	/** Drop unknown topic ids from every node; warn about a node left with none —
+	 *  it is still placed by charge + link forces and drawn in --muted (spec §4.2). */
+	_normaliseDataset(ds) {
+		const topicIds = new Set((ds.topics || []).map((t) => t.id));
+		for (const n of ds.nodes || []) {
+			n.topics = Array.isArray(n.topics) ? n.topics.filter((t) => topicIds.has(t)) : [];
+			if (n.topics.length === 0) {
+				console.warn(`[ideas-map] node "${n.id}" has no known topic — placed by forces only, drawn muted`);
+			}
+		}
+		return ds;
 	}
 
 	/**
@@ -70,6 +93,7 @@ class DeckIdeasMap extends DeckElement {
 
 		this._svg = svg.node();
 		this._camera = makeCamera(view, W);
+		this._scopeCleared = false;
 		this._data = this._readDataset();
 		this._sim = buildSimulation(this._data, { showLinks: this.hasAttribute('show-links') });
 		this._legend = document.createElement('div');
@@ -85,11 +109,17 @@ class DeckIdeasMap extends DeckElement {
 		this._toggle.addEventListener('click', () => {
 			this._labelOverride = this._labelOverride === null ? 'all'
 				: this._labelOverride === 'all' ? 'none' : null;
-			this._computeState();
-			this._renderLegend();
-			drawGraph(this._svg, this._state);
+			this._redraw();
 		});
 		this.shadowRoot.appendChild(this._toggle);
+
+		// Background click → clear scope framing (spec §6.1). A click that lands on
+		// a node is a drag target, not a background click.
+		d3.select(this._svg).on('click', (event) => {
+			if (event.target && event.target.closest && event.target.closest('circle.node')) return;
+			this._scopeCleared = true;
+			this._applyScope();
+		});
 
 		this._computeState();
 		this._renderLegend();
@@ -100,24 +130,38 @@ class DeckIdeasMap extends DeckElement {
 
 		// Live theme re-colour: a [data-theme] / class swap on <html> changes what
 		// `--primary` (and friends) resolve to, so recompute colours and redraw.
-		this._themeObserver = new MutationObserver(() => {
-			this._computeState();
-			this._renderLegend();
-			drawGraph(this._svg, this._state);
-		});
+		this._themeObserver = new MutationObserver(() => this._redraw());
 		this._themeObserver.observe(document.documentElement, {
 			attributes: true,
 			attributeFilter: ['data-theme', 'class'],
 		});
 	}
 
-	/** (Re)attach the drag behaviour and the position-sync tick handler to the
-	 *  current `this._sim`. Called after render and after every `_rebuild`, since
-	 *  a rebuild swaps in a fresh simulation object. */
+	/** Full recompute + redraw + drag re-wire. EVERY redraw path routes through
+	 *  here so the graph is never left with dead `d3.drag()` bindings after
+	 *  `layer()` blew the old `circle.node` elements away (review C1). */
+	_redraw() {
+		this._computeState();
+		this._renderLegend();
+		this._paint();
+	}
+
+	/** Cheap repaint: redraw the SVG from the current `this._state` and re-bind
+	 *  drag — no state recompute. Used on every re-heat tick and drag move so
+	 *  labels / attention / spotlight layers track their nodes too (review I2). */
+	_paint() {
+		drawGraph(this._svg, this._state);
+		this._wireDrag();
+	}
+
+	/** (Re)attach the tick handler + drag to the current `this._sim`. Called after
+	 *  render and after every sim swap (`_rebuild`). The tick handler does a full
+	 *  `_paint()` each frame — at ~100 SVG elements this is cheap and it removes
+	 *  the "which layers did I forget to move" risk of a partial position sync. */
 	_wireSim() {
 		this._sim.on('tick', () => {
 			if (this._sim.alpha() < this._sim.alphaMin()) return;
-			this._syncPositions();
+			this._paint();
 		});
 		this._wireDrag();
 	}
@@ -140,13 +184,12 @@ class DeckIdeasMap extends DeckElement {
 		d.fx = d.x; d.fy = d.y;
 		this._dragId = d.id;
 		this._computeState();
-		drawGraph(this._svg, this._state);
-		this._wireDrag();
+		this._paint();
 	}
 
 	_onDrag(event, d) {
 		d.fx = event.x; d.fy = event.y;
-		this._syncPositions();
+		this._paint();
 	}
 
 	_onDragEnd(event, d) {
@@ -154,25 +197,7 @@ class DeckIdeasMap extends DeckElement {
 		d.fx = null; d.fy = null;
 		this._dragId = null;
 		this._computeState();
-		drawGraph(this._svg, this._state);
-		this._wireDrag();
-	}
-
-	/** Move existing DOM coordinates to match `this._sim.nodes()` — no layer
-	 *  rebuild, no `drawGraph`. Used on every drag move and on each re-heat tick. */
-	_syncPositions() {
-		const byId = new Map(this._sim.nodes().map((n) => [n.id, n]));
-		this._svg.querySelectorAll('g.nodes circle.node, g.nodes circle.pulse, g.attention circle.halo')
-			.forEach((c) => {
-				const n = byId.get(c.dataset.id); if (!n) return;
-				c.setAttribute('cx', n.x); c.setAttribute('cy', n.y);
-			});
-		this._svg.querySelectorAll('g.links line').forEach((l) => {
-			const s = byId.get(l.dataset.s); const t = byId.get(l.dataset.t);
-			if (!s || !t) return;
-			l.setAttribute('x1', s.x); l.setAttribute('y1', s.y);
-			l.setAttribute('x2', t.x); l.setAttribute('y2', t.y);
-		});
+		this._paint();
 	}
 
 	_dur(kind) {
@@ -250,6 +275,10 @@ class DeckIdeasMap extends DeckElement {
 				weight.set(tok, (weight.get(tok) || 0) + 0.5);
 			}
 		}
+		// the source node is always part of the activation — so it gets a halo and
+		// is never muted by `dimByAct`, even if `attention-from` names a node that
+		// is not in the csv / context set (review deferred #1).
+		if (from) ids.add(from);
 		// renormalise the fan weights (exclude `from`) so they sum to 1 — the fixed budget
 		const fanIds = [...ids].filter((id) => id !== from);
 		const sum = fanIds.reduce((s, id) => s + (weight.get(id) || 0), 0) || 1;
@@ -259,20 +288,23 @@ class DeckIdeasMap extends DeckElement {
 
 	attributeChangedCallback(name) {
 		if (!this._upgraded) return;
+		// any authored attribute change re-asserts scope framing after a
+		// background click cleared it (spec §6.1).
+		this._scopeCleared = false;
 		if (name === 'data') { this._data = this._readDataset(); this._rebuild(); return; }
-		if (name === 'show-links') { this._rebuild({ reheat: true }); return; }
-		this._computeState();
-		this._renderLegend();
+		if (name === 'show-links') { this._toggleLinks(); return; }
+		this._redraw();
 		this._applyScope();
-		drawGraph(this._svg, this._state);
 	}
 
 	_applyScope(instant = false) {
+		// a background click frames the whole graph until the next attribute change
+		const scope = this._scopeCleared ? null : this._state.scope;
 		const shown = this._state.nodes.filter((n) =>
 			this._state.reveal == null
 			|| this._state.topicOrder.indexOf(n.topics[0]) < this._state.reveal);
-		const target = this._state.scope
-			? bboxOf(shown.filter((n) => n.topics[0] === this._state.scope), 90)
+		const target = scope
+			? bboxOf(shown.filter((n) => n.topics[0] === scope), 90)
 			: bboxOf(shown, 90);
 		this._camera.easeTo(
 			[target.cx, target.cy, target.w],
@@ -280,19 +312,36 @@ class DeckIdeasMap extends DeckElement {
 		);
 	}
 
-	_rebuild({ reheat = false } = {}) {
+	/** `show-links` toggle: spec §5.2 — the node/link data and settled positions
+	 *  are NOT rebuilt, only the `link` force toggles. Add / remove exactly the
+	 *  force `buildSimulation` uses on the LIVE sim and re-heat briefly (spec
+	 *  §3.1); under reduced motion run a synchronous settle so it is an instant
+	 *  cut. (review I3) */
+	_toggleLinks() {
+		this._computeState();
+		const on = this.hasAttribute('show-links');
+		this._sim.force('link', on ? makeLinkForce(this._data) : null);
+		if (this._state.reduced) {
+			this._sim.alpha(0.3);
+			for (let i = 0; i < 160; i++) this._sim.tick();
+			this._sim.alphaTarget(0).alpha(0).stop();
+		} else {
+			this._sim.alphaTarget(0.3).alpha(0.4).restart();
+			clearTimeout(this._reheatTimer);
+			this._reheatTimer = setTimeout(() => { this._sim && this._sim.alphaTarget(0); }, 500);
+		}
+		this._redraw();
+		this._applyScope();
+	}
+
+	/** Full teardown + fresh simulation. Only a `data=` change needs this — it is
+	 *  the one case where node/link identity genuinely changes (spec §5.2). */
+	_rebuild() {
 		this._sim && this._sim.stop();
 		this._sim = buildSimulation(this._data, { showLinks: this.hasAttribute('show-links') });
-		if (reheat) {
-			this._sim.alpha(0.6);
-			for (let i = 0; i < Math.floor(WARMUP / 2); i++) this._sim.tick();
-			this._sim.alpha(0).stop();
-		}
-		this._computeState();
-		drawGraph(this._svg, this._state);
-		this._renderLegend();
-		this._applyScope();
 		this._wireSim();
+		this._redraw();
+		this._applyScope();
 	}
 
 	connectedCallback() {
@@ -310,6 +359,7 @@ class DeckIdeasMap extends DeckElement {
 
 	disconnectedCallback() {
 		this._sim && this._sim.stop();
+		clearTimeout(this._reheatTimer);
 		this._themeObserver && this._themeObserver.disconnect();
 	}
 }
