@@ -17,7 +17,12 @@ class DeckIdeasMap extends DeckElement {
 
 	static styles = `
 		:host { display: block; color: var(--fg); font: inherit; position: relative; }
-		svg { width: 100%; height: auto; display: block; background: transparent; }
+		svg {
+			display: block; margin-inline: auto; background: transparent;
+			width: 100%; height: auto;
+			max-width: 100%; max-height: 72vh;
+			aspect-ratio: ${W} / ${H};
+		}
 		text { fill: var(--fg); }
 		circle.node { cursor: grab; }
 		.legend {

@@ -7,10 +7,12 @@ export function bboxOf(nodes, pad = 60) {
 	const ys = nodes.map((n) => n.y);
 	const x0 = Math.min(...xs); const x1 = Math.max(...xs);
 	const y0 = Math.min(...ys); const y1 = Math.max(...ys);
+	// `w` is the camera view width; fit must also keep the bbox height inside the
+	// 1000-tall viewBox, so scale the vertical extent by the viewBox aspect (W/H).
 	return {
 		cx: (x0 + x1) / 2,
 		cy: (y0 + y1) / 2,
-		w: Math.max(1, Math.max(x1 - x0, y1 - y0) + pad * 2),
+		w: Math.max(1, Math.max(x1 - x0, (y1 - y0) * (W / H)) + pad * 2),
 	};
 }
 
