@@ -7,9 +7,12 @@
  * consumes, each pointing at a semantic custom property, so re-skinning via
  * [data-theme] flows straight through to Reveal with no other edits.
  *
- * This file is framework plumbing - the semantic -> --r-* map only. Deck-level
- * look (brand colours, fonts, base type size, element tweaks) lives in the
- * root-level deck.css, in @layer deck, which outranks everything here.
+ * This file is framework plumbing - the semantic -> --r-* map plus a few
+ * structural defaults (text alignment, reading measure). It ships a calm
+ * baseline: modest heading sizes, a capped line length, a lighter heading
+ * weight. Deck-level LOOK (brand colours, fonts, base type size, element
+ * tweaks) is the root-level deck.css, @layer deck, which outranks everything
+ * here - override a default there, don't edit this file.
  */
 @layer theme {
 	:root {
@@ -24,18 +27,20 @@
 		--r-block-margin: var(--space-block);
 		--r-code-font: var(--font-code);
 
-		/* headings */
+		/* headings - calm baseline: a heading labels a slide, it is not a
+		   billboard. Sizes are em-multiples of --text-root-size. Override any
+		   of these in deck.css (TYPE SCALE) if a deck wants louder titles. */
 		--r-heading-font: var(--font-heading);
 		--r-heading-color: var(--surface-fg);
-		--r-heading-font-weight: 700;
-		--r-heading-line-height: 1.2;
-		--r-heading-letter-spacing: normal;
+		--r-heading-font-weight: 600;
+		--r-heading-line-height: 1.15;
+		--r-heading-letter-spacing: -0.005em;
 		--r-heading-text-transform: none;
 		--r-heading-text-shadow: none;
-		--r-heading-margin: 0 0 var(--space-block) 0;
-		--r-heading1-size: 2.5em;
-		--r-heading2-size: 1.6em;
-		--r-heading3-size: 1.3em;
+		--r-heading-margin: 0 0 0.75em 0;
+		--r-heading1-size: 2em;
+		--r-heading2-size: 1.3em;
+		--r-heading3-size: 1.15em;
 		--r-heading4-size: 1em;
 		--r-heading1-text-shadow: none;
 
@@ -52,13 +57,36 @@
 		   Kept as literals: these are chrome, not brand surface. */
 		--r-overlay-element-bg-color: 240, 240, 240;
 		--r-overlay-element-fg-color: 0, 0, 0;
+
+		/* inset every slide from the frame so content never runs to the edge.
+		   `<block> <inline>`, as % of the slide. Override in deck.css. */
+		--slide-padding: 4% 6%;
 	}
 
-	/* structural default - element look lives in root deck.css (@layer deck) */
+	/* structural defaults - element look lives in root deck.css (@layer deck) */
 	.reveal .slides section {
 		text-align: left;
 	}
 	.reveal .slides section.stack {
 		text-align: initial;
+	}
+
+	/* slide gutter - on the horizontal slide and on each vertical child, but
+	   not on a stack wrapper (it would double up). box-sizing keeps the slide
+	   box the size Reveal set. A full-bleed slide sets its own padding: 0. */
+	.reveal .slides > section,
+	.reveal .slides > section > section {
+		padding: var(--slide-padding);
+		box-sizing: border-box;
+	}
+	.reveal .slides > section:has(> section) {
+		padding: 0;
+	}
+
+	/* Reading measure. Body copy sits in a column instead of running the full
+	   slide width; headings, components and explicit layouts are untouched.
+	   :where() keeps specificity at 0 so a slide can still opt out. */
+	.reveal .slides section > :where(p, ul, ol, dl, blockquote) {
+		max-width: 32em;
 	}
 }
