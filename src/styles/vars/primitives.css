@@ -41,11 +41,11 @@
 			Helvetica, Arial, sans-serif;
 		--font-serif: ui-serif, Georgia, Cambria, "Times New Roman", serif;
 		--font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-		/* Reveal's stock themes ship 40px, which only fits 3-4 short bullets on a
-		   960x700 slide before content silently overflows (Reveal clips, no
-		   scrollbar). 32px gives real content slides room; headings are `em`-based
-		   so they scale with it. See the list type scale in theme/deck.css. */
-		--text-root-size: 32px;
+		/* Reveal's stock size. The deck normally overrides this via --text-root-size
+		   in the root deck.css (shipped at 32px there - 40px overflows any slide
+		   with a wrapping bullet or 6+ list items). This stays 40px so a deck.css
+		   that never touches the knob still matches stock Reveal. */
+		--text-root-size: 40px;
 
 		/* --- motion --- */
 		--dur-fast: 150ms;

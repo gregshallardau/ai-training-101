@@ -10,6 +10,9 @@ The four authoring skills (`slide-builder`, `artefact-builder`, `deck-builder`,
 ```
 index.html                     .reveal > .slides holds only `<!-- @slides -->`
                                plus one <style>@layer ...;</style> that pins layer order
+deck.css                       ROOT-level deck look: brand knobs (commented menu) +
+                               deck-wide element tweaks. @layer deck (highest). The
+                               one file a deck author edits to re-skin.
 build/vite-plugin-slides.js     stitches slides/*.{html,md} into that marker (dev + build)
 vite.config.ts                  Reveal's config + `@ -> /src` alias + slides() plugin
 vite.config.deck.js             `npm run build:deck` -> static export in deck-dist/
@@ -18,12 +21,12 @@ src/
   main.js                       single entry: styles -> registry -> Reveal(+Notes,Markdown) -> gsap/alpine
   styles/
     layers.css                  the @layer order declaration
-    index.css                   ordered @imports of everything below
+    index.css                   ordered @imports of everything below, incl. ../../deck.css last
     vendor/reveal-base.scss     wraps css/reset.css + css/layout.scss + css/reveal.scss
                                 + css/theme/template/theme.scss into cascade layers (Sass compile time)
     vars/primitives.css         TIER 1 - raw values (@layer vars.primitive)
     vars/semantic.css           TIER 2 - role names + [data-theme] skins (@layer vars.semantic)
-    theme/deck.css              maps semantic vars -> Reveal --r-* API (@layer theme)
+    theme/deck.css              maps semantic vars -> Reveal --r-* API (@layer theme). Plumbing only.
   components/
     deck-element.js             DeckElement base class
     registry.js                 THE manifest + barrel - the one list of what components exist
@@ -68,6 +71,14 @@ A `[data-theme="name"] { ... }` block re-points semantics at other primitives - 
 is the entire re-skin mechanism. Components and all JS consume **tier 2 only**;
 never a primitive, never a raw literal.
 
+**Deck look** (`deck.css`, repo root, `@layer deck`): the one file a deck author
+edits. A commented menu of the high-value knobs (`--accent`, `--accent-strong`,
+`--accent-fg`, `--surface-*`, `--font-*`) plus active `--text-root-size` (shipped
+32px; the primitive default stays Reveal's 40px) and deck-wide element tweaks
+(list type-scale). `@import`ed last by `src/styles/index.css`. Highest layer, so
+it wins with no `!important`. `skin-builder` still writes `[data-theme]` blocks to
+`semantic.css`, not here - this file is the single look the deck ships with.
+
 ---
 
 ## 3. Cascade layer order
@@ -75,12 +86,13 @@ never a primitive, never a raw literal.
 Declared once (`src/styles/layers.css`, and mirrored in `index.html`), low -> high:
 
 ```
-@layer reveal.reset, reveal.base, reveal.theme, vars.primitive, vars.semantic, theme, components;
+@layer reveal.reset, reveal.base, reveal.theme, vars.primitive, vars.semantic, theme, components, deck;
 ```
 
 Reveal's own CSS is pulled into `reveal.*` layers by `vendor/reveal-base.scss` so a
-deck's `theme` / `components` layers can override it without specificity hacks.
-Nothing of ours is left unlayered (unlayered = an explicit escape hatch, unused).
+deck's `theme` / `components` / `deck` layers can override it without specificity
+hacks. `deck` (the root `deck.css`) is highest. Nothing of ours is left unlayered
+(unlayered = an explicit escape hatch, unused).
 
 ---
 

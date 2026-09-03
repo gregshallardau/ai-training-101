@@ -1,0 +1,154 @@
+/*
+ * deck.css - THE file you edit to make a deck your own.
+ * ============================================================================
+ *
+ * Everything under src/ is framework machinery. This file is the deck-level
+ * look: brand colours, fonts, the base type size, and any deck-wide element
+ * tweaks. It is loaded LAST and lives in `@layer deck`, the highest cascade
+ * layer (see src/styles/layers.css), so anything you set here wins - no
+ * !important, no specificity games.
+ *
+ * HOW THE KNOBS WORK
+ *   Each knob below is one CSS custom property. It re-points a "semantic"
+ *   variable that the ENTIRE deck reads from - every slide, component, heading
+ *   and link. Change it in one place here, see it everywhere.
+ *   The full palette / spacing scale / type system it draws from lives in
+ *   src/styles/vars/primitives.css (raw values) and src/styles/vars/semantic.css
+ *   (the role names). You rarely need to open those.
+ *
+ * HOW TO USE THIS FILE
+ *   - Uncomment a knob and change its value. Save. The dev server hot-reloads.
+ *   - A commented-out knob just means "use the framework default".
+ *   - Loading a webfont? Add its <link> / @import to index.html <head> FIRST,
+ *     then set --font-heading / --font-body to its family name here.
+ *
+ * A NOTE ON DARK MODE / MULTIPLE SKINS
+ *   A named, switchable skin (light + dark, or per-client themes) is a
+ *   [data-theme="name"] block in src/styles/vars/semantic.css - not this file.
+ *   This file is the ONE look the deck ships with.
+ */
+
+@layer deck {
+	:root {
+		/* ══════════════════════════════════════════════════════════════════
+		   BRAND KNOBS
+		   Uncomment a line to override the framework default.
+		   ══════════════════════════════════════════════════════════════════ */
+
+		/* --accent  ─────────────────────────────────────────────────────────
+		   Your one brand colour. Where you'll see it:
+		     • hyperlinks in slide body text
+		     • the :focus outline on links when tabbing through
+		     • the ::selection highlight when you drag-select text on a slide
+		     • components that ask for the accent (section-break rules,
+		       the first series in a <deck-chart>, badge / pill fills)
+		   Framework default: #2563eb (a mid blue).
+		*/
+		/* --accent: #2563eb; */
+
+		/* --accent-strong  ────────────────────────────────────────────────
+		   The darker press/hover partner for --accent. Where you'll see it:
+		     • link colour on hover
+		     • the "pressed" state of buttons and controls
+		   Set this WHENEVER you set --accent, or hover states won't match.
+		   Framework default: #1d4ed8.
+		*/
+		/* --accent-strong: #1d4ed8; */
+
+		/* --accent-fg  ────────────────────────────────────────────────────
+		   Text/'icon colour that sits ON TOP of an --accent fill (e.g. label
+		   text inside a coloured badge). Needs strong contrast with --accent.
+		   Framework default: #ffffff.
+		*/
+		/* --accent-fg: #ffffff; */
+
+		/* --surface-bg  ──────────────────────────────────────────────────
+		   The slide background - the colour behind every slide, and the
+		   page colour in the PDF / print export.
+		   Framework default: #ffffff.
+		*/
+		/* --surface-bg: #ffffff; */
+
+		/* --surface-fg  ──────────────────────────────────────────────────
+		   Default colour for body text AND headings, on top of --surface-bg.
+		   Keep a strong contrast with the background or the back row can't
+		   read it.
+		   Framework default: #0b0c0e (near-black).
+		*/
+		/* --surface-fg: #0b0c0e; */
+
+		/* --surface-fg-muted  ────────────────────────────────────────────
+		   Secondary text: slide subtitles, captions, the <p> under a title,
+		   anything you want to sit back from the main text.
+		   Framework default: #5b616e (grey).
+		*/
+		/* --surface-fg-muted: #5b616e; */
+
+		/* --surface-line  ────────────────────────────────────────────────
+		   Hairline colour: <hr>, table borders, the rule under a section
+		   heading, card outlines.
+		   Framework default: #9aa0ac (light grey).
+		*/
+		/* --surface-line: #9aa0ac; */
+
+		/* --font-heading  ────────────────────────────────────────────────
+		   Font stack for <h1>-<h4>. Always end with a real fallback chain.
+		   If it's a webfont, <link> or @import it in index.html <head> first.
+		   Framework default: the system UI sans stack.
+		*/
+		/* --font-heading: "Your Font", ui-sans-serif, system-ui, sans-serif; */
+
+		/* --font-body  ───────────────────────────────────────────────────
+		   Font stack for everything that isn't a heading or a code span.
+		   Framework default: the system UI sans stack.
+		*/
+		/* --font-body: "Your Font", ui-sans-serif, system-ui, sans-serif; */
+
+		/* --font-code  ───────────────────────────────────────────────────
+		   Font stack for <code>, <pre>, and syntax-highlighted blocks.
+		   Framework default: the system UI monospace stack.
+		*/
+		/* --font-code: "Your Mono", ui-monospace, SFMono-Regular, monospace; */
+
+
+		/* ══════════════════════════════════════════════════════════════════
+		   CONTENT FIT  (active - these ship on)
+		   Reveal's stock sizing assumes 3-bullet demo slides. These keep
+		   real content on the slide.
+		   ══════════════════════════════════════════════════════════════════ */
+
+		/* --text-root-size  ──────────────────────────────────────────────
+		   Base type size for slide content: 1em on a slide equals this.
+		   Headings are em-multiples of it, so this one value scales the
+		   whole deck up or down.
+		   Reveal ships 40px, which overflows any slide with a wrapping
+		   bullet or 6+ list items - and Reveal CLIPS the overflow silently,
+		   no scrollbar, so you don't notice until you present.
+		   32px gives normal content room. Raise it for a sparse big-text
+		   deck; lower it (28px) for dense reference slides.
+		*/
+		--text-root-size: 32px;
+	}
+
+	/* ══════════════════════════════════════════════════════════════════════
+	   ELEMENT TWEAKS  (active - these ship on)
+	   Deck-wide rules for how elements render. Add your own below.
+	   ══════════════════════════════════════════════════════════════════════ */
+
+	/* Lists: step list text down from prose size, tighten the leading, and
+	   give successive items their own vertical rhythm. Without this a
+	   realistic bullet list - or any nested list - runs off the bottom of
+	   the slide. A deeply nested list steps down once more so a 3rd level
+	   still fits. (A 25-item jump menu is still an authoring problem, not a
+	   CSS one - split it or use columns on that slide.) */
+	.reveal .slides section :is(ul, ol) {
+		font-size: 0.85em;
+		line-height: 1.3;
+	}
+	.reveal .slides section :is(ul, ol) :is(ul, ol) {
+		font-size: 0.92em;
+	}
+	.reveal .slides section li + li {
+		margin-top: 0.4em;
+	}
+}

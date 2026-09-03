@@ -9,8 +9,9 @@
 		<title>Presentation Framework</title>
 		<!-- No stylesheet links: all CSS is imported through /src/main.js so it is cascade-layered.
 		     This lone @layer statement pins the layer order BEFORE the bundled CSS loads, so a
-		     minifier that drops the statement from src/styles/layers.css can't change precedence. -->
-		<style>@layer reveal.reset, reveal.base, reveal.theme, vars.primitive, vars.semantic, theme, components;</style>
+		     minifier that drops the statement from src/styles/layers.css can't change precedence.
+		     `deck` is last = highest: the root-level deck.css wins over everything. -->
+		<style>@layer reveal.reset, reveal.base, reveal.theme, vars.primitive, vars.semantic, theme, components, deck;</style>
 	</head>
 	<body>
 		<div class="reveal">

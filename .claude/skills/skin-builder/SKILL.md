@@ -47,8 +47,8 @@ Do **not** read components, slides, or `theme/deck.css`.
   differ from `:root`. Every value is `var(--<primitive>)` - never a raw colour or
   length.
 
-Never redefine the base `:root` semantics. Never edit `theme/deck.css`, slides, or
-components.
+Never redefine the base `:root` semantics. Never edit `theme/deck.css`, the
+root-level `deck.css`, slides, or components.
 
 ## Procedure
 
