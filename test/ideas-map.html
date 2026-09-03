@@ -211,10 +211,8 @@
 			assert.ok([...lines].every((l) => Number(l.getAttribute('stroke-opacity')) === 0), 'all hidden');
 		});
 
-		QUnit.test('node fill matches its topic colour', async (assert) => {
+		QUnit.test('node fill matches its topic colour', (assert) => {
 			const el = mount();
-			const colors = (await import('/src/components/ideas-map/palette.js')).topicColors(
-				DATASET.topics.map((t) => t.id), () => '#2563eb');
 			// element resolves --primary from the page; just assert fills are distinct per topic
 			const byTopic = {};
 			settle(el).querySelectorAll('g.nodes circle.node').forEach((c) => {

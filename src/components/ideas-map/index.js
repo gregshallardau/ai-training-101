@@ -22,7 +22,7 @@ class DeckIdeasMap extends DeckElement {
 		circle.node { cursor: grab; }
 	`;
 
-	get dataset() {
+	_readDataset() {
 		try { return JSON.parse(this.getAttribute('data') || 'null') || DATASET; }
 		catch { return DATASET; }
 	}
@@ -53,7 +53,7 @@ class DeckIdeasMap extends DeckElement {
 
 		this._svg = svg.node();
 		this._camera = makeCamera(view, W);
-		this._data = this.dataset;
+		this._data = this._readDataset();
 		this._sim = buildSimulation(this._data, { showLinks: this.hasAttribute('show-links') });
 		this._computeState();
 		drawGraph(this._svg, this._state);

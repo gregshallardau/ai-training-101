@@ -9,7 +9,7 @@ const make = (tag, attrs = {}) => {
 };
 
 function layer(view, cls) {
-	let g = view.querySelector(`g.${cls}`);
+	let g = view.querySelector(`:scope > g.${cls}`);
 	if (!g) { g = make('g', { class: cls }); view.appendChild(g); }
 	g.textContent = '';
 	return g;
