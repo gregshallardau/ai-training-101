@@ -321,9 +321,10 @@ only revealed nodes, so the frame grows sensibly as topics come in.
 - **Theming:** `readPalette` at render and inside the draw pass so a live
   `[data-theme]` swap re-colours. Palette used: `--bg --fg --muted --line
   --primary --primary-strong` for the graph; the **tag colour ramp** is
-  `[--primary, --secondary, --warning, --success, --danger]` assigned in topic
-  order (all exist in `:root` and `[data-theme="dark"]` of
-  `src/styles/vars/semantic.css`). Semantic custom properties only — no
+  `[--primary, --warning, --success, --danger, --secondary]` (strong hues first,
+  the greyish `--secondary` last) assigned in topic order — all exist in `:root`
+  and `[data-theme="dark"]` of `src/styles/vars/semantic.css`. Semantic custom
+  properties only — no
   primitive, no literal; numeric geometry constants in JS (`NODE_R`,
   `LINK_DIST`, `CHARGE`, viewBox) are fine, as the recipes hard-code theirs.
 - **Motion:** camera tween → `--motion-hero-*`; edge/colour fades → `--motion-ui-*`;
