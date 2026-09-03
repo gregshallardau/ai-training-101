@@ -1,10 +1,10 @@
 # Framework conventions (shared reference)
 
-The architecture reference for this framework. The four authoring skills
-(`slide-builder`, `artefact-builder`, `deck-builder`, `skin-builder`) all read
-this file first; it is also the doc to read by hand when you want the whole
-picture. For day-to-day "what tag / class / knob do I use", see
-[`cheatsheet.md`](./cheatsheet.md).
+The architecture reference for this framework. The authoring skills
+(`presentation-planner`, `deck-builder`, `slide-builder`, `artefact-builder`,
+`skin-builder`) all read this file first; it is also the doc to read by hand when
+you want the whole picture. For day-to-day "what tag / class / knob do I use", see
+[`cheatsheet.md`](./cheatsheet.md); for the plan file, [`plan-format.md`](./plan-format.md).
 
 ---
 
@@ -14,14 +14,17 @@ picture. For day-to-day "what tag / class / knob do I use", see
 index.html                     .reveal > .slides holds only `<!-- @slides -->`
                                plus one <style>@layer ...;</style> that pins layer order
 deck.css                       ROOT-level deck look: brand knobs (commented menu) +
-                               deck-wide element tweaks. @layer deck (highest). The
-                               one file a deck author edits to re-skin.
+                               deck-wide element tweaks + utility classes.
+                               @layer deck (highest). Edit per deck to re-skin.
+deck.config.js                 ROOT-level Reveal knobs a deck author tunes: slide
+                               size, transition, slideNumber, hash. src/main.js
+                               spreads it into new Reveal({...}); plugins stay in src.
 build/vite-plugin-slides.js     stitches slides/*.{html,md} into that marker (dev + build)
 vite.config.ts                  Reveal's config + `@ -> /src` alias + slides() plugin
 vite.config.deck.js             `npm run build:deck` -> static export in deck-dist/
 
 src/
-  main.js                       single entry: styles -> registry -> Reveal(+Notes,Markdown) -> gsap/alpine
+  main.js                       single entry: styles -> registry -> Reveal(../deck.config.js + Notes,Markdown) -> gsap/alpine
   styles/
     layers.css                  the @layer order declaration
     index.css                   ordered @imports of everything below, incl. ../../deck.css last
@@ -76,11 +79,15 @@ never a primitive, never a raw literal.
 
 **Deck look** (`deck.css`, repo root, `@layer deck`): the one file a deck author
 edits. A commented menu of the high-value knobs (`--accent`, `--accent-strong`,
-`--accent-fg`, `--surface-*`, `--font-*`) plus active `--text-root-size` (shipped
-32px; the primitive default stays Reveal's 40px) and deck-wide element tweaks
-(list type-scale). `@import`ed last by `src/styles/index.css`. Highest layer, so
-it wins with no `!important`. `skin-builder` still writes `[data-theme]` blocks to
-`semantic.css`, not here - this file is the single look the deck ships with.
+`--accent-fg`, `--surface-*`, `--font-*`, type scale) plus active
+`--text-root-size` (shipped 32px; the primitive default stays Reveal's 40px),
+deck-wide element tweaks (list type-scale), and the **utility classes**
+(`.text-accent`, `.text-muted`, `.text-center`, `.flex-cols`, `.flex-rows`,
+`.list-compact`, `.box`) - a framework surface a slide may use so it never needs
+its own `<style>` for common things. `@import`ed last by `src/styles/index.css`.
+Highest layer, so it wins with no `!important`. `skin-builder` still writes
+`[data-theme]` blocks to `semantic.css`, not here - this file is the single look
+the deck ships with.
 
 ---
 
@@ -106,8 +113,13 @@ hacks. `deck` (the root `deck.css`) is highest. Nothing of ours is left unlayere
 - The class `extends DeckElement` (`src/components/deck-element.js`): `attachShadow`,
   idempotent `connectedCallback`, `static styles` (CSS string in Shadow DOM),
   `static tag`, `cssVar(name)` helper.
-- **Consume tier-2 semantic custom properties only** (plus Reveal's `--r-*`).
-- A component may `import` from `@/lib/*`; a slide may not.
+- **Consume tier-2 semantic custom properties only** (plus Reveal's `--r-*`), and
+  the shared style vocabulary in `artefact-builder/reference/component-styles.md` -
+  never a bespoke per-component class pile.
+- A component may `import` from `@/lib/*`; a slide may not. `artefact-builder`
+  builds each one from a kind recipe (`d3-chart`, `d3-circle-pack`, `svg-diagram`,
+  `gsap-hero`, `alpine-interactive`); Alpine markup in a shadow root needs
+  `Alpine.initTree(this.shadowRoot)` behind a ready-guard.
 - Register it: one `import './<kebab>/index.js';` line **and** one `COMPONENTS`
   entry in `src/components/registry.js`.
 - **"Does component X exist?" is answered by reading `registry.js` alone.**
@@ -121,8 +133,8 @@ hacks. `deck` (the root `deck.css`) is highest. Nothing of ours is left unlayere
 Full text in `slides/README.md`. In short, a slide file is portable iff:
 
 1. it references shared things only via framework-guaranteed surfaces - registered
-   `<deck-*>` tags, tier-2 semantic custom properties, Reveal `--r-*` (and `@/lib/*`
-   only from inside a component);
+   `<deck-*>` tags, tier-2 semantic custom properties, Reveal `--r-*`, the
+   `deck.css` utility classes (and `@/lib/*` only from inside a component);
 2. **or** it fully inlines its artefact: scoped `<style>` + an inline
    `<script type="module">` with **zero imports**, browser-native APIs only, DOM
    lookups scoped by the slide's own `#slug` (never `document.currentScript` - it is

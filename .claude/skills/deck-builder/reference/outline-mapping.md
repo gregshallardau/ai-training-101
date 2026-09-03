@@ -1,15 +1,23 @@
 # Outline -> slides mapping
 
+Two inputs: a plain **outline**, or a **plan** (`docs/plan-format.md` - detected
+by a leading `---` frontmatter block). Plan mode adds the rows marked *(plan)*
+below; everything else is shared.
+
 ## Heading levels
 
-| Outline                                   | Becomes                                   |
+| Outline / plan                            | Becomes                                   |
 |-------------------------------------------|-------------------------------------------|
-| First `#` / given title                   | deck title (`00-title.html`)              |
+| First `#` / given title / `title:` *(plan)* | deck title (`00-title.html`)            |
 | `##` heading                              | horizontal section slide `NN-<slug>`      |
 | Lone numbered line, e.g. `5. Context`     | horizontal section slide                  |
 | `###` under a `##`                        | vertical child `NN.M-<slug>` (if nested)  |
 | Bullet list under a heading               | `TODO:` stub bullets in that slide        |
 | Free prose under a heading                | `TODO:` stub bullets (one per sentence-ish)|
+| `intent: <text>` line *(plan)*            | `<!-- intent: <text> -->` atop the slide body |
+| `artefact: <kind> — <desc>` line *(plan)* | slide is `.html` + `<!-- TODO: run artefact-builder for deck-<slug> — <desc> -->` |
+| `takeaways:` list *(plan)*                | closing `NN-key-takeaways.md` (`## Key takeaways` + one bullet each) |
+| `audience` / `goal` / `tone` / `duration` *(plan)* | HTML comment block on `00-title.html` |
 
 ## Numbering
 
@@ -19,6 +27,7 @@
 02-<first-section>.md|html
 03-<next-section>...
 03.1-<child>...           vertical children share the parent major
+NN-key-takeaways.md       plan mode only - last slide
 ```
 
 Zero-padded, step 1. Recompute widths if there are >= 100 slides.

@@ -184,4 +184,55 @@
 	.reveal .slides section li + li {
 		margin-top: 0.4em;
 	}
+
+	/* ══════════════════════════════════════════════════════════════════════
+	   UTILITY CLASSES  (active)
+	   Deck-wide helpers so a slide never needs its own <style> for common
+	   things. Put one on any element INSIDE a slide. All built from semantic
+	   custom properties, so they follow a re-skin.
+	   ══════════════════════════════════════════════════════════════════════ */
+
+	/* .text-accent   accent-colour text */
+	.reveal .slides section .text-accent {
+		color: var(--accent);
+	}
+
+	/* .text-muted    secondary / caption text */
+	.reveal .slides section .text-muted {
+		color: var(--surface-fg-muted);
+	}
+
+	/* .text-center   centre-align (slide text defaults to left) */
+	.reveal .slides section .text-center {
+		text-align: center;
+	}
+
+	/* .flex-cols     children side by side, equal width
+	   .flex-rows     children stacked, full width
+	   both use --space-block as the gap */
+	.reveal .slides section :is(.flex-cols, .flex-rows) {
+		display: flex;
+		gap: var(--space-block);
+	}
+	.reveal .slides section .flex-cols {
+		flex-direction: row;
+	}
+	.reveal .slides section .flex-rows {
+		flex-direction: column;
+	}
+	.reveal .slides section .flex-cols > * {
+		flex: 1;
+	}
+
+	/* .list-compact  drop the gap between items of a list inside it */
+	.reveal .slides section .list-compact li + li {
+		margin-top: 0;
+	}
+
+	/* .box           bordered, padded panel */
+	.reveal .slides section .box {
+		border: 1px solid var(--surface-line);
+		border-radius: var(--radius-card);
+		padding: var(--space-block);
+	}
 }

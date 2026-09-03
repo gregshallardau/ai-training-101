@@ -106,7 +106,7 @@ multiples of `--text-root-size`.
 | **Sub-heading** | `###` | `<h3>` | `1.3em` | `--r-heading3-size` |
 | Minor label | `####` | `<h4>` | `1em` | `--r-heading4-size` |
 | Body text | plain | `<p>` | `1em` (= `--text-root-size`) | `--text-root-size` |
-| Secondary / caption | _(none)_ | `<p style="color: var(--surface-fg-muted)">` | - | `--surface-fg-muted` |
+| Secondary / caption | _(none)_ | `<p class="text-muted">` | - | `--surface-fg-muted` |
 | Smaller run of text | _(none)_ | `<small>` | `~0.6em` | - |
 | Bold | `**x**` | `<strong>` / `<b>` | - | - |
 | Italic | `*x*` | `<em>` / `<i>` | - | - |
@@ -184,6 +184,43 @@ Add as a `class` on any element (or `<section>`).
 	<img src="a.png"><img src="b.png">
 </div>
 ```
+
+---
+
+## Utility classes
+
+Deck-wide helpers defined in `deck.css` ("Utility classes"). Put one on any
+element inside a slide - no per-slide `<style>` needed. All built from semantic
+custom properties, so they follow a re-skin.
+
+| Class | Does |
+|---|---|
+| `.text-accent` | accent-colour text |
+| `.text-muted` | secondary / caption text (`--surface-fg-muted`) |
+| `.text-center` | centre-align (slide text defaults to left) |
+| `.flex-cols` | children side by side, equal width, `--space-block` gap |
+| `.flex-rows` | children stacked full width, `--space-block` gap |
+| `.list-compact` | drop the gap between items of a list inside it |
+| `.box` | bordered, padded panel (`--surface-line`, `--radius-card`, `--space-block`) |
+
+```html
+<p class="text-muted">context for the slide</p>
+
+<div class="flex-cols">
+	<div class="box">
+		<h3>Before</h3>
+		<ul class="list-compact"><li>…</li></ul>
+	</div>
+	<div class="box">
+		<h3>After</h3>
+		<ul class="list-compact"><li>…</li></ul>
+	</div>
+</div>
+```
+
+Need something not in this list and used on more than one slide? Add a class to
+the "Utility classes" block in `deck.css` (semantic custom properties only). A
+one-slide-only visual stays a scoped `<style>` in that slide (shape 3 above).
 
 ---
 
@@ -268,7 +305,11 @@ A whole alternate palette (light + dark, per-client themes) is a
 
 | Change | Do this |
 |---|---|
-| Link / accent colour | `--accent` (+ `--accent-strong`) in `deck.css` |
+| Accent colour on one element | `class="text-accent"` on it |
+| A caption / secondary line | `class="text-muted"` |
+| Two things side by side | wrap them in `<div class="flex-cols">` |
+| A bordered box | `class="box"` |
+| Link / accent colour (whole deck) | `--accent` (+ `--accent-strong`) in `deck.css` |
 | Slide background colour | `--surface-bg` in `deck.css` |
 | Body text size (whole deck) | `--text-root-size` in `deck.css` |
 | Sub-heading (`<h3>`) size | `--r-heading3-size` in `deck.css` |
@@ -276,6 +317,7 @@ A whole alternate palette (light + dark, per-client themes) is a
 | Space between bullets | the `li + li` rule in `deck.css` |
 | List text too big / small | the `:is(ul, ol)` font-size in `deck.css` |
 | Fonts | `--font-heading` / `--font-body` in `deck.css` (load the webfont in `index.html` first) |
+| Slide size / default transition / slide numbers | `deck.config.js` (repo root) |
 | A full brand theme / dark mode | run `skin-builder` → `[data-theme]` block in `semantic.css` |
 | Add a chart / diagram / animated widget | run `artefact-builder` → a `<deck-*>` |
 | Add / rewrite / reorder a slide | run `slide-builder` |

@@ -77,6 +77,17 @@ document.documentElement.dataset.theme = 'dark';
 
 A skin is a `[data-theme="<name>"]` block in `src/styles/vars/semantic.css`.
 
+## Editing a deck
+
+The `src/` tree is framework machinery - you don't touch it. Two root-level
+files are the deck-author surface:
+
+- **`deck.css`** - look: brand knobs, type scale, element tweaks, utility classes.
+- **`deck.config.js`** - Reveal knobs: slide size, transition, `slideNumber`, `hash`.
+
+Plus `slides/` (one file per slide) and `index.html` (the `.reveal > .slides`
+skeleton).
+
 ## Docs
 
 - `docs/cheatsheet.md` - authoring reference: what tag / class / attribute to
@@ -86,10 +97,17 @@ A skin is a `[data-theme="<name>"]` block in `src/styles/vars/semantic.css`.
 
 ## Authoring skills
 
-`.claude/skills/` - `slide-builder` (add / edit / reorder slides),
-`artefact-builder` (`<deck-*>` components), `deck-builder` (scaffold a deck from
-an outline), `skin-builder` (`[data-theme]` skins). Each reads
-`docs/framework-conventions.md` first.
+`.claude/skills/`, roughly in workflow order:
+
+- `presentation-planner` - Q&A interview -> `presentation-plan.md` (a brief + a
+  section outline)
+- `deck-builder` - a plan or an outline -> `slides/` stubs (title, overview,
+  a stub per section, closing takeaways)
+- `slide-builder` - add / edit / reorder / renumber individual slides
+- `artefact-builder` - a reusable `<deck-*>` component (chart, diagram, hero)
+- `skin-builder` - a `[data-theme]` brand skin
+
+Each reads `docs/framework-conventions.md` first.
 
 ## Deviations from a plain reveal.js 6.0.1 checkout
 
