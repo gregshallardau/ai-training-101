@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>deck-ideas-map tests</title>
+	<link rel="stylesheet" href="../node_modules/qunit/qunit/qunit.css">
+	<script src="../node_modules/qunit/qunit/qunit.js"></script>
+	<script>QUnit.config.autostart = false;</script>
+</head>
+<body>
+	<div id="qunit"></div>
+	<div id="qunit-fixture"></div>
+	<script type="module">
+		import '/src/styles/vars/primitives.css';
+		import '/src/styles/vars/semantic.css';
+		import '/src/components/ideas-map/index.js';
+		import { DATASET, RELATION_OFFSETS } from '/src/components/ideas-map/dataset.js';
+
+		const mount = () => {
+			const el = document.createElement('deck-ideas-map');
+			document.getElementById('qunit-fixture').appendChild(el);
+			return el;
+		};
+
+		QUnit.module('skeleton');
+
+		QUnit.test('element is defined', (assert) => {
+			assert.ok(customElements.get('deck-ideas-map'), 'custom element registered');
+		});
+
+		QUnit.test('framework CSS vars resolve in the harness', (assert) => {
+			const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+			assert.ok(primary.length > 0, '--primary resolves on the page');
+		});
+
+		QUnit.test('renders an svg with a view group', (assert) => {
+			const el = mount();
+			const svg = el.shadowRoot.querySelector('svg');
+			assert.ok(svg, 'svg present in shadow root');
+			assert.strictEqual(svg.getAttribute('viewBox'), '0 0 1600 1000', 'viewBox set');
+			assert.ok(svg.querySelector('g.view'), 'g.view present');
+			assert.strictEqual(svg.getAttribute('role'), 'img', 'role=img for a11y');
+		});
+
+		QUnit.test('dataset integrity', (assert) => {
+			const ids = new Set(DATASET.nodes.map((n) => n.id));
+			for (const l of DATASET.links) {
+				assert.ok(ids.has(l.source) && ids.has(l.target), `link ${l.source}->${l.target} endpoints exist`);
+			}
+			for (const r of DATASET.relations) {
+				assert.ok(RELATION_OFFSETS[r.rel], `relation ${r.rel} has an offset vector`);
+				for (const [a, b] of r.pairs) {
+					assert.ok(ids.has(a) && ids.has(b), `relation pair ${a},${b} endpoints exist`);
+				}
+			}
+			const topicIds = new Set(DATASET.topics.map((t) => t.id));
+			for (const n of DATASET.nodes) {
+				for (const t of n.topics) assert.ok(topicIds.has(t), `node ${n.id} topic ${t} exists`);
+			}
+		});
+
+		QUnit.start();
+	</script>
+</body>
+</html>
