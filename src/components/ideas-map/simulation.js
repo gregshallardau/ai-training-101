@@ -44,6 +44,19 @@ export function forceRelations(relations, offsets = RELATION_OFFSETS, strength =
 	return force;
 }
 
+/**
+ * Build the `forceLink` used under `show-links` — the plain `links` plus every
+ * relation pair, resolved by node id. Extracted so a live `show-links` toggle can
+ * add/remove exactly this force on an existing simulation without re-seeding it.
+ */
+export function makeLinkForce(dataset, { relations = true } = {}) {
+	const relPairs = relations
+		? dataset.relations.flatMap((r) => r.pairs.map(([a, b]) => ({ source: a, target: b })))
+		: [];
+	const links = dataset.links.map((l) => ({ ...l })).concat(relPairs);
+	return d3.forceLink(links).id((n) => n.id).distance((l) => l.distance ?? LINK_DIST);
+}
+
 export function buildSimulation(dataset, opts = {}) {
 	const {
 		seed = SEED, warmup = WARMUP, showLinks = false, relations = true,
@@ -70,11 +83,7 @@ export function buildSimulation(dataset, opts = {}) {
 		.stop();
 
 	if (showLinks) {
-		const relPairs = relations
-			? dataset.relations.flatMap((r) => r.pairs.map(([a, b]) => ({ source: a, target: b })))
-			: [];
-		const links = dataset.links.map((l) => ({ ...l })).concat(relPairs);
-		sim.force('link', d3.forceLink(links).id((n) => n.id).distance((l) => l.distance ?? LINK_DIST));
+		sim.force('link', makeLinkForce(dataset, { relations }));
 	}
 
 	if (relations) {
