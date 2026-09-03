@@ -14,14 +14,17 @@ picture. For day-to-day "what tag / class / knob do I use", see
 index.html                     .reveal > .slides holds only `<!-- @slides -->`
                                plus one <style>@layer ...;</style> that pins layer order
 deck.css                       ROOT-level deck look: brand knobs (commented menu) +
-                               deck-wide element tweaks. @layer deck (highest). The
-                               one file a deck author edits to re-skin.
+                               deck-wide element tweaks + utility classes.
+                               @layer deck (highest). Edit per deck to re-skin.
+deck.config.js                 ROOT-level Reveal knobs a deck author tunes: slide
+                               size, transition, slideNumber, hash. src/main.js
+                               spreads it into new Reveal({...}); plugins stay in src.
 build/vite-plugin-slides.js     stitches slides/*.{html,md} into that marker (dev + build)
 vite.config.ts                  Reveal's config + `@ -> /src` alias + slides() plugin
 vite.config.deck.js             `npm run build:deck` -> static export in deck-dist/
 
 src/
-  main.js                       single entry: styles -> registry -> Reveal(+Notes,Markdown) -> gsap/alpine
+  main.js                       single entry: styles -> registry -> Reveal(../deck.config.js + Notes,Markdown) -> gsap/alpine
   styles/
     layers.css                  the @layer order declaration
     index.css                   ordered @imports of everything below, incl. ../../deck.css last

@@ -317,6 +317,7 @@ A whole alternate palette (light + dark, per-client themes) is a
 | Space between bullets | the `li + li` rule in `deck.css` |
 | List text too big / small | the `:is(ul, ol)` font-size in `deck.css` |
 | Fonts | `--font-heading` / `--font-body` in `deck.css` (load the webfont in `index.html` first) |
+| Slide size / default transition / slide numbers | `deck.config.js` (repo root) |
 | A full brand theme / dark mode | run `skin-builder` → `[data-theme]` block in `semantic.css` |
 | Add a chart / diagram / animated widget | run `artefact-builder` → a `<deck-*>` |
 | Add / rewrite / reorder a slide | run `slide-builder` |

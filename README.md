@@ -77,6 +77,17 @@ document.documentElement.dataset.theme = 'dark';
 
 A skin is a `[data-theme="<name>"]` block in `src/styles/vars/semantic.css`.
 
+## Editing a deck
+
+The `src/` tree is framework machinery - you don't touch it. Two root-level
+files are the deck-author surface:
+
+- **`deck.css`** - look: brand knobs, type scale, element tweaks, utility classes.
+- **`deck.config.js`** - Reveal knobs: slide size, transition, `slideNumber`, `hash`.
+
+Plus `slides/` (one file per slide) and `index.html` (the `.reveal > .slides`
+skeleton).
+
 ## Docs
 
 - `docs/cheatsheet.md` - authoring reference: what tag / class / attribute to
