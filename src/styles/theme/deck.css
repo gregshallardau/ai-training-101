@@ -127,16 +127,16 @@
 		pointer-events: none;
 	}
 
-	/* footer: fine print - small, muted, in the deck's body font. Longhands,
-	   NOT the `font` shorthand: the shorthand is invalid-at-computed-value if
-	   `--font-body` ever resolves oddly, which would drop the size too and
-	   the footer jumps to the full 32px base. 0.45em of the slide base
-	   (~14px in the 1920 space) reads as a caption. A deck that sets only
-	   --font-heading still gets the system stack here - set --font-body too
-	   for a fully-branded footer, or override .reveal .deck-footer in deck.css. */
+	/* footer: fine print - small, muted. Two deck.css knobs:
+	     --footer-size  its size, as em of the slide base (default 0.45em,
+	                    ~14px in the 1920 space);
+	     --footer-font  its font stack (default: the deck's --font-body).
+	   Longhands, NOT the `font` shorthand - the shorthand is
+	   invalid-at-computed-value if a custom property resolves oddly, which
+	   would drop the size too and jump the footer to the full 32px base. */
 	.reveal .deck-footer {
-		font-family: var(--font-body);
-		font-size: 0.45em;
+		font-family: var(--footer-font, var(--font-body));
+		font-size: var(--footer-size, 0.45em);
 		line-height: 1.4;
 		color: var(--muted);
 	}

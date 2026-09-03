@@ -329,7 +329,9 @@ chrome: {
   defaults `top-right`, footer `bottom-left`).
 - Hidden on the title slide by default (`hideOnTitle: false` to keep them). Any
   slide opts out with `<section … data-hide-chrome>`.
-- Restyle `.reveal .deck-logo` / `.reveal .deck-footer` in `deck.css`.
+- Footer size / font: `--footer-size` (default `0.45em`) and `--footer-font`
+  (default `--font-body`) knobs in `deck.css`. Restyle `.reveal .deck-logo` /
+  `.reveal .deck-footer` there for anything more.
 
 ---
 
