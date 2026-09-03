@@ -12,6 +12,7 @@
 import { DeckElement } from './deck-element.js';
 
 // --- component imports (each self-registers) ------------------------------------
+import './glossary/index.js';
 // import './hero-title/index.js';
 // import './choropleth-map/index.js';
 
@@ -20,6 +21,7 @@ import { DeckElement } from './deck-element.js';
  * key = kebab component name, dir = folder under src/components/
  */
 export const COMPONENTS = {
+	'glossary': { tag: 'deck-glossary', dir: 'glossary' },
 	// 'hero-title':     { tag: 'deck-hero-title',     dir: 'hero-title' },
 	// 'choropleth-map': { tag: 'deck-choropleth-map', dir: 'choropleth-map' },
 };
