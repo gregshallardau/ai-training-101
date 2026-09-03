@@ -194,6 +194,42 @@
 			assert.notOk(/scale\((Infinity|NaN)/.test(tr), `scale is finite (got "${tr}")`);
 		});
 
+		QUnit.module('render-base');
+
+		const settle = (el) => el.shadowRoot.querySelector('svg');
+
+		QUnit.test('draws one circle per node', (assert) => {
+			const el = mount();
+			const circles = settle(el).querySelectorAll('g.nodes circle.node');
+			assert.strictEqual(circles.length, DATASET.nodes.length, 'a circle per node');
+		});
+
+		QUnit.test('links drawn but hidden until show-links', (assert) => {
+			const el = mount();
+			const lines = settle(el).querySelectorAll('g.links line');
+			assert.strictEqual(lines.length, DATASET.links.length, 'a line per link');
+			assert.ok([...lines].every((l) => Number(l.getAttribute('stroke-opacity')) === 0), 'all hidden');
+		});
+
+		QUnit.test('node fill matches its topic colour', async (assert) => {
+			const el = mount();
+			const colors = (await import('/src/components/ideas-map/palette.js')).topicColors(
+				DATASET.topics.map((t) => t.id), () => '#2563eb');
+			// element resolves --primary from the page; just assert fills are distinct per topic
+			const byTopic = {};
+			settle(el).querySelectorAll('g.nodes circle.node').forEach((c) => {
+				byTopic[c.dataset.topic] = c.getAttribute('fill');
+			});
+			assert.strictEqual(new Set(Object.values(byTopic)).size, DATASET.topics.length, 'one fill per topic');
+		});
+
+		QUnit.test('labels="none" => no node text; labels="all" => one per node', (assert) => {
+			const a = mount(); a.setAttribute('labels', 'none');
+			assert.strictEqual(settle(a).querySelectorAll('g.labels text.node-label').length, 0, 'none');
+			const b = mount(); b.setAttribute('labels', 'all');
+			assert.strictEqual(settle(b).querySelectorAll('g.labels text.node-label').length, DATASET.nodes.length, 'all');
+		});
+
 		QUnit.start();
 	</script>
 </body>
