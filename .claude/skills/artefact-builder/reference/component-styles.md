@@ -36,17 +36,26 @@ boundary and follow a `[data-theme]` re-skin for free.
 }
 
 /* ---- chip / token pill -------------------------------------------------- */
+/* Same vocabulary as the slide-level .chip in deck.css: base + .accent
+   (solid fill) + .muted (greyed). A component may add a domain alias, e.g.
+   .chip.ragged { } for a "barely-seen token", but reuse .accent / .muted
+   for the standard emphasis states. */
 .chip {
 	display: inline-block;
 	padding: 0.15em 0.5em;
 	border-radius: var(--radius-round);
 	border: 1px solid var(--accent);
-	background: color-mix(in srgb, var(--accent) 14%, transparent);
+	background: color-mix(in srgb, var(--accent) 12%, transparent);
 	color: var(--surface-fg);
 }
-.chip.ragged {                 /* "the model barely saw this" variant */
+.chip.accent {
+	background: var(--accent);
+	color: var(--accent-fg);
+}
+.chip.muted {
 	border-color: var(--surface-line);
-	background: color-mix(in srgb, var(--surface-fg-muted) 12%, transparent);
+	background: color-mix(in srgb, var(--surface-fg-muted) 10%, transparent);
+	color: var(--surface-fg-muted);
 }
 
 /* ---- muted note / caption ------------------------------------------- */

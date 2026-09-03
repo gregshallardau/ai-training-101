@@ -241,4 +241,27 @@
 		border-radius: var(--radius-card);
 		padding: var(--space-block);
 	}
+
+	/* .chip          inline text in a box: faint fill, border, pill radius -
+	                  a token, tag, keyword, or highlighted word.
+	   + .accent      solid accent fill (the picked / emphasised one)
+	   + .muted       greyed, de-emphasised
+	   The .accent / .muted modifiers are shared - the same words work on
+	   other components as they gain variants; you never learn a new name. */
+	.reveal .slides section .chip {
+		display: inline-block;
+		padding: 0.1em 0.5em;
+		border-radius: var(--radius-round);
+		border: 1px solid var(--accent);
+		background: color-mix(in srgb, var(--accent) 12%, transparent);
+	}
+	.reveal .slides section .chip.accent {
+		background: var(--accent);
+		color: var(--accent-fg);
+	}
+	.reveal .slides section .chip.muted {
+		border-color: var(--surface-line);
+		background: color-mix(in srgb, var(--surface-fg-muted) 10%, transparent);
+		color: var(--surface-fg-muted);
+	}
 }

@@ -208,9 +208,17 @@ custom properties, so they follow a re-skin.
 | `.flex-rows` | children stacked full width, `--space-block` gap |
 | `.list-compact` | drop the gap between items of a list inside it |
 | `.box` | bordered, padded panel (`--surface-line`, `--radius-card`, `--space-block`) |
+| `.chip` | inline text in a box: faint fill, border, pill radius (a token / tag / keyword) |
+| `.chip.accent` | solid `--accent` fill — the picked / emphasised one |
+| `.chip.muted` | greyed, de-emphasised |
+
+`.accent` and `.muted` are shared modifiers — add them after a component class.
 
 ```html
 <p class="text-muted">context for the slide</p>
+
+<p>Predicts <span class="chip accent">toward</span>, not
+<span class="chip muted">on</span> or <span class="chip">for</span>.</p>
 
 <div class="flex-cols">
 	<div class="box">
