@@ -1,10 +1,10 @@
 # Framework conventions (shared reference)
 
-The architecture reference for this framework. The four authoring skills
-(`slide-builder`, `artefact-builder`, `deck-builder`, `skin-builder`) all read
-this file first; it is also the doc to read by hand when you want the whole
-picture. For day-to-day "what tag / class / knob do I use", see
-[`cheatsheet.md`](./cheatsheet.md).
+The architecture reference for this framework. The authoring skills
+(`presentation-planner`, `deck-builder`, `slide-builder`, `artefact-builder`,
+`skin-builder`) all read this file first; it is also the doc to read by hand when
+you want the whole picture. For day-to-day "what tag / class / knob do I use", see
+[`cheatsheet.md`](./cheatsheet.md); for the plan file, [`plan-format.md`](./plan-format.md).
 
 ---
 

@@ -97,10 +97,17 @@ skeleton).
 
 ## Authoring skills
 
-`.claude/skills/` - `slide-builder` (add / edit / reorder slides),
-`artefact-builder` (`<deck-*>` components), `deck-builder` (scaffold a deck from
-an outline), `skin-builder` (`[data-theme]` skins). Each reads
-`docs/framework-conventions.md` first.
+`.claude/skills/`, roughly in workflow order:
+
+- `presentation-planner` - Q&A interview -> `presentation-plan.md` (a brief + a
+  section outline)
+- `deck-builder` - a plan or an outline -> `slides/` stubs (title, overview,
+  a stub per section, closing takeaways)
+- `slide-builder` - add / edit / reorder / renumber individual slides
+- `artefact-builder` - a reusable `<deck-*>` component (chart, diagram, hero)
+- `skin-builder` - a `[data-theme]` brand skin
+
+Each reads `docs/framework-conventions.md` first.
 
 ## Deviations from a plain reveal.js 6.0.1 checkout
 

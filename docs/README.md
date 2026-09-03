@@ -4,6 +4,7 @@
 |---|---|
 | [`cheatsheet.md`](./cheatsheet.md) | authoring a slide: what tag / class / attribute to write, and the knob that restyles it. Start here. |
 | [`framework-conventions.md`](./framework-conventions.md) | the architecture: CSS custom-property tiers, cascade layers, the component contract, slide portability, assembly. The authoring skills read this first. |
+| [`plan-format.md`](./plan-format.md) | the `presentation-plan.md` schema - written by `presentation-planner`, read by `deck-builder`. |
 
 Also worth knowing:
 
@@ -16,5 +17,7 @@ Also worth knowing:
 - **`slides/README.md`** - the slide numbering + portability contract in full.
 - **`src/components/README.md`** - the `<deck-*>` component contract.
 
-Authoring skills (in `.claude/skills/`): `slide-builder`, `artefact-builder`,
-`deck-builder`, `skin-builder`.
+Authoring skills (in `.claude/skills/`), in workflow order: `presentation-planner`
+(interview -> `presentation-plan.md`) -> `deck-builder` (plan/outline ->
+`slides/` stubs) -> `slide-builder` (per-slide edits), with `artefact-builder`
+(`<deck-*>` components) and `skin-builder` (`[data-theme]` skins) alongside.
