@@ -1,17 +1,20 @@
 /*
- * FRAGMENT STEP-EMPHASIS - @layer fx (above `deck`, see src/styles/layers.css).
+ * FRAGMENT FIXES - @layer fx (above `deck`, see src/styles/layers.css).
  *
- * Reveal's `highlight-red / -green / -blue` fragments recolour an element when
- * its step fires. Reveal ships those `color` rules unscoped in @layer reveal.base,
- * so a deck-author colour utility (`.text-muted`, `.text-primary`) in @layer deck
- * silently outranks them and the highlight never shows.
+ * Two Reveal fragment effects that silently no-op in this framework:
  *
- * Re-assert the highlight colour here, one layer above `deck`, mapped to the
- * deck's semantic palette so it follows a [data-theme] re-skin:
- *   red   -> --danger    green -> --success    blue -> --primary
+ * 1. highlight-red / -green / -blue recolour an element when its step fires.
+ *    Reveal ships those `color` rules in @layer reveal.base, so a deck-author
+ *    colour utility (`.text-muted`, `.text-primary`) in @layer deck outranks
+ *    them and the highlight never shows. Re-assert here, one layer above
+ *    `deck`, mapped to the semantic palette so it follows a [data-theme]
+ *    re-skin:  red -> --danger   green -> --success   blue -> --primary
+ *    `.visible` = a non-current highlight-* (stays coloured after its step);
+ *    `.current-fragment` = a highlight-current-* (coloured only while current).
  *
- * `.visible` = a non-current `highlight-*` (stays coloured after its step);
- * `.current-fragment` = a `highlight-current-*` (coloured only while current).
+ * 2. grow / shrink / zoom-in scale the element, but `transform` is ignored on
+ *    an inline box - so the class on a <span> does nothing. Promoted to
+ *    inline-block below.
  */
 @layer fx {
 	.reveal .slides section .fragment.highlight-red.visible,
@@ -25,5 +28,24 @@
 	.reveal .slides section .fragment.highlight-blue.visible,
 	.reveal .slides section .fragment.highlight-current-blue.current-fragment {
 		color: var(--primary);
+	}
+
+	/*
+	 * grow / shrink / zoom-in are `transform: scale()` effects, and transform is
+	 * ignored on a display:inline box - so `class="fragment grow"` on a <span>
+	 * (the common case: emphasising a word mid-sentence) does nothing at all.
+	 * Promote these three to inline-block so the scale takes whether the author
+	 * put the class on a <span> or on a block element. scale() transform-origin
+	 * is the box centre, so an inline-block still grows in place.
+	 *
+	 * Not done for fade-up/-down/-left/-right: those are `translate` (same
+	 * inline limitation) but are near-always used on block list items /
+	 * paragraphs, where it already applies - forcing inline-block there would
+	 * collapse a full-width row to content width.
+	 */
+	.reveal .slides section .fragment.grow,
+	.reveal .slides section .fragment.shrink,
+	.reveal .slides section .fragment.zoom-in {
+		display: inline-block;
 	}
 }
