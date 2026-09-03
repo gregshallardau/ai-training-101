@@ -1,7 +1,7 @@
 // src/components/ideas-map/index.js
 import { DeckElement } from '../deck-element.js';
 import { d3 } from '@/lib/d3.js';
-import { W, H, DATASET, RELATION_OFFSETS } from './dataset.js';
+import { W, H, DATASET, RELATION_OFFSETS, WARMUP } from './dataset.js';
 import { buildSimulation } from './simulation.js';
 import { topicColors } from './palette.js';
 import { makeCamera } from './camera.js';
@@ -90,12 +90,14 @@ class DeckIdeasMap extends DeckElement {
 		drawGraph(this._svg, this._state);
 	}
 
+	_applyScope() {} // real body lands in Task 8
+
 	_rebuild({ reheat = false } = {}) {
 		this._sim && this._sim.stop();
 		this._sim = buildSimulation(this._data, { showLinks: this.hasAttribute('show-links') });
 		if (reheat) {
 			this._sim.alpha(0.6);
-			for (let i = 0; i < 160; i++) this._sim.tick();
+			for (let i = 0; i < Math.floor(WARMUP / 2); i++) this._sim.tick();
 			this._sim.alpha(0).stop();
 		}
 		this._computeState();

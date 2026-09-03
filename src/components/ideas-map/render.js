@@ -60,9 +60,10 @@ export function drawGraph(svgOrEl, state) {
 			cx: n.x, cy: n.y, r: NODE_R,
 			fill: c.fill, stroke: c.stroke, 'stroke-width': 1.5,
 		};
-		if (revealHidden && revealHidden.has(n.topics[0])) attrs.display = 'none';
+		const hidden = revealHidden && revealHidden.has(n.topics[0]);
+		if (hidden) attrs.display = 'none';
 		gNodes.appendChild(make('circle', attrs));
-		if (revealHidden && revealHidden.has(n.topics[0])) continue; // no label
+		if (hidden) continue; // no label
 		if (labelled(n, state)) {
 			const t = make('text', {
 				class: 'node-label', x: n.x, y: n.y + NODE_R + 14,
