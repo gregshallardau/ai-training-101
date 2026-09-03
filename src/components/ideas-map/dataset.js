@@ -1,6 +1,24 @@
 // src/components/ideas-map/dataset.js
 // Data + tuning constants for <deck-ideas-map>. No logic here.
 
+/*
+ * Force-simulation tuning guide:
+ *
+ * SEED / WARMUP: Deterministic settle. Change SEED for a different fixed layout;
+ *   raise WARMUP (→500) if the graph hasn't visually settled.
+ * CLUSTER (per-topic pull, weak by design): Clusters too separate → lower (~0.03)
+ *   or increase |CHARGE|. Not distinct enough → raise (~0.08). Keep weak for overlap.
+ * CHARGE (node repulsion, negative): More negative spreads the graph out.
+ * LINK_DIST (edge length under show-links): Lower to pull linked words tighter.
+ * COLLIDE (min node separation): Raise if node circles overlap.
+ * REL (forceRelations strength): Parallelograms drifting → raise (→0.5); too rigid
+ *   / grid-like → lower (→0.25).
+ * D (base step for RELATION_OFFSETS): Offset vectors are multiples/fractions of D.
+ * NODE_R (circle radius in px): Adjust if nodes look too large or small at viewBox scale.
+ * Graph overflow: Lower LINK_DIST and the 0.32 centroid-ring factor in
+ *   simulation.js topicCentroids (only if needed for label clipping).
+ */
+
 export const W = 1600;
 export const H = 1000;
 export const NODE_R = 9;
