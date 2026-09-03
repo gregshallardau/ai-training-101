@@ -101,11 +101,11 @@ multiples of `--text-root-size`.
 
 | Want | Markdown | HTML | Default size | Restyle knob (in `deck.css`) |
 |---|---|---|---|---|
-| Slide title | `#` | `<h1>` | `2.5em` | `--r-heading1-size` |
-| Section heading | `##` | `<h2>` | `1.6em` | `--r-heading2-size` |
-| **Sub-heading** | `###` | `<h3>` | `1.3em` | `--r-heading3-size` |
+| Slide title | `#` | `<h1>` | `2em` | `--r-heading1-size` |
+| Section heading | `##` | `<h2>` | `1.3em` | `--r-heading2-size` |
+| **Sub-heading** | `###` | `<h3>` | `1.15em` | `--r-heading3-size` |
 | Minor label | `####` | `<h4>` | `1em` | `--r-heading4-size` |
-| Body text | plain | `<p>` | `1em` (= `--text-root-size`) | `--text-root-size` |
+| Body text | plain | `<p>` | `1em` (= `--text-root-size`), capped at `32em` wide | `--text-root-size` |
 | Secondary / caption | _(none)_ | `<p class="text-muted">` | - | `--surface-fg-muted` |
 | Smaller run of text | _(none)_ | `<small>` | `~0.6em` | - |
 | Bold | `**x**` | `<strong>` / `<b>` | - | - |
@@ -120,10 +120,13 @@ Heading colour / font / weight / case / spacing:
 |---|---|---|
 | Colour | `--surface-fg` | `--r-heading-color` |
 | Font stack | `--font-heading` | `--r-heading-font` |
-| Weight | `700` | `--r-heading-font-weight` |
+| Weight | `600` | `--r-heading-font-weight` |
 | Case | `none` | `--r-heading-text-transform` |
-| Line-height | `1.2` | `--r-heading-line-height` |
-| Space below | `--space-block` | `--r-heading-margin` |
+| Line-height | `1.15` | `--r-heading-line-height` |
+| Space below | `0.75em` | `--r-heading-margin` |
+
+Body copy (`<p>`, `<ul>`, `<ol>`, `<blockquote>`) is capped at `32em` wide so it
+reads as a column, not a full-width slab. Wrap in a `<div>` to opt a block out.
 
 ---
 

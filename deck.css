@@ -113,34 +113,33 @@
 
 		/* ══════════════════════════════════════════════════════════════════
 		   TYPE SCALE
-		   Heading sizes and treatment. Sizes are `em` multiples of
-		   --text-root-size, so they track the base size automatically -
-		   only set these to change the RATIO between levels.
-		   Markdown #/##/###/#### map to <h1>/<h2>/<h3>/<h4>.
+		   The framework ships a CALM baseline (in src/styles/theme/deck.css):
+		   modest headings, weight 600, a 32em reading measure on body copy.
+		   Uncomment below only to make titles LOUDER for a specific deck.
+		   Sizes are `em` multiples of --text-root-size.
 		   ══════════════════════════════════════════════════════════════════ */
 
-		/* --r-heading1-size  slide title  (Markdown `#` / <h1>). Default 2.5em. */
-		/* --r-heading1-size: 2.5em; */
+		/* --r-heading1-size  slide title  (`#` / <h1>). Default 2em. */
+		/* --r-heading1-size: 2em; */
 
-		/* --r-heading2-size  section heading  (`##` / <h2>). Default 1.6em. */
-		/* --r-heading2-size: 1.6em; */
+		/* --r-heading2-size  section heading  (`##` / <h2>). Default 1.3em. */
+		/* --r-heading2-size: 1.3em; */
 
-		/* --r-heading3-size  sub-heading  (`###` / <h3>). Default 1.3em. */
-		/* --r-heading3-size: 1.3em; */
+		/* --r-heading3-size  sub-heading  (`###` / <h3>). Default 1.15em. */
+		/* --r-heading3-size: 1.15em; */
 
 		/* --r-heading4-size  minor label  (`####` / <h4>). Default 1em. */
 		/* --r-heading4-size: 1em; */
 
-		/* --r-heading-font-weight  all headings. Default 700. */
-		/* --r-heading-font-weight: 700; */
+		/* --r-heading-font-weight  all headings. Default 600 (700 reads heavy). */
+		/* --r-heading-font-weight: 600; */
 
 		/* --r-heading-text-transform
 		   all headings: none | uppercase | lowercase | capitalize. Default none. */
 		/* --r-heading-text-transform: none; */
 
 		/* --space-block
-		   Vertical rhythm unit: the gap BELOW a heading, and between block
-		   elements generally. Default 1.5rem. Raise for airier slides. */
+		   Vertical rhythm unit between block elements. Default 1.5rem. */
 		/* --space-block: 1.5rem; */
 
 
