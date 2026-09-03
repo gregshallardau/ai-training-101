@@ -219,10 +219,12 @@
 	/* .columns / .columns-3   flow the children into 2 (or 3) newspaper
 	   columns - a glossary wall, a long term list. Works on <dl>, <ul>, or a
 	   set of <p>s. Pairs never split across a column. An explicit layout, so
-	   it opts out of the 32em reading measure. */
+	   it opts out of the 32em reading measure. Reveal defaults lists to
+	   inline-block, which blocks column flow, so force block. */
 	.reveal .slides section :is(.columns, .columns-3) {
 		max-width: none;
 		column-gap: var(--space-block);
+		display: block;
 	}
 	.reveal .slides section .columns {
 		columns: 2;
@@ -306,11 +308,10 @@
 	}
 
 	/* ══════════════════════════════════════════════════════════════════════
-	   GLOSSARY  (shared by slides/05, 07, 10, 14, 31)
-	   A glossary term is a <dt> and its definition a <dd>, inside a <dl>. The
-	   framework's theme styles that as a glossary already (term in heading
-	   weight, definition in muted, tight — src/styles/theme/deck.css), and the
-	   .columns utility flows the full wall into two columns (above). No
-	   bespoke glossary classes are needed.
+	   DECK CHROME — footer
+	   The theme styles the footer with var(--font-body) and a small size
+	   (src/styles/theme/deck.css). This deck's font stack is set here via
+	   --font-body above (uncommented to Helvetica), so the footer follows it
+	   with no footer-specific override needed.
 	   ══════════════════════════════════════════════════════════════════════ */
 }

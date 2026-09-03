@@ -74,9 +74,9 @@ export default {
 	   Restyle the injected elements in deck.css: `.reveal .deck-logo` and
 	   `.reveal .deck-footer` (the footer already uses --muted and a small
 	   size; the logo respects --logo-height). */
-	// chrome: {
-	// 	logo: { src: '/logo.svg', alt: 'Acme', position: 'top-right', height: '4vh' },
-	// 	footer: { text: '&copy; 2026 Acme &middot; Confidential', position: 'bottom-left' },
-	// 	hideOnTitle: true,
-	// },
+	chrome: {
+		// logo: omit - no logo asset yet; add `logo: { src: '/logo.svg', ... }` when ready
+		footer: { text: '(Not) AI Training', position: 'bottom-left' },
+		// hideOnTitle: true,  // default - footer hidden on the title slide
+	},
 };
