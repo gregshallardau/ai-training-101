@@ -52,6 +52,7 @@ boundary and follow a `[data-theme]` re-skin for free.
 .chip {
 	display: inline-block;
 	padding: 0.15em 0.5em;
+	margin: 0.12em 0.2em 0.12em 0; /* gap between chips + wrapped rows */
 	border-radius: var(--radius-control);
 	border: 1px solid var(--c, var(--line));
 	background: color-mix(in srgb, var(--c, var(--muted)) 12%, transparent);
