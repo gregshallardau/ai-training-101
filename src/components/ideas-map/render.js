@@ -23,8 +23,10 @@ function nodeColor(n, state) {
 function labelled(n, state) {
 	if (state.labelsMode === 'none' || state.labelsMode === 'topics') return false;
 	if (state.labelsMode === 'all') return true;
-	// 'auto' — highlighted nodes always label; in-scope topic labels, else all
-	return state.highlight.has(n.id) || (state.scope ? n.topics[0] === state.scope : true);
+	// 'auto' — highlighted / activated nodes always label; in-scope topic labels, else all
+	return state.highlight.has(n.id)
+		|| (state.activate && state.activate.ids.has(n.id))
+		|| (state.scope ? n.topics[0] === state.scope : true);
 }
 
 export function drawGraph(svgOrEl, state) {
@@ -32,7 +34,7 @@ export function drawGraph(svgOrEl, state) {
 	const view = svg.querySelector('g.view');
 	const gLinks = layer(view, 'links');
 	const gSpotlight = layer(view, 'spotlight');
-	layer(view, 'attention');
+	const gAtt = layer(view, 'attention');
 	const gNodes = layer(view, 'nodes');
 	const gLabels = layer(view, 'labels');
 
@@ -91,11 +93,55 @@ export function drawGraph(svgOrEl, state) {
 		}));
 	}
 
+	const act = state.activate;
+	if (act) {
+		const list = [...act.ids].filter((id) => byId.has(id));
+		// halos — one per activated node, sized by attention weight
+		for (const id of list) {
+			const n = byId.get(id);
+			const w = id === act.from ? 1 : (act.weights.get(id) || 0);
+			const col = (state.colors.get(n.topics[0]) || {}).fill || 'var(--primary)';
+			gAtt.appendChild(make('circle', {
+				class: 'halo', cx: n.x, cy: n.y, r: NODE_R + 4 + w * 60,
+				fill: col, 'fill-opacity': 0.18,
+			}));
+		}
+		// attention edges — fixed ink budget (fan weights sum to 1)
+		if (act.from && byId.has(act.from)) {
+			const f = byId.get(act.from);
+			for (const id of list) {
+				if (id === act.from) continue;
+				const n = byId.get(id);
+				gAtt.appendChild(make('line', {
+					x1: f.x, y1: f.y, x2: n.x, y2: n.y,
+					stroke: 'var(--primary-strong)', 'stroke-opacity': 0.8,
+					'stroke-width': 0.5 + (act.weights.get(id) || 0) * 16, 'stroke-linecap': 'round',
+				}));
+			}
+		} else {
+			for (let i = 0; i < list.length; i++) for (let j = i + 1; j < list.length; j++) {
+				const a = byId.get(list[i]); const b = byId.get(list[j]);
+				gAtt.appendChild(make('line', {
+					x1: a.x, y1: a.y, x2: b.x, y2: b.y,
+					stroke: 'var(--primary-strong)', 'stroke-opacity': 0.55, 'stroke-width': 1.4,
+				}));
+			}
+		}
+		if (act.constellation && list.length > 1) {
+			gAtt.appendChild(make('polyline', {
+				class: 'constellation',
+				points: list.map((id) => `${byId.get(id).x},${byId.get(id).y}`).join(' '),
+				fill: 'none', stroke: 'var(--primary-strong)', 'stroke-width': 1, 'stroke-dasharray': '2 6',
+			}));
+		}
+	}
+
 	for (const n of state.nodes) {
 		const c = nodeColor(n, state);
 		const scopedOut = state.scope && n.topics[0] !== state.scope;
 		const dimByTag = tagged.size > 0 && !tagged.has(n.topics[0]);
 		const dimBySpot = state.spotlight && !spotIds.has(n.id);
+		const dimByAct = act && !act.ids.has(n.id);
 
 		const attrs = {
 			class: 'node', 'data-id': n.id, 'data-topic': n.topics[0],
@@ -103,9 +149,10 @@ export function drawGraph(svgOrEl, state) {
 			fill: scopedOut ? 'var(--muted)' : c.fill,
 			stroke: c.stroke, 'stroke-width': 1.5,
 		};
-		if (scopedOut) attrs.opacity = 0.15;
-		else if (dimBySpot) attrs.opacity = 0.15;
-		else if (dimByTag) attrs.opacity = 0.35;
+		if (scopedOut) { attrs.opacity = 0.15; }
+		else if (dimByAct) { attrs.fill = 'var(--muted)'; attrs.opacity = 0.12; }
+		else if (dimBySpot) { attrs.opacity = 0.15; }
+		else if (dimByTag && !(state.spotlight && spotIds.has(n.id))) { attrs.opacity = 0.35; }
 
 		const hidden = revealHidden && revealHidden.has(n.topics[0]);
 		if (hidden) attrs.display = 'none';

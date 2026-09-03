@@ -120,12 +120,40 @@ class DeckIdeasMap extends DeckElement {
 			scope: this.getAttribute('scope') || null,
 			highlight: new Set((this.getAttribute('highlight') || '').split(',').map((s) => s.trim()).filter(Boolean)),
 			spotlight: this.getAttribute('spotlight') || null,
-			activate: null,
+			activate: this._parseActivate(),
 			reveal: this.hasAttribute('reveal') ? Number(this.getAttribute('reveal')) : null,
 			relations: this._data.relations,
 			offsets: RELATION_OFFSETS,
 			topicOrder,
 		};
+	}
+
+	_parseActivate() {
+		const raw = this.getAttribute('activate');
+		if (!raw) return null;
+		const tokens = raw.split(',').map((s) => s.trim()).filter(Boolean);
+		const ctxs = this._data.contexts || {};
+		const ids = new Set();
+		const weight = new Map();
+		let from = this.getAttribute('attention-from') || null;
+		for (const tok of tokens) {
+			if (ctxs[tok]) {
+				const c = ctxs[tok];
+				if (!from && c.from) from = c.from;
+				for (const id of c.nodes) {
+					ids.add(id);
+					weight.set(id, (weight.get(id) || 0) + ((c.weights && c.weights[id]) ?? 0.5));
+				}
+			} else {
+				ids.add(tok);
+				weight.set(tok, (weight.get(tok) || 0) + 0.5);
+			}
+		}
+		// renormalise the fan weights (exclude `from`) so they sum to 1 — the fixed budget
+		const fanIds = [...ids].filter((id) => id !== from);
+		const sum = fanIds.reduce((s, id) => s + (weight.get(id) || 0), 0) || 1;
+		for (const id of fanIds) weight.set(id, (weight.get(id) || 0) / sum);
+		return { ids, from, weights: weight, constellation: this.hasAttribute('constellation') };
 	}
 
 	attributeChangedCallback(name) {

@@ -323,6 +323,40 @@
 			assert.ok(op != null && Number(op) >= 0.1 && Number(op) <= 0.2, 'uninvolved node dimmed to ~0.15');
 		});
 
+		QUnit.module('activate');
+
+		QUnit.test('context lights a set, mutes the rest, draws halos + fan', (assert) => {
+			const el = mount();
+			el.setAttribute('activate', 'royalty');
+			const ctx = DATASET.contexts.royalty;
+			assert.strictEqual(el.shadowRoot.querySelectorAll('g.attention circle.halo').length, ctx.nodes.length, 'a halo per activated node');
+			const fan = el.shadowRoot.querySelectorAll('g.attention line');
+			assert.strictEqual(fan.length, ctx.nodes.length - 1, 'fan from `from` to each other node');
+			const outside = [...el.shadowRoot.querySelectorAll('g.nodes circle.node')]
+				.find((c) => !ctx.nodes.includes(c.dataset.id));
+			assert.ok(outside && Number(outside.getAttribute('opacity')) <= 0.15, 'non-activated kept but faint');
+		});
+
+		QUnit.test('fixed budget: total fan stroke-width is ~constant regardless of set size', (assert) => {
+			const total = (attr) => {
+				const el = mount();
+				el.setAttribute('attention-from', 'king');
+				el.setAttribute('activate', attr);
+				return [...el.shadowRoot.querySelectorAll('g.attention line')]
+					.reduce((s, l) => s + Number(l.getAttribute('stroke-width')), 0);
+			};
+			const small = total('king,queen,france');
+			const big = total('king,queen,france,paris,father,mother,son,daughter');
+			assert.ok(Math.abs(small - big) / small < 0.25, `fan ink budget stable (${small.toFixed(1)} vs ${big.toFixed(1)})`);
+		});
+
+		QUnit.test('constellation draws an outline', (assert) => {
+			const el = mount();
+			el.setAttribute('activate', 'royalty');
+			el.setAttribute('constellation', '');
+			assert.strictEqual(el.shadowRoot.querySelectorAll('g.attention polyline.constellation').length, 1, 'one outline');
+		});
+
 		QUnit.start();
 	</script>
 </body>
