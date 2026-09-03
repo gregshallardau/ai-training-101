@@ -10,7 +10,7 @@ export function bboxOf(nodes, pad = 60) {
 	return {
 		cx: (x0 + x1) / 2,
 		cy: (y0 + y1) / 2,
-		w: Math.max(x1 - x0, y1 - y0) + pad * 2,
+		w: Math.max(1, Math.max(x1 - x0, y1 - y0) + pad * 2),
 	};
 }
 

@@ -184,6 +184,16 @@
 			assert.ok(/scale\(4\b/.test(g.getAttribute('transform')), 'jumped straight to scale 4');
 		});
 
+		QUnit.test('single point with no pad produces finite scale', (assert) => {
+			const bb = bboxOf([{ x: 100, y: 100 }], 0);
+			assert.ok(bb.w >= 1, 'w >= 1 (not 0)');
+			const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+			const cam = makeCamera(g, 1600);
+			cam.zoomTo([bb.cx, bb.cy, bb.w]);
+			const tr = g.getAttribute('transform');
+			assert.notOk(/scale\((Infinity|NaN)/.test(tr), `scale is finite (got "${tr}")`);
+		});
+
 		QUnit.start();
 	</script>
 </body>
