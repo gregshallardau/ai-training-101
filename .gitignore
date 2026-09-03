@@ -18,3 +18,5 @@ dev.html
 deck-dist/
 .vite/
 *.log
+# superpowers SDD scratch (ledgers, briefs, review packages)
+.superpowers/
