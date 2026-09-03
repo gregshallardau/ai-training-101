@@ -149,9 +149,27 @@ Framework list rules (in `deck.css`, "Element tweaks"):
 | line-height | `1.3` | tighter than prose |
 
 Change these lines in `deck.css` to taste. To keep **one** list at full size,
-wrap it: `<div style="font-size: 1em"><ul>...</ul></div>`. A 20+ item menu is an
-authoring problem, not a CSS one - split the slide or put the list in CSS
-columns on that slide.
+wrap it: `<div style="font-size: 1em"><ul>...</ul></div>`.
+
+### Glossary / definitions
+
+Use a **`<dl>`** - not `<strong>` + a span, never a `.glossary-*` class. The
+framework styles `<dt>` (term, heading weight) and `<dd>` (definition, muted,
+directly under). For a wall of terms, add `.columns`:
+
+```html
+<dl class="columns box border">
+	<dt>Token</dt><dd>a chunk of text — a word or word-piece.</dd>
+	<dt>Vector</dt><dd>a direction and a distance; similar ideas point the same way.</dd>
+	…
+</dl>
+```
+
+### Newspaper columns
+
+`.columns` (2) / `.columns-3` flow the children of any block into columns -
+a glossary, a long term list. Pairs never split across a column. This is *not*
+`.flex-cols` (that's for a fixed number of equal side-by-side panels).
 
 ---
 
@@ -205,6 +223,7 @@ custom properties, so they follow a re-skin.
 | `.text-muted` | secondary / caption text (`--muted`) |
 | `.text-center` | centre-align (slide text defaults to left) |
 | `.flex-cols` / `.flex-rows` | children in a row / column, `--space-block` gap |
+| `.columns` / `.columns-3` | flow children into 2 / 3 newspaper columns (a `<dl>`, a long list) |
 | `.list-compact` | drop the gap between items of a list inside it |
 | `.box` | white padded panel, no border |
 | `.box border` | + hairline border |

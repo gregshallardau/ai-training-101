@@ -14,6 +14,43 @@ description: >-
 
 **Before anything: read `docs/framework-conventions.md` and `docs/cheatsheet.md`.**
 
+## The one hard rule: compose, never invent classes
+
+A slide is built from exactly three things:
+
+1. **semantic HTML elements** - `<dl>`/`<dt>`/`<dd>` for a glossary, `<table>`
+   for a grid, `<strong>` for a term, `<hr>` for a rule, `<blockquote>` for a
+   pull-quote, `<h2>`-`<h4>` for headings. The framework styles these already.
+2. **the `deck.css` utility classes** - `.text-primary` `.text-muted`
+   `.text-center` `.flex-cols` `.flex-rows` `.columns` `.columns-3`
+   `.list-compact` `.box` (+ `.border` / `.bar`) `.chip`.
+3. **the colour modifiers** - `.primary` `.secondary` `.success` `.danger`
+   `.warning`, added after a block class.
+
+That is the **entire** toolkit. You may **NOT** create a bespoke class family -
+`.glossary-book` / `.glossary-entry` / `.card-title` / `.step-2` and the like -
+**anywhere**:
+
+- not in a per-slide `<style>`,
+- not by adding a block to `deck.css`,
+- not in `src/`.
+
+A `.glossary-entry` that is just bold text is a `<strong>` (or a `<dt>`). If a
+layout you need has no utility, it is one of:
+
+- **a `<dl>` / `<table>` / `<hr>` you forgot exists** - use it;
+- **a genuinely missing utility** - STOP, show the user the markup, and say "this
+  needs one small utility added to `deck.css` (your call)". Do not add it yourself
+  from this skill;
+- **a real widget** (needs a library, JS, or is a reusable component) - STOP and
+  tell the user to run `artefact-builder` for a `<deck-*>`.
+
+| Rationalisation | Reality |
+|---|---|
+| "I'll put the classes in `deck.css` - that's the proper place" | `deck.css` is the framework's surface, not yours to extend from slide work. |
+| "It's a reusable pattern, it deserves its own classes" | Reusable -> a `<deck-*>` component, or one utility the user approves. Never a family. |
+| "A `<style>` block scoped to `#slug` is fine here" | Only for a genuinely one-off inline artefact (shape 3). A glossary is not that. |
+
 ## Modes
 
 - **New / structural** - create a slide, insert between slides, reorder, renumber,
@@ -96,7 +133,10 @@ Reject or warn on:
   `document.getElementById('<slug>')`),
 - any `<deck-*>` tag not present in `registry.js`,
 - any `var(--...)` that is a tier-1 primitive, or a raw colour / length literal
-  (semantic custom properties only).
+  (semantic custom properties only),
+- any **class not in the toolkit above** - a `class="glossary-entry"` /
+  `class="feature-card"` invented for this slide. Reject it: rewrite with
+  semantic HTML + utilities, or stop per "The one hard rule".
 
 ## Consistency
 

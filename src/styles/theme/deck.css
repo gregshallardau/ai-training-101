@@ -89,4 +89,17 @@
 	.reveal .slides section > :where(p, ul, ol, dl, blockquote) {
 		max-width: 32em;
 	}
+
+	/* Definition list = a glossary. Term in the heading weight, definition
+	   directly under it in the muted colour, tight. No hanging indent. */
+	.reveal .slides section dl {
+		margin: 0;
+	}
+	.reveal .slides section dt {
+		font-weight: var(--r-heading-font-weight);
+	}
+	.reveal .slides section dd {
+		margin: 0 0 var(--space-gap) 0;
+		color: var(--muted);
+	}
 }

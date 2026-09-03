@@ -215,6 +215,24 @@
 		margin-top: 0;
 	}
 
+	/* .columns / .columns-3   flow the children into 2 (or 3) newspaper
+	   columns - a glossary wall, a long term list. Works on <dl>, <ul>, or a
+	   set of <p>s. Pairs never split across a column. */
+	.reveal .slides section .columns {
+		columns: 2;
+		column-gap: calc(var(--space-block) * 1.5);
+	}
+	.reveal .slides section .columns-3 {
+		columns: 3;
+		column-gap: var(--space-block);
+	}
+	.reveal .slides section :is(.columns, .columns-3) > * {
+		break-inside: avoid;
+	}
+	.reveal .slides section :is(.columns, .columns-3) dt {
+		break-after: avoid;
+	}
+
 	/* ─── COLOUR MODIFIERS ───────────────────────────────────────────────
 	   Bare classes that pick a colour. They set one local pair (--c / --c-fg)
 	   that every building block below reads, so `class="chip primary"`,
