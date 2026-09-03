@@ -21,12 +21,15 @@ function nodeColor(n, state) {
 }
 
 function labelled(n, state) {
+	// 'topics' is out of v1 scope for node labels — treat it as 'none' here.
 	if (state.labelsMode === 'none' || state.labelsMode === 'topics') return false;
 	if (state.labelsMode === 'all') return true;
-	// 'auto' — highlighted / activated nodes always label; in-scope topic labels, else all
-	return state.highlight.has(n.id)
-		|| (state.activate && state.activate.ids.has(n.id))
-		|| (state.scope ? n.topics[0] === state.scope : true);
+	// 'auto'
+	if (state.activate) return state.activate.ids.has(n.id);
+	if (state.spotlight) return true; // spotlight involves few; cheap
+	if (state.scope) return n.topics[0] === state.scope || state.highlight.has(n.id);
+	if (state.highlight.size) return state.highlight.has(n.id);
+	return state.nodes.length <= 60;
 }
 
 export function drawGraph(svgOrEl, state) {

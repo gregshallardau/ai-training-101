@@ -77,6 +77,20 @@ class DeckIdeasMap extends DeckElement {
 		this._legend.hidden = true;
 		this.shadowRoot.appendChild(this._legend);
 
+		this._labelOverride = null;
+		this._toggle = document.createElement('button');
+		this._toggle.className = 'btn ghost';
+		this._toggle.type = 'button';
+		this._toggle.textContent = 'Aa';
+		this._toggle.addEventListener('click', () => {
+			this._labelOverride = this._labelOverride === null ? 'all'
+				: this._labelOverride === 'all' ? 'none' : null;
+			this._computeState();
+			this._renderLegend();
+			drawGraph(this._svg, this._state);
+		});
+		this.shadowRoot.appendChild(this._toggle);
+
 		this._computeState();
 		this._renderLegend();
 		drawGraph(this._svg, this._state);
@@ -114,7 +128,7 @@ class DeckIdeasMap extends DeckElement {
 			links: (this._sim.force('link') && this._sim.force('link').links()) || this._data.links,
 			colors: topicColors(topicOrder, (v) => this._resolve(v)),
 			showLinks: this.hasAttribute('show-links'),
-			labelsMode: this.getAttribute('labels') || 'auto',
+			labelsMode: this._labelOverride || this.getAttribute('labels') || 'auto',
 			reduced: matchMedia('(prefers-reduced-motion: reduce)').matches,
 			tag: new Set((this.getAttribute('tag') || '').split(',').map((s) => s.trim()).filter(Boolean)),
 			scope: this.getAttribute('scope') || null,

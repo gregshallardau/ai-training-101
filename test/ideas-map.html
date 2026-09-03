@@ -357,7 +357,26 @@
 			assert.strictEqual(el.shadowRoot.querySelectorAll('g.attention polyline.constellation').length, 1, 'one outline');
 		});
 
+		QUnit.module('labels');
+
+		QUnit.test('labels attribute controls node text', (assert) => {
+			const none = mount(); none.setAttribute('labels', 'none');
+			assert.strictEqual(none.shadowRoot.querySelectorAll('text.node-label').length, 0);
+			const all = mount(); all.setAttribute('labels', 'all');
+			assert.strictEqual(all.shadowRoot.querySelectorAll('text.node-label').length, DATASET.nodes.length);
+		});
+
+		QUnit.test('toggle button flips labels live', (assert) => {
+			const el = mount(); el.setAttribute('labels', 'none');
+			const btn = el.shadowRoot.querySelector('button.btn.ghost');
+			assert.ok(btn, 'toggle button present');
+			btn.click();
+			assert.strictEqual(el.shadowRoot.querySelectorAll('text.node-label').length, DATASET.nodes.length, 'labels on after click');
+			btn.click();
+			assert.strictEqual(el.shadowRoot.querySelectorAll('text.node-label').length, 0, 'labels off after second click');
+		});
+
 		QUnit.start();
-	</script>
+</script>
 </body>
 </html>
