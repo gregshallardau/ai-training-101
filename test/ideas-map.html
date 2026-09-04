@@ -14,7 +14,8 @@
 		import '/src/styles/vars/primitives.css';
 		import '/src/styles/vars/semantic.css';
 		import '/src/components/ideas-map/index.js';
-		import { DATASET, RELATION_OFFSETS } from '/src/components/ideas-map/dataset.js';
+		import { DATASET, RELATION_OFFSETS, expandDataset, defaultTopicLabel } from '/src/components/ideas-map/dataset.js';
+		import authoredDataset from '/src/components/ideas-map/dataset.json';
 		import { topicColors } from '/src/components/ideas-map/palette.js';
 		import { buildSimulation, topicCentroids } from '/src/components/ideas-map/simulation.js';
 		import { bboxOf, makeCamera } from '/src/components/ideas-map/camera.js';
@@ -53,15 +54,61 @@
 				assert.ok(ids.has(l.source) && ids.has(l.target), `link ${l.source}->${l.target} endpoints exist`);
 			}
 			for (const r of DATASET.relations) {
-				assert.ok(RELATION_OFFSETS[r.rel], `relation ${r.rel} has an offset vector`);
-				for (const [a, b] of r.pairs) {
-					assert.ok(ids.has(a) && ids.has(b), `relation pair ${a},${b} endpoints exist`);
+				assert.ok(RELATION_OFFSETS[r.rel], `relation ${r.rel} has a default vector`);
+				for (const st of r.steps) {
+					assert.ok(ids.has(st.a) && ids.has(st.b), `relation step ${st.a}->${st.b} endpoints exist`);
+					assert.ok(Number.isFinite(st.dx) && Number.isFinite(st.dy),
+						`relation step ${r.rel} ${st.a}->${st.b} carries its own vector`);
 				}
 			}
 			const topicIds = new Set(DATASET.topics.map((t) => t.id));
 			for (const n of DATASET.nodes) {
 				for (const t of n.topics) assert.ok(topicIds.has(t), `node ${n.id} topic ${t} exists`);
 			}
+		});
+
+		QUnit.module('authored dataset');
+
+		QUnit.test('expands the node-centric JSON to the internal shape', (assert) => {
+			const ds = expandDataset(authoredDataset);
+			assert.deepEqual(ds.topics.map((t) => t.id),
+				['family', 'animals', 'places', 'sciences', 'grammar', 'music', 'arts'],
+				'clusters derive in first-seen order from the node list');
+			assert.strictEqual(ds.topics.find((t) => t.id === 'family').name, 'People & family', 'topicLabels override the label');
+			assert.strictEqual(ds.topics.find((t) => t.id === 'animals').name, 'Animals', 'default label pretties the id');
+			assert.deepEqual(ds.nodes.find((n) => n.id === 'man'),
+				{ id: 'man', name: 'man', topics: ['family'] }, 'name defaults to the id');
+			assert.deepEqual(ds.nodes.find((n) => n.id === 'mozart').topics,
+				['arts', 'music'], '`also` adds the second cluster');
+			assert.strictEqual(ds.links.filter((l) => l.source === 'king').length, 1, 'links gather onto the authoring node');
+			const relCounts = Object.fromEntries(ds.relations.map((r) => [r.rel, r.steps.length]));
+			assert.deepEqual(relCounts, { gender: 5, parent: 3, tense: 3, 'capital-of': 3 }, 'one step per authored pair');
+			const gender = ds.relations.find((r) => r.rel === 'gender');
+			assert.ok(gender.steps.every((s) => s.dx === -90 && s.dy === 0), 'each step keeps its own authored vector');
+			const royalty = ds.contexts.royalty;
+			assert.strictEqual(royalty.from, 'king', 'from focus derived from the node');
+			assert.deepEqual(royalty.nodes, ['king', 'queen', 'france', 'paris', 'father'], 'membership derives from the nodes');
+			assert.deepEqual(royalty.weights, { queen: 1, france: 0.7, paris: 0.5, father: 0.4 }, 'weights live on each fan node');
+		});
+
+		QUnit.test('defaultTopicLabel pretties a slug', (assert) => {
+			assert.strictEqual(defaultTopicLabel('family'), 'Family');
+			assert.strictEqual(defaultTopicLabel('capital-of'), 'Capital Of');
+			assert.strictEqual(defaultTopicLabel('bio.cell-biology'), 'Bio Cell Biology');
+		});
+
+		QUnit.test('authored steps may carry different vectors per step', (assert) => {
+			const ds = expandDataset({
+				nodes: [
+					{ id: 'a', topic: 't', rels: [{ rel: 'gender', to: 'b', offset: [-90, 0] }] },
+					{ id: 'b', topic: 't' },
+					{ id: 'c', topic: 't', rels: [{ rel: 'gender', to: 'd', offset: [-40, 0] }] },
+					{ id: 'd', topic: 't' },
+				],
+			});
+			const steps = ds.relations.find((r) => r.rel === 'gender').steps;
+			assert.strictEqual(steps.length, 2, 'two steps, one rel group');
+			assert.deepEqual([steps[0].dx, steps[1].dx], [-90, -40], '"not exact" gaps are preserved per step');
 		});
 
 		QUnit.module('palette');
@@ -129,17 +176,16 @@
 
 		QUnit.module('forceRelations');
 
-		QUnit.test('pairs settle to the shared offset vector', (assert) => {
+		QUnit.test('every step settles to its own offset vector', (assert) => {
 			const ds = clone(DATASET);
 			const s = buildSimulation(ds, { seed: 42, warmup: 320 });
 			const byId = new Map(s.nodes().map((n) => [n.id, n]));
 			const rel = ds.relations.find((r) => r.rel === 'gender');
-			const off = RELATION_OFFSETS.gender;
-			for (const [a, b] of rel.pairs) {
-				const dx = byId.get(b).x - byId.get(a).x;
-				const dy = byId.get(b).y - byId.get(a).y;
-				assert.ok(Math.abs(dx - off[0]) < 22 && Math.abs(dy - off[1]) < 22,
-					`${a}->${b} offset (${dx.toFixed(0)},${dy.toFixed(0)}) ~ (${off[0]},${off[1]})`);
+			for (const st of rel.steps) {
+				const dx = byId.get(st.b).x - byId.get(st.a).x;
+				const dy = byId.get(st.b).y - byId.get(st.a).y;
+				assert.ok(Math.abs(dx - st.dx) < 22 && Math.abs(dy - st.dy) < 22,
+					`${st.a}->${st.b} offset (${dx.toFixed(0)},${dy.toFixed(0)}) ~ (${st.dx},${st.dy})`);
 			}
 		});
 
@@ -148,10 +194,30 @@
 			const s = buildSimulation(ds, { seed: 42, warmup: 320 });
 			const byId = new Map(s.nodes().map((n) => [n.id, n]));
 			const rel = ds.relations.find((r) => r.rel === 'tense');
-			const angs = rel.pairs.map(([a, b]) =>
-				Math.atan2(byId.get(b).y - byId.get(a).y, byId.get(b).x - byId.get(a).x));
+			const angs = rel.steps.map((st) =>
+				Math.atan2(byId.get(st.b).y - byId.get(st.a).y, byId.get(st.b).x - byId.get(st.a).x));
 			const spread = Math.max(...angs) - Math.min(...angs);
 			assert.ok(spread < 0.25, `tense arrows near-parallel (spread ${spread.toFixed(3)} rad)`);
+		});
+
+		QUnit.test('tweaking one step does not move its siblings (per-step vectors)', (assert) => {
+			// Gaps are authored per step — shorten ONLY man→woman and the other
+			// gender steps must stay at their own vector.
+			const ds = clone(DATASET);
+			const rel = ds.relations.find((r) => r.rel === 'gender');
+			const tweak = rel.steps.find((st) => st.a === 'man');
+			tweak.dx = -40; tweak.dy = 0; // was (-90, 0)
+			const s = buildSimulation(ds, { seed: 42, warmup: 320 });
+			const byId = new Map(s.nodes().map((n) => [n.id, n]));
+			const measure = (a, b) => [byId.get(b).x - byId.get(a).x, byId.get(b).y - byId.get(a).y];
+			const [dx, dy] = measure('man', 'woman');
+			assert.ok(Math.abs(dx - (-40)) < 22 && Math.abs(dy - 0) < 22,
+				`man->woman follows its own tweak (${dx.toFixed(0)},${dy.toFixed(0)})`);
+			for (const st of rel.steps.filter((x) => x.a !== 'man')) {
+				const [sx, sy] = measure(st.a, st.b);
+				assert.ok(Math.abs(sx - (-90)) < 22 && Math.abs(sy - 0) < 22,
+					`${st.a}->${st.b} keeps the shared vector (${sx.toFixed(0)},${sy.toFixed(0)})`);
+			}
 		});
 
 		QUnit.module('camera');
@@ -297,12 +363,12 @@
 
 		QUnit.module('spotlight');
 
-		QUnit.test('draws one arrow per relation pair, parallel and equal', (assert) => {
+		QUnit.test('draws one arrow per relation step, parallel and equal', (assert) => {
 			const el = mount();
 			el.setAttribute('spotlight', 'gender');
 			const lines = [...el.shadowRoot.querySelectorAll('g.spotlight line')];
-			const genderPairs = DATASET.relations.find((r) => r.rel === 'gender').pairs.length;
-			assert.strictEqual(lines.length, genderPairs, 'an arrow per pair');
+			const genderSteps = DATASET.relations.find((r) => r.rel === 'gender').steps.length;
+			assert.strictEqual(lines.length, genderSteps, 'an arrow per step');
 			const vecs = lines.map((l) => [
 				Number(l.getAttribute('x2')) - Number(l.getAttribute('x1')),
 				Number(l.getAttribute('y2')) - Number(l.getAttribute('y1')),
@@ -320,7 +386,7 @@
 		QUnit.test('non-involved nodes dim', (assert) => {
 			const el = mount();
 			el.setAttribute('spotlight', 'tense');
-			const involved = new Set(DATASET.relations.find((r) => r.rel === 'tense').pairs.flat());
+			const involved = new Set(DATASET.relations.find((r) => r.rel === 'tense').steps.flatMap((s) => [s.a, s.b]));
 			const other = [...el.shadowRoot.querySelectorAll('g.nodes circle.node')]
 				.find((c) => !involved.has(c.dataset.id));
 			const op = other.getAttribute('opacity');
@@ -611,10 +677,10 @@
 			const el = mount();
 			const byId = () => new Map(el._sim.nodes().map((n) => [n.id, n]));
 			const rel = DATASET.relations.find((r) => r.rel === 'gender');
-			const [a, b] = rel.pairs[0];
-			const v0 = [byId().get(b).x - byId().get(a).x, byId().get(b).y - byId().get(a).y];
+			const first = rel.steps[0];
+			const v0 = [byId().get(first.b).x - byId().get(first.a).x, byId().get(first.b).y - byId().get(first.a).y];
 			el.setAttribute('show-links', '');
-			const v1 = [byId().get(b).x - byId().get(a).x, byId().get(b).y - byId().get(a).y];
+			const v1 = [byId().get(first.b).x - byId().get(first.a).x, byId().get(first.b).y - byId().get(first.a).y];
 			assert.ok(Math.hypot(v1[0] - v0[0], v1[1] - v0[1]) < 0.001, 'gender offset unchanged by the web');
 		});
 
@@ -730,19 +796,18 @@
 			assert.strictEqual(el._clickScope, undefined, 'the click after a real drag is ignored');
 		});
 
-		// --- deferred #10: diagonal RELATION_OFFSETS entry ---------------
+		// --- deferred #10: diagonal step vector (capital-of) ---------------
 		QUnit.test('d#10: capital (diagonal offset) settles to its vector and stays parallel', (assert) => {
 			const ds = clone(DATASET);
 			const s = buildSimulation(ds, { seed: 42, warmup: 320 });
 			const byId = new Map(s.nodes().map((n) => [n.id, n]));
 			const rel = ds.relations.find((r) => r.rel === 'capital-of');
-			const off = RELATION_OFFSETS['capital-of'];
 			const angs = [];
-			for (const [a, b] of rel.pairs) {
-				const dx = byId.get(b).x - byId.get(a).x;
-				const dy = byId.get(b).y - byId.get(a).y;
-				assert.ok(Math.abs(dx - off[0]) < 22 && Math.abs(dy - off[1]) < 22,
-					`${a}->${b} offset (${dx.toFixed(0)},${dy.toFixed(0)}) ~ (${off[0].toFixed(0)},${off[1].toFixed(0)})`);
+			for (const st of rel.steps) {
+				const dx = byId.get(st.b).x - byId.get(st.a).x;
+				const dy = byId.get(st.b).y - byId.get(st.a).y;
+				assert.ok(Math.abs(dx - st.dx) < 22 && Math.abs(dy - st.dy) < 22,
+					`${st.a}->${st.b} offset (${dx.toFixed(0)},${dy.toFixed(0)}) ~ (${st.dx.toFixed(0)},${st.dy.toFixed(0)})`);
 				angs.push(Math.atan2(dy, dx));
 			}
 			const wrapped = angs.map((x) => Math.atan2(Math.sin(x - angs[0]), Math.cos(x - angs[0])));

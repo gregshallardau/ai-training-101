@@ -1,7 +1,7 @@
 // src/components/ideas-map/simulation.js
 import { d3 } from '@/lib/d3.js';
 import {
-	W, H, LINK_DIST, CHARGE, CLUSTER, COLLIDE, SEED, WARMUP, REL, RELATION_OFFSETS,
+	W, H, LINK_DIST, CHARGE, CLUSTER, COLLIDE, SEED, WARMUP, REL,
 } from './dataset.js';
 
 export function topicCentroids(nodes, topics) {
@@ -14,13 +14,13 @@ export function topicCentroids(nodes, topics) {
 	return m;
 }
 
-export function forceRelations(relations, offsets = RELATION_OFFSETS, strength = REL) {
-	let pairs = [];
+export function forceRelations(relations, strength = REL) {
+	let steps = [];
 	let k = strength;
 
 	function force(alpha) {
 		const a = k * alpha;
-		for (const p of pairs) {
+		for (const p of steps) {
 			const errx = p.s.x + p.dx - p.t.x;
 			const erry = p.s.y + p.dy - p.t.y;
 			p.t.vx += errx * a; p.t.vy += erry * a;
@@ -29,14 +29,18 @@ export function forceRelations(relations, offsets = RELATION_OFFSETS, strength =
 	}
 	force.initialize = (nodes) => {
 		const by = new Map(nodes.map((n) => [n.id, n]));
-		pairs = [];
+		steps = [];
 		for (const r of relations) {
-			const off = offsets[r.rel];
-			if (!off) { console.warn(`[ideas-map] relation "${r.rel}" has no RELATION_OFFSETS entry`); continue; }
-			for (const [aId, bId] of r.pairs) {
-				const s = by.get(aId); const t = by.get(bId);
-				if (!s || !t) { console.warn(`[ideas-map] relation pair ${aId},${bId} unresolved`); continue; }
-				pairs.push({ s, t, dx: off[0], dy: off[1] });
+			for (const st of r.steps || []) {
+				// every step carries its own dx/dy (authored per idea in the
+				// dataset JSON) — "not exact" gaps are intentional per step.
+				if (!Number.isFinite(st.dx) || !Number.isFinite(st.dy)) {
+					console.warn(`[ideas-map] relation step "${r.rel}" ${st.a} → ${st.b} has no offset vector — add "offset": [dx, dy] to it in the dataset`);
+					continue;
+				}
+				const s = by.get(st.a); const t = by.get(st.b);
+				if (!s || !t) { console.warn(`[ideas-map] relation step ${st.a},${st.b} unresolved`); continue; }
+				steps.push({ s, t, dx: st.dx, dy: st.dy });
 			}
 		}
 	};

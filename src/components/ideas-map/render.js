@@ -53,11 +53,11 @@ export function drawGraph(svgOrEl, state) {
 	if (state.spotlight) {
 		const rel = state.relations.find((r) => r.rel === state.spotlight);
 		if (rel) {
-			rel.pairs.forEach(([aId, bId], i) => {
-				const a = byId.get(aId); const b = byId.get(bId);
+			rel.steps.forEach((st, i) => {
+				const a = byId.get(st.a); const b = byId.get(st.b);
 				if (!a || !b) return;
 				if (revealHidden && (revealHidden.has(a.topics[0]) || revealHidden.has(b.topics[0]))) return;
-				spotIds.add(aId); spotIds.add(bId);
+				spotIds.add(a.id); spotIds.add(b.id);
 				gSpotlight.appendChild(make('line', {
 					class: 'vec',
 					x1: a.x, y1: a.y, x2: b.x, y2: b.y,

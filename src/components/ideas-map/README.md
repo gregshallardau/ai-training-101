@@ -10,7 +10,7 @@ holds across topics* ("one step left = son→daughter AND king→queen").
 
 Everything for the artifact lives in this folder.
 
-## Component code (change via `artefact-builder`)
+## Component files (code changes via `artefact-builder`; `dataset.json` is data you edit directly)
 
 | File | Responsibility |
 |---|---|
@@ -19,7 +19,8 @@ Everything for the artifact lives in this folder.
 | `simulation.js` | `buildSimulation()` — seeded + settled + frozen d3 force sim; `forceRelations` |
 | `camera.js` | `bboxOf()` + `makeCamera()` — view-state `[cx, cy, w]`, `interpolateZoom` |
 | `palette.js` | `topicColors()` — generated HCL topic hue wheel off `--primary` |
-| `dataset.js` | the built-in `DATASET`, `RELATION_OFFSETS` (the only authored geometry), force constants + tuning guide |
+| `dataset.json` | the built-in map as **editable JSON** — one flat `nodes` list; every idea entry carries its `topic`, `links`, `rels` (per-step `offset`), `contexts` / `from`, plus `topicLabels` |
+| `dataset.js` | expands the authored JSON into the sim's internal shape (`expandDataset`), force constants + tuning guide |
 
 Registered in `src/components/registry.js`. Tests: `test/ideas-map.html`
 (`node scripts/test.js`).

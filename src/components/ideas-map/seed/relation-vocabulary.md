@@ -1,9 +1,8 @@
 # Relation vocabulary (closed set)
 
-A `relations[].rel` in a seeded dataset MUST be one of these names. Each has an
-authored 2-D offset direction so every pair of that relation lands on the same
-on-screen vector (the word2vec parallelogram). The generating LLM chooses the
-**name**; it never chooses the geometry.
+A relation step's `rel` MUST be one of these names. The table's vectors are the
+reference directions (the component's built-in map ships these for the four it
+uses). The generating LLM chooses the **name**; it never chooses the geometry.
 
 `D` is the base step length (defaults to `90` in `dataset.js`). Directions are
 spread so distinct relations read as distinct arrows; `comparative` and
@@ -24,32 +23,38 @@ spread so distinct relations read as distinct arrows; `comparative` and
 | `profession`    | `[-D * 0.35, -D * 1.0]` | person → their field             | NNW |
 | `symbol`        | `[D * 0.35, D * 1.0]` | element / unit → its symbol       | SSE |
 
-## Paste into `src/components/ideas-map/dataset.js`
+## Authoring the offsets
 
-Replace the existing `RELATION_OFFSETS` block (which ships with only a few) with
-this full set, so any vocabulary name a seeded dataset uses resolves. `D` is
-already declared in that file.
+In the node-centric map each step is written ONCE on its source idea and carries
+its OWN vector — `src/components/ideas-map/dataset.json` ships the four rels it
+uses this way:
 
-```js
-export const RELATION_OFFSETS = {
-	gender:      [-D, 0],
-	parent:      [0, -D],
-	tense:       [D, 0],
-	plural:      [0, D],
-	comparative: [D * 1.0, -D * 0.35],
-	superlative: [D * 1.5, -D * 0.55],
-	'capital-of':  [D * 0.75, -D * 0.65],
-	opposite:      [-D * 0.75, -D * 0.65],
-	'part-of':     [-D * 0.75, D * 0.65],
-	'instance-of': [D * 0.75, D * 0.65],
-	profession:  [-D * 0.35, -D * 1.0],
-	symbol:      [D * 0.35, D * 1.0],
-};
+```jsonc
+{
+  "id":    "bio.gene",
+  "topic": "bio.cell-biology",
+  "rels":  [
+    { "rel": "part-of", "to": "bio.cell", "offset": [-67.5, 58.5] }
+  ]
+}
 ```
+
+Steps are per-step editable, so "not exact" gaps are fine — you can shorten one
+`gender` step without touching its siblings. (The word2vec parallelogram demo
+— `son→daughter` == `king→queen` — still holds while the steps of a rel share
+one vector, and the shared direction matters for how the arrows read.) JSON
+holds plain numbers, so substitute `D` (= `90`, declared in `dataset.js`):
+`[-D, 0]` → `[-90, 0]`, `[D * 0.75, -D * 0.65]` → `[67.5, -58.5]`. Keep a new
+direction at least ~30° from every existing one (and not `[0, 0]`).
+
+Legacy flat batches (seed/merge) group pairs instead (`{ "rel": "part-of",
+"pairs": [...], "offset": [...] }`); the component expands those to per-step
+vectors with the group's offset.
 
 ## Extending the vocabulary
 
-If the talk needs a relation not here: add it to BOTH this table and the
-`RELATION_OFFSETS` block, with a direction at least ~30° from every existing one
-(and not `[0,0]`). Then `./validate.mjs`'s `RELS` set must be updated to
-match. Do not let the generator invent one.
+If the talk needs a relation not here: add it to this table AND give each of its
+steps its own `offset` in the dataset (or the group's `offset` in a flat batch),
+with a direction at least ~30° from every existing one (and not `[0,0]`). Then
+`./validate.mjs`'s `RELS` set must be updated to match. Do not let the generator
+invent one.

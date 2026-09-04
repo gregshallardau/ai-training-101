@@ -1,7 +1,7 @@
 // src/components/ideas-map/index.js
 import { DeckElement } from '../deck-element.js';
 import { d3 } from '@/lib/d3.js';
-import { W, H, DATASET, RELATION_OFFSETS } from './dataset.js';
+import { W, H, DATASET, RELATION_OFFSETS, expandDataset } from './dataset.js';
 import { buildSimulation } from './simulation.js';
 import { topicColors } from './palette.js';
 import { makeCamera, bboxOf } from './camera.js';
@@ -93,14 +93,16 @@ class DeckIdeasMap extends DeckElement {
 	`;
 
 	_readDataset() {
-		// A `data=` attribute is already a fresh object (JSON.parse); the built-in
-		// DATASET is module-level and shared, so every instance takes its OWN deep
-		// clone — buildSimulation mutates node objects (x/y/vx/vy, d3 adds .index)
-		// and two instances must not corrupt each other. (review C2)
+		// A `data=` attribute is an authored document (node-centric JSON, or a
+		// legacy flat one) — expandDataset() turns it into the internal shape.
+		// The built-in DATASET is already expanded and module-level shared, so
+		// every instance takes its OWN deep clone — buildSimulation mutates node
+		// objects (x/y/vx/vy, d3 adds .index) and two instances must not corrupt
+		// each other. (review C2)
 		let ds;
 		try {
 			const parsed = JSON.parse(this.getAttribute('data') || 'null');
-			ds = parsed || structuredClone(DATASET);
+			ds = parsed ? expandDataset(parsed) : structuredClone(DATASET);
 		} catch {
 			ds = structuredClone(DATASET);
 		}

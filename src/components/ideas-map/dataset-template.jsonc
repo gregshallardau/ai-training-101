@@ -1,57 +1,56 @@
-// <deck-ideas-map> DATASET - fill in for your talk.
-// One JSON block. Real words. No placeholders. Delete these // comments for the
-// slide attribute (JSON, not JSONC). See the design spec §4 for the full rules.
+// <deck-ideas-map> DATASET - fill in for your talk. EVERYTHING about an idea
+// lives on that idea's entry: its cluster, its links, its relation steps, its
+// constellations. There are no separate links/relations/contexts sections to
+// cross-reference — the component derives them from this node list at load.
+// Delete these // comments for the slide attribute (JSON, not JSONC).
+
 {
-  // ---- topics: ordered groups. Colour-coded, drive reveal / tag / scope. ----
-  "topics": [
-    { "id": "family",   "name": "People & family" },
-    { "id": "animals",  "name": "Animals" },
-    { "id": "places",   "name": "Places" }
-    // add your talk's domains, most-important first
-  ],
-
-  // ---- nodes: the ideas. No coordinates. topics[] is a LIST (a node in two
-  //      topics sits between the clusters and takes its FIRST topic's colour). ----
-  "nodes": [
-    { "id": "man",   "name": "man",   "topics": ["family"] },
-    { "id": "woman", "name": "woman", "topics": ["family"] },
-    { "id": "king",  "name": "king",  "topics": ["family"] },
-    { "id": "queen", "name": "queen", "topics": ["family"] },
-    { "id": "bull",  "name": "bull",  "topics": ["animals"] },
-    { "id": "cow",   "name": "cow",   "topics": ["animals"] },
-    { "id": "france","name": "France","topics": ["places"] },
-    { "id": "paris", "name": "Paris", "topics": ["places"] }
-  ],
-
-  // ---- links: plain associations. Drive forceLink + drawn on show-links. ----
-  "links": [
-    { "source": "king", "target": "france" },
-    { "source": "cow",  "target": "bull" }
-  ],
-
-  // ---- relations: the consistent steps. Each pair is pulled to ONE shared
-  //      offset vector so the parallelograms hold. Topic-agnostic. ----
-  "relations": [
-    { "rel": "gender", "pairs": [["man","woman"],["king","queen"],["bull","cow"]] },
-    { "rel": "capital","pairs": [["france","paris"]] }
-  ],
-  // one authored 2-D direction per rel, coord units, ANY ANGLE.
-  // Keep common ones at clearly distinct angles. (Lives in the component as
-  // RELATION_OFFSETS - if you add a rel, artefact-builder adds its vector.)
-  "_RELATION_OFFSETS_hint": {
-    "gender":  [-90, 0],
-    "capital": [63, -50]
+  // Optional: prettier cluster names. A cluster with no label here is shown as
+  // its id with capitals ("capital-of" -> "Capital Of"). Clusters + their order
+  // are derived from the node list (first topic value seen wins).
+  "topicLabels": {
+    "family":  "People & family",
+    "grammar": "Word forms"
   },
 
-  // ---- contexts: named constellations for the context slides.
-  //      activate="role,industry,product" composes them (union + renormalised
-  //      attention budget -> a specific layer sharpens attention). ----
-  "contexts": {
-    "royalty": {
-      "from": "king",
-      "nodes": ["king", "queen", "france", "paris"],
-      "weights": { "queen": 1, "france": 0.7, "paris": 0.5 }
-      // optional "order": [...] for the sequence / causal overlays (spec §12)
+  // ---- nodes: one entry per idea. Move an idea to another cluster by typing
+  //      a different `topic` value on its entry — never by moving the line.
+  //      Add a NEW cluster by just giving an idea "topic": "new-slug". ----
+  "nodes": [
+    {
+      "id":    "man",        // required, kebab-case slug (relations/links/slides reference this)
+      "topic": "family",     // required - which cluster this idea lives in
+      // "name": "Man",      // optional - shown on the map; defaults to the id
+      // "also": ["music"],  // optional - rare: a second cluster it straddles
+      "links": [ "king" ],   // optional - plain associations, by node id
+      "rels": [              // optional - every directed step of this idea
+        {
+          "rel":    "gender",       // step name (see seed/relation-vocabulary.md)
+          "to":     "woman",        // the node this idea steps to
+          "offset": [ -90, 0 ]      // its OWN vector: where `to` sits vs this idea
+        }
+      ],
+      // "contexts": { "royalty": 0.7 },  // optional - constellation membership + weight (0..1)
+      // "from":     ["royalty"]          // optional - this idea is the focus of those constellations
+    },
+    {
+      "id":    "woman",
+      "topic": "family"
+      // every step is written once, on the SOURCE idea only - never mirrored here
+    },
+    {
+      "id":       "king",
+      "topic":    "family",
+      "links":    [ "france" ],
+      "rels":     [
+        { "rel": "gender", "to": "queen", "offset": [ -90, 0 ] }
+      ],
+      "from":     [ "royalty" ]
+    },
+    {
+      "id":       "queen",
+      "topic":    "family",
+      "contexts": { "royalty": 1 }
     }
-  }
+  ]
 }

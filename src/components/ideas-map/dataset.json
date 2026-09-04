@@ -1,0 +1,196 @@
+{
+	"topicLabels": {
+		"family": "People & family",
+		"grammar": "Word forms"
+	},
+
+	"nodes": [
+		{
+			"id":       "man",
+			"topic":    "family",
+			"rels": [
+				{ "rel": "gender", "to": "woman",  "offset": [-90, 0] }
+			]
+		},
+		{
+			"id":       "woman",
+			"topic":    "family"
+		},
+		{
+			"id":       "king",
+			"topic":    "family",
+			"links":    ["france"],
+			"rels": [
+				{ "rel": "gender", "to": "queen",  "offset": [-90, 0] }
+			],
+			"from":     ["royalty"]
+		},
+		{
+			"id":       "queen",
+			"topic":    "family",
+			"contexts": { "royalty": 1 }
+		},
+		{
+			"id":       "son",
+			"topic":    "family",
+			"rels": [
+				{ "rel": "gender", "to": "daughter", "offset": [-90, 0] },
+				{ "rel": "parent", "to": "father",   "offset": [0, -90] }
+			]
+		},
+		{
+			"id":       "daughter",
+			"topic":    "family",
+			"rels": [
+				{ "rel": "parent", "to": "mother", "offset": [0, -90] }
+			]
+		},
+		{
+			"id":       "father",
+			"topic":    "family",
+			"contexts": { "royalty": 0.4 }
+		},
+		{
+			"id":       "mother",
+			"topic":    "family"
+		},
+		{
+			"id":       "bull",
+			"topic":    "animals",
+			"rels": [
+				{ "rel": "gender", "to": "cow", "offset": [-90, 0] }
+			]
+		},
+		{
+			"id":       "cow",
+			"topic":    "animals"
+		},
+		{
+			"id":       "lion",
+			"topic":    "animals",
+			"links":    ["cell"],
+			"rels": [
+				{ "rel": "gender", "to": "lioness", "offset": [-90, 0] }
+			]
+		},
+		{
+			"id":       "lioness",
+			"topic":    "animals"
+		},
+		{
+			"id":       "calf",
+			"topic":    "animals",
+			"rels": [
+				{ "rel": "parent", "to": "cow", "offset": [0, -90] }
+			]
+		},
+		{
+			"id":       "france",
+			"name":     "France",
+			"topic":    "places",
+			"rels": [
+				{ "rel": "capital-of", "to": "paris", "offset": [63, -49.5] }
+			],
+			"contexts": { "royalty": 0.7 }
+		},
+		{
+			"id":       "paris",
+			"name":     "Paris",
+			"topic":    "places",
+			"links":    ["rome"],
+			"contexts": { "royalty": 0.5 }
+		},
+		{
+			"id":       "italy",
+			"name":     "Italy",
+			"topic":    "places",
+			"rels": [
+				{ "rel": "capital-of", "to": "rome", "offset": [63, -49.5] }
+			]
+		},
+		{
+			"id":       "rome",
+			"name":     "Rome",
+			"topic":    "places"
+		},
+		{
+			"id":       "japan",
+			"name":     "Japan",
+			"topic":    "places",
+			"rels": [
+				{ "rel": "capital-of", "to": "tokyo", "offset": [63, -49.5] }
+			]
+		},
+		{
+			"id":       "tokyo",
+			"name":     "Tokyo",
+			"topic":    "places"
+		},
+		{
+			"id":       "cell",
+			"topic":    "sciences"
+		},
+		{
+			"id":       "gene",
+			"topic":    "sciences",
+			"links":    ["cell"]
+		},
+		{
+			"id":       "atom",
+			"topic":    "sciences",
+			"links":    ["energy"]
+		},
+		{
+			"id":       "energy",
+			"topic":    "sciences"
+		},
+		{
+			"id":       "walk",
+			"topic":    "grammar",
+			"rels": [
+				{ "rel": "tense", "to": "walked", "offset": [90, 0] }
+			]
+		},
+		{
+			"id":       "walked",
+			"topic":    "grammar"
+		},
+		{
+			"id":       "run",
+			"topic":    "grammar",
+			"rels": [
+				{ "rel": "tense", "to": "ran", "offset": [90, 0] }
+			]
+		},
+		{
+			"id":       "ran",
+			"topic":    "grammar"
+		},
+		{
+			"id":       "go",
+			"topic":    "grammar",
+			"rels": [
+				{ "rel": "tense", "to": "went", "offset": [90, 0] }
+			]
+		},
+		{
+			"id":       "went",
+			"topic":    "grammar"
+		},
+		{
+			"id":       "music",
+			"topic":    "music",
+			"links":    ["painting"]
+		},
+		{
+			"id":       "painting",
+			"topic":    "arts"
+		},
+		{
+			"id":       "mozart",
+			"name":     "Mozart",
+			"topic":    "arts",
+			"also":     ["music"]
+		}
+	]
+}
