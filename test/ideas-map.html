@@ -70,25 +70,47 @@
 		QUnit.module('authored dataset');
 
 		QUnit.test('expands the node-centric JSON to the internal shape', (assert) => {
-			const ds = expandDataset(authoredDataset);
-			assert.deepEqual(ds.topics.map((t) => t.id),
-				['family', 'animals', 'places', 'sciences', 'grammar', 'music', 'arts'],
-				'clusters derive in first-seen order from the node list');
-			assert.strictEqual(ds.topics.find((t) => t.id === 'family').name, 'People & family', 'topicLabels override the label');
-			assert.strictEqual(ds.topics.find((t) => t.id === 'animals').name, 'Animals', 'default label pretties the id');
-			assert.deepEqual(ds.nodes.find((n) => n.id === 'man'),
-				{ id: 'man', name: 'man', topics: ['family'] }, 'name defaults to the id');
-			assert.deepEqual(ds.nodes.find((n) => n.id === 'mozart').topics,
-				['arts', 'music'], '`also` adds the second cluster');
+			// self-contained fixture — independent of whatever dataset.json currently ships
+			const ds = expandDataset({
+				topicLabels: { fam: 'People & family' },
+				nodes: [
+					{ id: 'king', topic: 'fam', links: ['france'], from: ['royalty'] },
+					{ id: 'queen', topic: 'fam',
+						rels: [{ rel: 'gender', to: 'king', offset: [-90, 0] }],
+						contexts: { royalty: 1 } },
+					{ id: 'son', topic: 'fam',
+						rels: [{ rel: 'gender', to: 'daughter', offset: [-90, 0] }] },
+					{ id: 'daughter', topic: 'fam', contexts: { royalty: 0.4 } },
+					{ id: 'france', topic: 'places', contexts: { royalty: 0.7 } },
+					{ id: 'mozart', topic: 'arts', also: ['music'] },
+				],
+			});
+			assert.deepEqual(ds.topics.map((t) => t.id), ['fam', 'places', 'arts', 'music'],
+				'clusters derive in first-seen order from the node list (incl. `also`)');
+			assert.strictEqual(ds.topics.find((t) => t.id === 'fam').name, 'People & family', 'topicLabels override the label');
+			assert.strictEqual(ds.topics.find((t) => t.id === 'places').name, 'Places', 'default label pretties the id');
+			assert.deepEqual(ds.nodes.find((n) => n.id === 'king'),
+				{ id: 'king', name: 'king', topics: ['fam'] }, 'name defaults to the id');
+			assert.deepEqual(ds.nodes.find((n) => n.id === 'mozart').topics, ['arts', 'music'], '`also` adds the second cluster');
 			assert.strictEqual(ds.links.filter((l) => l.source === 'king').length, 1, 'links gather onto the authoring node');
-			const relCounts = Object.fromEntries(ds.relations.map((r) => [r.rel, r.steps.length]));
-			assert.deepEqual(relCounts, { gender: 5, parent: 3, tense: 3, 'capital-of': 3 }, 'one step per authored pair');
-			const gender = ds.relations.find((r) => r.rel === 'gender');
-			assert.ok(gender.steps.every((s) => s.dx === -90 && s.dy === 0), 'each step keeps its own authored vector');
+			assert.strictEqual(ds.relations.find((r) => r.rel === 'gender').steps.length, 2, 'one step per authored rel');
+			assert.ok(ds.relations.find((r) => r.rel === 'gender').steps.every((s) => s.dx === -90 && s.dy === 0),
+				'each step keeps its own authored vector');
 			const royalty = ds.contexts.royalty;
 			assert.strictEqual(royalty.from, 'king', 'from focus derived from the node');
-			assert.deepEqual(royalty.nodes, ['king', 'queen', 'france', 'paris', 'father'], 'membership derives from the nodes');
-			assert.deepEqual(royalty.weights, { queen: 1, france: 0.7, paris: 0.5, father: 0.4 }, 'weights live on each fan node');
+			assert.deepEqual(royalty.nodes, ['king', 'queen', 'france', 'daughter'],
+				'membership: focus first, then fan nodes by weight (1 → 0.7 → 0.4)');
+			assert.deepEqual(royalty.weights, { queen: 1, france: 0.7, daughter: 0.4 }, 'weights live on each fan node');
+		});
+
+		QUnit.test('the shipped dataset.json expands cleanly', (assert) => {
+			const ds = expandDataset(authoredDataset);
+			assert.ok(ds.topics.length > 0 && ds.nodes.length > 0, 'non-empty');
+			assert.ok(ds.relations.every((r) => r.steps.every((s) => Number.isFinite(s.dx) && Number.isFinite(s.dy))),
+				'every relation step resolved to a finite offset vector');
+			const known = new Set(ds.nodes.map((n) => n.id));
+			assert.ok(ds.relations.every((r) => r.steps.every((s) => known.has(s.a) && known.has(s.b))),
+				'every relation step points at defined nodes');
 		});
 
 		QUnit.test('defaultTopicLabel pretties a slug', (assert) => {

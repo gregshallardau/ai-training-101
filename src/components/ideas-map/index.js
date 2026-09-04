@@ -325,28 +325,26 @@ class DeckIdeasMap extends DeckElement {
 		this._camera.zoomTo([cx - dx / k, cy - dy / k, w]);
 	}
 
-	/** Mouse wheel zooms about the pointer, eased (interpolateZoom) so it glides
-	 *  rather than jumping. Rapid ticks cancel and re-ease from the live view, so
-	 *  it stays smooth. `w` is clamped so you can't zoom to a speck or way past
-	 *  the whole graph. */
+	/** Mouse wheel zooms about the pointer, applied immediately (no tween) so it
+	 *  feels direct. The zoom factor scales with the actual scroll distance,
+	 *  normalised across devices, so ~2–3 mouse notches cross from the whole
+	 *  graph to a single topic; a trackpad makes many small continuous steps.
+	 *  `w` is clamped so you can't zoom to a speck or far past the whole graph. */
 	_wireWheel() {
 		const MIN_W = 120;
 		const MAX_W = W * 2.4;
-		const STEP = 1.35;   // zoom per wheel notch
+		const SENSITIVITY = 0.005;   // bigger = fewer scrolls to cover the range
 		this._svg.addEventListener('wheel', (event) => {
 			event.preventDefault();
 			const view = this.shadowRoot.querySelector('g.view');
 			const [px, py] = d3.pointer(event, view);
 			const [cx, cy, w] = this._camera.view();
-			let factor = event.deltaY > 0 ? STEP : 1 / STEP;
+			const toPx = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? this._svg.clientHeight : 1;
+			let factor = Math.exp(event.deltaY * toPx * SENSITIVITY);
+			factor = Math.max(0.35, Math.min(2.8, factor)); // never teleport on one event
 			const clamped = Math.max(MIN_W, Math.min(MAX_W, w * factor));
 			factor = clamped / w; // honour the clamp when re-anchoring
-			// short ease so a fast scroll chains smoothly instead of lagging a
-			// full UI-duration behind each notch
-			this._camera.easeTo(
-				[px + (cx - px) * factor, py + (cy - py) * factor, clamped],
-				{ duration: this._state.reduced ? 0 : 90 },
-			);
+			this._camera.zoomTo([px + (cx - px) * factor, py + (cy - py) * factor, clamped]);
 		}, { passive: false });
 	}
 
