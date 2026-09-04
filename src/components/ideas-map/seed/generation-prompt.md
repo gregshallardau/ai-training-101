@@ -1,7 +1,13 @@
-# Per-batch generation prompt
+# Generation prompt
 
-Hand this to the local LLM once per domain. Fill the three `<<…>>` placeholders.
-Save the reply as `batch-<<SLUG>>.json`.
+Hand this to the local LLM. Fill the three `<<…>>` placeholders and save the
+reply.
+
+**Batching is optional.** For one file, use one call with a broad `<<DOMAIN>>`
+and a large `<<N>>`, and the `<<SLUG>>.` id prefix does not matter (pick any).
+For a large map on a small local model, run this once per domain — save each
+reply as `batch-<<SLUG>>.json`, keep the `<<SLUG>>.` prefix on every id, then
+merge with `./merge.mjs`. See "One file or many?" in the `ideas-map-seed` skill.
 
 ---
 

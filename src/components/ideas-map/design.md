@@ -507,9 +507,11 @@ Built with the **`artefact-builder`** skill. Its Read step will:
 - edit `registry.js` per `reference/registry-edit.md`.
 
 **Customising the map to a presentation** (topics / nodes / links / relations /
-`RELATION_OFFSETS` / `contexts`, and wiring the tag onto slides per beat) is the
-**`ideas-map` skill** (`.claude/skills/ideas-map/`) — it authors content and
-slide state, and hands any component-code change back to `artefact-builder`.
+`RELATION_OFFSETS` / `contexts`, and wiring the tag onto slides per beat) is
+covered by `./authoring.md` + `./attributes.md` here, and surfaced as the
+`/ideas-map` skill. **Bulk-seeding** a large map (hundreds/thousands of topics)
+with a local LLM is `./seed/` + the `/ideas-map-seed` skill. Component-code
+changes go through `artefact-builder`.
 
 The implementation plan wraps that plus: writing `forceRelations`, the topic
 colour scale, the attention/activation overlay and the label toggle; authoring

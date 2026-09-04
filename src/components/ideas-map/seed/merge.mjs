@@ -6,7 +6,9 @@
 //   node merge.mjs out.json batch-*.json     (shell expands the glob)
 //
 // Batches are concatenated as-is (ids are expected to be domain-namespaced,
-// `bio.cell` etc. — see reference/generation-prompt.md). This step:
+// `bio.cell` etc. — see ./generation-prompt.md). Only needed if you split the
+// dataset across files; a single hand- or LLM-written file goes straight to
+// ./validate.mjs. This step:
 //   - drops a later duplicate topic/node id (keeps the first, warns)
 //   - drops a link/relation-pair whose endpoints don't resolve after the merge
 //     (warns) — so a stitch batch that references a typo'd id degrades instead

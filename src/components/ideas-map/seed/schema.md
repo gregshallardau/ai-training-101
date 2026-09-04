@@ -61,7 +61,7 @@ When seeding in batches, prefix every id with the domain slug: `bio.cell`,
 
 ## JSON Schema (draft 2020-12)
 
-`scripts/validate.mjs` does the referential checks the plain schema can't, but
+`./validate.mjs` does the referential checks the plain schema can't, but
 this catches shape errors early:
 
 ```json

@@ -51,5 +51,5 @@ export const RELATION_OFFSETS = {
 
 If the talk needs a relation not here: add it to BOTH this table and the
 `RELATION_OFFSETS` block, with a direction at least ~30° from every existing one
-(and not `[0,0]`). Then `scripts/validate.mjs`'s `RELS` set must be updated to
+(and not `[0,0]`). Then `./validate.mjs`'s `RELS` set must be updated to
 match. Do not let the generator invent one.

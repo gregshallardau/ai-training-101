@@ -8,7 +8,7 @@
 
 **Tech Stack:** Vanilla Custom Element on `DeckElement`, `d3` v7 (lazy via `@/lib/d3.js`), Shadow DOM CSS with semantic custom properties, QUnit + Puppeteer tests (`test/*.html`, run by `npm test`).
 
-**Spec:** `docs/superpowers/specs/2026-09-03-ideas-map-design.md`
+**Spec:** `./design.md`
 
 ## Global Constraints
 
@@ -1975,7 +1975,7 @@ git commit -m "chore(ideas-map): tune force constants for overlap + rigid parall
 
 ## Execution Handoff
 
-**Plan complete and saved to `docs/superpowers/plans/2026-09-03-ideas-map.md`. Two execution options:**
+**Plan complete and saved to `./plan.md`. Two execution options:**
 
 **1. Subagent-Driven (recommended)** — I dispatch a fresh subagent per task, review between tasks, fast iteration.
 
