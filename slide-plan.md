@@ -355,35 +355,59 @@ summary of them.
 and two visual attributes of that chip each carry one axis (the label always says
 what the chip is — colour/texture are never the only cue):
 
-1. **Chip fill colour = the form (media) the context arrives in.** Six chips:
-   - **words / text** (typed or pasted) — blue (Word-family blue ≈ `#2B579A`)
-   - **PowerPoint / slides** — orange (≈ `#D24726`)
-   - **Excel / spreadsheets** — green (≈ `#217346`)
-   - **voice / audio** — e.g. teal `#0D9488` [decide hue]
-   - **image / photo / screenshot** — e.g. purple `#7C3AED` [decide hue]
-   - **video** — e.g. crimson `#E11D48` [decide hue]
-   - PDFs / Word docs carry **no chip of their own** — they are "words inside a
-     document" and ride the words/text chip (blue) unless a PDF chip is wanted
-     later.
+1. **Chip fill colour = the input type (`.type-*`) the context arrives in.** Six
+   type chips (approved — each chip is a *family* of formats, not one app):
+   - **words / text** (typed or pasted · Word · PDFs · docs) — blue `#2B579A`
+   - **PowerPoint / slides** — orange `#D24726`
+   - **structured data** (Excel · CSV · SQL/database extracts · tables) — green `#217346`
+   - **voice / audio** (calls, memos, dictation) — teal `#0D9488`
+   - **image** (photos, screenshots, scans) — violet `#7C3AED`
+   - **video** (meeting recordings, demos) — crimson `#E11D48`
    - Defined in CSS as a small form-chip set — **specific-case, deck-author-
      approved utility, NOT core theme** (per the framework rule this is the
-     author's call on a genuinely missing utility); exact hues decided at build.
-2. **Chip border texture = which kind of context it is** — the question it is
-   answering (who / what / where / when…). An **orange chip with a hashed
-   border** reads: "this answers *who* — and it arrived as PowerPoint".
-   - Rendering: solid / dashed / dotted / double borders — each category gets
-     one stable texture, reused wherever that kind of context appears (Slide 18
-     layers, Slide 21, this slide, Slide 30).
-   - [decide] the category list + texture map when drafting the slide: starter =
-     classic who / what / where / when set, or the Slide 21 checklist grouped
-     into ~4–6 kinds.
+     author's call on a genuinely missing utility); chip text colour (white vs
+     dark) tuned at build for contrast.
+2. **Chip border texture = which kind of context it is (`.context-*`)** — the
+   **5W+How set** (approved): the classic investigative questions, backed by
+   situation-model theory. An **orange chip with a solid border** reads: "this
+   answers *WHO* — and it arrived as PowerPoint".
 
-Example cells (both attributes on one chip):
-- "claims history" = *what-they-currently-have* texture in a green (Excel) chip
-- "industry trends" = *what's-happening-in-their-world* texture in a blue
-  (words/docs) chip
-- "who the client is" = *who* texture in an orange (PowerPoint) chip, if you
-  hand it the client's deck
+**Table 2 — context kinds (approved legend):**
+
+| Kind | Grounded in | Covers (facts from the broker story / Slide 21 answers) | Border |
+|---|---|---|---|
+| WHO | situation-model *protagonist*; Hymes *participants* | the client — Sarah, solo psychologist, 12 yrs in practice; you + your specialty | solid |
+| WHAT | the action/state — what's being done & what's held | trying to do: renewal / claim / new business; what they have: PI $10M, $2,400/yr; what they need from you | dashed |
+| WHEN | situation-model *time*; *chronological* context | renewal due in 3 weeks; no claims in 12 years; premium jumped this year | dotted |
+| WHERE | situation-model *space*; Hymes *setting* | Melbourne's east; telehealth; the premises/site | double |
+| WHY | situation-model *causation* | PI premiums up 30–50%; AIQ tightened after large mental-health claims; why she's anxious | groove |
+| HOW | Hymes *key* (register / tone) | how to say it: calm, reassuring, plain English; formal vs casual | ridge |
+
+Grounding (for the author's notes — *not* shown on the slide): situation-model
+theory — Zwaan & Radvansky (1998), *Psychological Bulletin*; Hymes' SPEAKING grid;
+communication-context textbooks (physical / social / chronological / cultural).
+
+Slide labels stay plain; the wh-word is printed small-cap inside each chip so the
+texture is never the only cue. **Chip anatomy: `CONTEXT · the thing (TYPE)`** —
+markup `class="chip context-when type-data"`; the label always names the real
+artefact **and** the document type, so the colour is self-explaining ("green
+*because it's the Excel file*"), never a colour floating without a reason. The
+groove / ridge borders are visual-3D styles — [build check] confirm they read at
+chip size, else swap to a small glyph prefix per kind.
+
+Example cells (both attributes on one chip, document type always in the label):
+- `WHEN · claims_history.xlsx` = dotted border, green fill — *history arrived as a spreadsheet (structured data)*
+- `WHY · market commentary.pdf` = groove border, blue fill — *the drivers arrived as words in a document*
+- `WHO · Sarah's client deck.pptx` = solid border, orange fill — *who the client is arrived as PowerPoint*
+- `HOW · tone notes (typed)` = ridge border, blue fill — *the register is just words*
+- `WHEN · scanned policy schedule (image)` = dotted border, violet fill — *a scan is an image to the model until OCR turns it into words*
+
+**Multi-kind facts** — colour tags the medium, kind tags the fact. If one
+artefact feeds two layers (e.g. one Excel holding the client list *and* the
+renewals), show **two chips of the same colour, one per fact**; when a single
+fact genuinely straddles two kinds, use a compound label on one chip:
+`WHO + WHAT · client_tasks.xlsx`. One chip can't carry two border textures (one
+border per edge), so there are no hybrid-border classes.
 
 Core content bullets:
 - Text-bearing documents (PDFs, Word docs, Excel, slides): the model pulls the
@@ -408,8 +432,8 @@ Core content bullets:
 TODO (deck build, later — record only for now):
 - [ ] insert the stub `slides/22-context-can-have-many-forms.html` between 21 and 22 (slide-builder: apply the rename list in the Slide 27 section, then add the overview link)
 - [ ] write the slide prose from the bullets above
-- [ ] **specific-case CSS (deck-author approved):** add the six form chips to `deck.css` — words = blue, PowerPoint = orange, Excel = green, voice, image, video (see hues in the axis notes above) — as a small chip set, **plus** the chip-border texture styles for the "kind of context" axis; show the markup first, keep both out of the core theme/glossary colours
-- [ ] decide the category → border-texture map (which kinds of context get which chip border: solid / dashed / dotted / double …) and finalise the three extra chip hues (voice / image / video)
+- [x] **specific-case CSS (deck-author approved)** — DONE: the framework is built. `deck.css` now ships the six **input-type** chips (`.chip.type-words/slides/data/voice/image/video`, Table 1 hues) **plus** the six **context-kind** border textures (`.chip.context-who/what/when/where/why/how`, Table 2), kept out of the core theme/glossary colours; documented in the `deck.css` block comment (framework docs are not edited). Usage: `class="chip context-when type-data"`. Remaining work is *building the chips onto the slide* (markup + labels), not the CSS
+- [ ] CSS build check (once chips are placed on the slide): groove / ridge must read at chip size (else swap to a small glyph prefix per kind); confirm each fill's white text has enough contrast
 - [ ] decide the matrix visual: a simple grid (rows = the eight questions, columns = forms, chips in the cells) vs the Slide 21 list with a form chip on each answer; plain HTML/table vs a registered `<deck-*>` via artefact-builder
 - [ ] build the projector → tokens diagram — a one-off inline SVG on the slide, or a registered `<deck-*>` via artefact-builder if it should animate/interact (framework rule: no invented classes)
 - [ ] glossary tie-in: the closing wall already carries a **Multi-Modal** chip ("reads more than words — pictures, voice, files too") — this slide is where that idea gets introduced
