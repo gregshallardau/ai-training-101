@@ -15,6 +15,8 @@ trigger conditions and procedure:
 - **`artefact-builder`** - define a new reusable `<deck-*>` custom element.
 - **`deck-builder`** - scaffold a whole new deck from an outline.
 - **`skin-builder`** - add a re-skin (`[data-theme]` block) from brand input.
+- **`keyframe-builder`** - build a multi-click reveal within a slide (content
+  that transforms in place across clicks, e.g. a question becoming an answer).
 
 Each skill's first line is "read `.claude/skills/framework-conventions.md`
 first" - do that even if you read nothing else here.
