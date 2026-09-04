@@ -22,6 +22,8 @@
 //   raise WARMUP (→500) if the graph hasn't visually settled.
 // CLUSTER (per-topic pull, weak by design): Clusters too separate → lower (~0.03)
 //   or increase |CHARGE|. Not distinct enough → raise (~0.08). Keep weak for overlap.
+// HOMING (post-warm-up spring back to the settled spot): a dragged node not
+//   snapping back cleanly → raise (→0.4); too rigid, no "settle" feel → lower (~0.15).
 // CHARGE (node repulsion, negative): More negative spreads the graph out.
 // LINK_DIST (edge length under show-links): Lower to pull linked words tighter.
 // COLLIDE (min node separation): Raise if node circles overlap.
@@ -45,7 +47,8 @@ export const H = 1000;
 export const NODE_R = 9;
 export const LINK_DIST = 150;
 export const CHARGE = -340;
-export const CLUSTER = 0.05;   // weak, so topic clusters overlap
+export const CLUSTER = 0.05;   // weak topic pull — shapes the layout during warm-up only
+export const HOMING = 0.3;     // after warm-up: spring strength back to each node's settled spot
 export const COLLIDE = NODE_R * 1.7;
 export const D = 90;           // base step length for hand-coding offsets in dataset.json
 export const REL = 0.35;       // forceRelations strength

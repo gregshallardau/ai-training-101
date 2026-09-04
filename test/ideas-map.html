@@ -482,6 +482,28 @@
 			assert.strictEqual(king.fy, null, 'released on drop');
 		});
 
+		QUnit.test('buildSimulation records each node’s settled home', (assert) => {
+			const s = buildSimulation(clone(DATASET), { seed: 1, warmup: 40 });
+			assert.ok(
+				s.nodes().every((n) => n.home && Number.isFinite(n.home.x) && Number.isFinite(n.home.y)),
+				'every node carries a home {x, y} after warm-up',
+			);
+		});
+
+		QUnit.test('a released node springs back to its settled home spot', (assert) => {
+			withReducedMotion(() => {
+				const el = mount();
+				const son = el._sim.nodes().find((n) => n.id === 'son');
+				const home = { x: son.home.x, y: son.home.y };
+				el._onDragStart({ x: son.x, y: son.y, sourceEvent: { clientX: 0, clientY: 0 } }, son);
+				el._onDrag({ x: son.x + 300, y: son.y - 200, sourceEvent: { clientX: 300, clientY: -200 } }, son);
+				assert.ok(el._dragMoved, 'moved far enough to count as a drag');
+				el._onDragEnd({ sourceEvent: { clientX: 300, clientY: -200 } }, son);
+				assert.ok(Math.hypot(son.x - home.x, son.y - home.y) < 1,
+					'back exactly at home after release (reduced-motion: instant snap)');
+			});
+		});
+
 		QUnit.module('a11y + theming + motion');
 
 		QUnit.test('svg has title and desc', (assert) => {

@@ -432,8 +432,19 @@ class DeckIdeasMap extends DeckElement {
 		this._dragId = null;
 		this._computeState();
 		this._paint();
-		// a press that never moved past CLICK_SLOP is a tap → zoom to the topic
-		if (!this._dragMoved) this._zoomFromTap(d.id);
+		if (!this._dragMoved) {
+			// a press that never moved past CLICK_SLOP is a tap → zoom to the topic
+			this._zoomFromTap(d.id);
+		} else if (this._state.reduced) {
+			// no animation: snap every node straight back to its home spot
+			for (const n of this._sim.nodes()) {
+				if (n.home) { n.x = n.home.x; n.y = n.home.y; n.vx = 0; n.vy = 0; }
+			}
+			this._paint();
+		} else {
+			// re-energise so the released node springs back to its home spot
+			this._sim.alpha(0.6).restart();
+		}
 	}
 
 	_dur(kind) {

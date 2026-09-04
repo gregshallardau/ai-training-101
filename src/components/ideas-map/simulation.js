@@ -1,7 +1,7 @@
 // src/components/ideas-map/simulation.js
 import { d3 } from '@/lib/d3.js';
 import {
-	W, H, LINK_DIST, CHARGE, CLUSTER, COLLIDE, SEED, WARMUP, REL,
+	W, H, LINK_DIST, CHARGE, CLUSTER, HOMING, COLLIDE, SEED, WARMUP, REL,
 } from './dataset.js';
 
 export function topicCentroids(nodes, topics) {
@@ -85,6 +85,17 @@ export function buildSimulation(dataset, opts = {}) {
 
 	sim.alpha(1);
 	for (let i = 0; i < warmup; i++) sim.tick();
+
+	// Freeze the settled layout as each node's "home", then re-aim the x/y
+	// springs at home (not the topic centroid). Now any drag perturbation
+	// relaxes back to *exactly* this shape — yank `son` aside, release, and it
+	// (and any neighbour the relation force tugged along) springs back into
+	// place. forceRelations still holds because home already satisfies every
+	// authored offset.
+	for (const n of dataset.nodes) { n.home = { x: n.x, y: n.y }; }
+	sim.force('x', d3.forceX((n) => (n.home ? n.home.x : W / 2)).strength(HOMING));
+	sim.force('y', d3.forceY((n) => (n.home ? n.home.y : H / 2)).strength(HOMING));
+
 	sim.alpha(0).stop();
 	return sim;
 }
