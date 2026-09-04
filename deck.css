@@ -205,6 +205,21 @@
 	.reveal .slides section .text-muted {
 		color: var(--muted);
 	}
+	.reveal .slides section .text-success {
+		color: var(--success);
+	}
+
+	.reveal .slides section .text-warning {
+		color: var(--warning);
+	}
+
+	.reveal .slides section .text-danger {
+		color: var(--danger);
+	}
+
+	.reveal .slides section .text-secondary {
+		color: var(--secondary);
+	}
 
 	/* .text-center   centre-align (slide text defaults to left) */
 	.reveal .slides section .text-center {
@@ -324,6 +339,85 @@
 		background: color-mix(in srgb, var(--muted) 10%, transparent);
 		color: var(--muted);
 	}
+
+	/* ─── SPECIFIC-CASE: context-matrix chips (deck.css surface) ────────
+	   PURPOSE
+	   Built for the pending "Context Can Have Many Forms" slide - the
+	   multimodal-context beat inserted between Slide 21 and 22 (see
+	   slide-plan.md, [NEW SLIDE] entry). It teaches that the context you
+	   hand an LLM is never just typed words: a policy PDF, a claims
+	   spreadsheet, a photo, a voice memo are all context too, and the
+	   model reads every one of them as tokens. These chips are the visual
+	   language for that slide (and the Slides 18 / 21 / 30 that share it).
+
+	   THE IDEA - one chip, two orthogonal axes
+	   Every fact/concept sits in ONE labelled chip; two visual attributes
+	   answer two different questions:
+	     .context-*   border style  = WHICH KIND of context it is
+	                  (the fact answers who / what / when / where / why / how)
+	     .type-*      fill colour   = WHAT INPUT TYPE it arrived in
+	                  (the medium: words / slides / data / voice / image / video)
+	   Combined markup, context-* first:
+	     <span class="chip context-when type-data">WHEN · claims_history.xlsx</span>
+	     reads: "the claims history - a WHEN fact - arrived as structured data".
+
+	   CHIP ANATOMY (always)
+	   The label must name the real artefact AND its format, so the colour
+	   explains itself - green *because it's the Excel file*, never a colour
+	   floating without a reason. Colour + texture are cues, never the only
+	   one; a chip is meaningless without its text.
+
+	   MULTI-KIND FACTS (one file answering two questions)
+	   .context-* tags the FACT; .type-* tags the FILE. One Excel that feeds
+	   two layers becomes two chips of the same .type-* colour, one per fact;
+	   a single fact that straddles two kinds gets a compound label
+	   ("WHO + WHAT · ...") on one chip. A chip has only one border per
+	   edge, so there are deliberately no "two-border" hybrids.
+
+	   SCOPE & RULES
+	   - Deck-specific case, NOT the core theme and NOT the glossary chip
+	     colours (Token/Vector/Weight/Model/Prompt keep their own palette
+	     on the glossary slides). Deck-author approved via slide-plan.md.
+	   - The literal hues are the approved exception to the framework rule
+	     "semantic custom properties only": fixed, brand-ish cues (Office-
+	     family colours for the app formats so each chip reads as the app at
+	     a glance). Do not re-point them at theme variables.
+	   - Framework docs are NOT updated for these classes (docs/ is
+	     upstream) - this comment block is the documentation of record.
+
+	   BUILD CHECKS (when the chips land on the slide)
+	   - groove / ridge must still read as distinct at chip size; if not,
+	     swap those two kinds to a glyph prefix instead.
+	   - white text on each fill: fine for these hues - verify on the slide.
+	 */
+	.reveal .slides section .type-words  { --c: #2B579A; --c-fg: #ffffff; } /* typed/pasted words · Word · PDFs - text is text */
+	.reveal .slides section .type-slides { --c: #D24726; --c-fg: #ffffff; } /* PowerPoint / slide decks */
+	.reveal .slides section .type-data   { --c: #217346; --c-fg: #ffffff; } /* structured data: Excel · CSV · SQL · tables */
+	.reveal .slides section .type-voice  { --c: #0D9488; --c-fg: #ffffff; } /* voice / audio (calls, memos, dictation) */
+	.reveal .slides section .type-image  { --c: #7C3AED; --c-fg: #ffffff; } /* image: photos · screenshots · scans (OCR-able) */
+	.reveal .slides section .type-video  { --c: #E11D48; --c-fg: #ffffff; } /* video: recordings, walkthroughs */
+
+	/* solid fill - same behaviour as the semantic chip colours (.chip primary etc.) */
+	.reveal .slides section .chip:is(.type-words, .type-slides, .type-data, .type-voice, .type-image, .type-video) {
+		background: var(--c);
+		color: var(--c-fg);
+	}
+
+	/* context axis: give every .context-* chip a visible border so the
+	   pattern reads against the solid fill (base .chip draws only a 1px
+	   border of --c). */
+	.reveal .slides section .chip:is(.context-who, .context-what, .context-when, .context-where, .context-why, .context-how) {
+		border-width: 3px;
+		border-color: rgba(10, 11, 14, 0.55);
+	}
+	/* kind -> texture map (the 5W + How; grounded in situation-model theory
+	   & Hymes' SPEAKING - slide-plan holds the full mapping to Slide 21) */
+	.reveal .slides section .chip.context-who   { border-style: solid; }  /* WHO  - the people involved */
+	.reveal .slides section .chip.context-what  { border-style: dashed; } /* WHAT - the action & what's held */
+	.reveal .slides section .chip.context-when  { border-style: dotted; } /* WHEN - timing & history */
+	.reveal .slides section .chip.context-where { border-style: double; } /* WHERE - place & setting */
+	.reveal .slides section .chip.context-why   { border-style: groove; } /* WHY  - the drivers behind it */
+	.reveal .slides section .chip.context-how   { border-style: ridge; }  /* HOW  - the tone / register */
 
 	/* ══════════════════════════════════════════════════════════════════════
 	   DECK CHROME — footer

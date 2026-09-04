@@ -35,6 +35,11 @@ export default {
 	/* Put #/<slug> in the URL bar and restore position on reload. */
 	hash: true,
 
+	/* Swipe left/right to change slides on touch devices (Reveal's default is
+	   on; set here explicitly since a full-slide interactive component can
+	   otherwise make it feel unreliable). */
+	touch: true,
+
 	/* Type a slide number then Enter to jump straight to it. */
 	jumpToSlide: true,
 

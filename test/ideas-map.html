@@ -1,0 +1,960 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>deck-ideas-map tests</title>
+	<link rel="stylesheet" href="../node_modules/qunit/qunit/qunit.css">
+	<script src="../node_modules/qunit/qunit/qunit.js"></script>
+	<script>QUnit.config.autostart = false;</script>
+</head>
+<body>
+	<div id="qunit"></div>
+	<div id="qunit-fixture"></div>
+	<script type="module">
+		import '/src/styles/vars/primitives.css';
+		import '/src/styles/vars/semantic.css';
+		import '/src/components/ideas-map/index.js';
+		import { DATASET, RELATION_OFFSETS, expandDataset, defaultTopicLabel } from '/src/components/ideas-map/dataset.js';
+		import authoredDataset from '/src/components/ideas-map/dataset.json';
+		import { topicColors } from '/src/components/ideas-map/palette.js';
+		import { buildSimulation, topicCentroids } from '/src/components/ideas-map/simulation.js';
+		import { bboxOf, makeCamera } from '/src/components/ideas-map/camera.js';
+
+		const clone = (o) => JSON.parse(JSON.stringify(o));
+
+		const mount = () => {
+			const el = document.createElement('deck-ideas-map');
+			document.getElementById('qunit-fixture').appendChild(el);
+			return el;
+		};
+
+		QUnit.module('skeleton');
+
+		QUnit.test('element is defined', (assert) => {
+			assert.ok(customElements.get('deck-ideas-map'), 'custom element registered');
+		});
+
+		QUnit.test('framework CSS vars resolve in the harness', (assert) => {
+			const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+			assert.ok(primary.length > 0, '--primary resolves on the page');
+		});
+
+		QUnit.test('renders an svg with a view group', (assert) => {
+			const el = mount();
+			const svg = el.shadowRoot.querySelector('svg');
+			assert.ok(svg, 'svg present in shadow root');
+			assert.strictEqual(svg.getAttribute('viewBox'), '0 0 1600 1000', 'viewBox set');
+			assert.ok(svg.querySelector('g.view'), 'g.view present');
+			assert.strictEqual(svg.getAttribute('role'), 'img', 'role=img for a11y');
+		});
+
+		QUnit.test('dataset integrity', (assert) => {
+			const ids = new Set(DATASET.nodes.map((n) => n.id));
+			for (const l of DATASET.links) {
+				assert.ok(ids.has(l.source) && ids.has(l.target), `link ${l.source}->${l.target} endpoints exist`);
+			}
+			for (const r of DATASET.relations) {
+				assert.ok(RELATION_OFFSETS[r.rel], `relation ${r.rel} has a default vector`);
+				for (const st of r.steps) {
+					assert.ok(ids.has(st.a) && ids.has(st.b), `relation step ${st.a}->${st.b} endpoints exist`);
+					assert.ok(Number.isFinite(st.dx) && Number.isFinite(st.dy),
+						`relation step ${r.rel} ${st.a}->${st.b} carries its own vector`);
+				}
+			}
+			const topicIds = new Set(DATASET.topics.map((t) => t.id));
+			for (const n of DATASET.nodes) {
+				for (const t of n.topics) assert.ok(topicIds.has(t), `node ${n.id} topic ${t} exists`);
+			}
+		});
+
+		QUnit.module('authored dataset');
+
+		QUnit.test('expands the node-centric JSON to the internal shape', (assert) => {
+			// self-contained fixture — independent of whatever dataset.json currently ships
+			const ds = expandDataset({
+				topicLabels: { fam: 'People & family' },
+				nodes: [
+					{ id: 'king', topic: 'fam', links: ['france'], from: ['royalty'] },
+					{ id: 'queen', topic: 'fam',
+						rels: [{ rel: 'gender', to: 'king', offset: [-90, 0] }],
+						contexts: { royalty: 1 } },
+					{ id: 'son', topic: 'fam',
+						rels: [{ rel: 'gender', to: 'daughter', offset: [-90, 0] }] },
+					{ id: 'daughter', topic: 'fam', contexts: { royalty: 0.4 } },
+					{ id: 'france', topic: 'places', contexts: { royalty: 0.7 } },
+					{ id: 'mozart', topic: 'arts', also: ['music'] },
+				],
+			});
+			assert.deepEqual(ds.topics.map((t) => t.id), ['fam', 'places', 'arts', 'music'],
+				'clusters derive in first-seen order from the node list (incl. `also`)');
+			assert.strictEqual(ds.topics.find((t) => t.id === 'fam').name, 'People & family', 'topicLabels override the label');
+			assert.strictEqual(ds.topics.find((t) => t.id === 'places').name, 'Places', 'default label pretties the id');
+			assert.deepEqual(ds.nodes.find((n) => n.id === 'king'),
+				{ id: 'king', name: 'king', topics: ['fam'] }, 'name defaults to the id');
+			assert.deepEqual(ds.nodes.find((n) => n.id === 'mozart').topics, ['arts', 'music'], '`also` adds the second cluster');
+			assert.strictEqual(ds.links.filter((l) => l.source === 'king').length, 1, 'links gather onto the authoring node');
+			assert.strictEqual(ds.relations.find((r) => r.rel === 'gender').steps.length, 2, 'one step per authored rel');
+			assert.ok(ds.relations.find((r) => r.rel === 'gender').steps.every((s) => s.dx === -90 && s.dy === 0),
+				'each step keeps its own authored vector');
+			const royalty = ds.contexts.royalty;
+			assert.strictEqual(royalty.from, 'king', 'from focus derived from the node');
+			assert.deepEqual(royalty.nodes, ['king', 'queen', 'france', 'daughter'],
+				'membership: focus first, then fan nodes by weight (1 → 0.7 → 0.4)');
+			assert.deepEqual(royalty.weights, { queen: 1, france: 0.7, daughter: 0.4 }, 'weights live on each fan node');
+		});
+
+		QUnit.test('the shipped dataset.json expands cleanly', (assert) => {
+			const ds = expandDataset(authoredDataset);
+			assert.ok(ds.topics.length > 0 && ds.nodes.length > 0, 'non-empty');
+			assert.ok(ds.relations.every((r) => r.steps.every((s) => Number.isFinite(s.dx) && Number.isFinite(s.dy))),
+				'every relation step resolved to a finite offset vector');
+			const known = new Set(ds.nodes.map((n) => n.id));
+			assert.ok(ds.relations.every((r) => r.steps.every((s) => known.has(s.a) && known.has(s.b))),
+				'every relation step points at defined nodes');
+		});
+
+		QUnit.test('defaultTopicLabel pretties a slug', (assert) => {
+			assert.strictEqual(defaultTopicLabel('family'), 'Family');
+			assert.strictEqual(defaultTopicLabel('capital-of'), 'Capital Of');
+			assert.strictEqual(defaultTopicLabel('bio.cell-biology'), 'Bio Cell Biology');
+		});
+
+		QUnit.test('authored steps may carry different vectors per step', (assert) => {
+			const ds = expandDataset({
+				nodes: [
+					{ id: 'a', topic: 't', rels: [{ rel: 'gender', to: 'b', offset: [-90, 0] }] },
+					{ id: 'b', topic: 't' },
+					{ id: 'c', topic: 't', rels: [{ rel: 'gender', to: 'd', offset: [-40, 0] }] },
+					{ id: 'd', topic: 't' },
+				],
+			});
+			const steps = ds.relations.find((r) => r.rel === 'gender').steps;
+			assert.strictEqual(steps.length, 2, 'two steps, one rel group');
+			assert.deepEqual([steps[0].dx, steps[1].dx], [-90, -40], '"not exact" gaps are preserved per step');
+		});
+
+		QUnit.module('palette');
+
+		QUnit.test('distinct hues for each topic, anchored on --primary', (assert) => {
+			const resolve = (v) => (v === '--primary' ? '#2563eb' : '#000');
+			const m = topicColors(['a', 'b', 'c', 'd', 'e'], resolve);
+			assert.strictEqual(m.size, 5, 'one entry per topic');
+			const fills = [...m.values()].map((c) => c.fill);
+			assert.strictEqual(new Set(fills).size, 5, 'all fills distinct');
+			assert.ok(/^(#|rgb|hsl|lab|lch)/.test(fills[0]), 'fill is a colour string');
+			assert.notStrictEqual(m.get('a').fill, m.get('a').stroke, 'stroke differs from fill');
+		});
+
+		QUnit.test('re-resolves when --primary changes', (assert) => {
+			const a = topicColors(['x'], () => '#2563eb').get('x').fill;
+			const b = topicColors(['x'], () => '#16a34a').get('x').fill;
+			assert.notStrictEqual(a, b, 'anchor colour changes the scale');
+		});
+
+		QUnit.test('deterministic', (assert) => {
+			const r = () => '#2563eb';
+			assert.deepEqual(
+				[...topicColors(['a', 'b'], r).entries()],
+				[...topicColors(['a', 'b'], r).entries()],
+				'same input -> same output',
+			);
+		});
+
+		QUnit.module('simulation');
+
+		QUnit.test('seeded layout is deterministic', (assert) => {
+			const a = buildSimulation(clone(DATASET), { seed: 123, warmup: 60 });
+			const b = buildSimulation(clone(DATASET), { seed: 123, warmup: 60 });
+			const pa = a.nodes().map((n) => [Math.round(n.x), Math.round(n.y)]);
+			const pb = b.nodes().map((n) => [Math.round(n.x), Math.round(n.y)]);
+			assert.deepEqual(pa, pb, 'same seed -> same settled positions');
+		});
+
+		QUnit.test('no NaN positions', (assert) => {
+			const s = buildSimulation(clone(DATASET), { seed: 7, warmup: 80 });
+			assert.ok(s.nodes().every((n) => Number.isFinite(n.x) && Number.isFinite(n.y)), 'all finite');
+		});
+
+		QUnit.test('nodes cluster near their topic centroid', (assert) => {
+			const ds = clone(DATASET);
+			const s = buildSimulation(ds, { seed: 42, warmup: 200 });
+			const cents = topicCentroids(ds.nodes, ds.topics);
+			const globalC = { x: 800, y: 500 };
+			let closer = 0;
+			for (const n of s.nodes()) {
+				const c = cents.get(n.topics[0]);
+				const dC = Math.hypot(n.x - c.x, n.y - c.y);
+				const dG = Math.hypot(n.x - globalC.x, n.y - globalC.y);
+				if (dC < dG + 120) closer++;
+			}
+			assert.ok(closer / s.nodes().length > 0.7, 'most nodes sit toward their topic centroid');
+		});
+
+		QUnit.test('no link force in the sim — the web is a pure draw overlay', (assert) => {
+			const sim = buildSimulation(clone(DATASET), { seed: 1, warmup: 5 });
+			assert.strictEqual(sim.force('link'), undefined,
+				'a link spring would shear the relation parallelograms — there is none');
+		});
+
+		QUnit.module('forceRelations');
+
+		QUnit.test('every step settles to its own offset vector', (assert) => {
+			const ds = clone(DATASET);
+			const s = buildSimulation(ds, { seed: 42, warmup: 320 });
+			const byId = new Map(s.nodes().map((n) => [n.id, n]));
+			const rel = ds.relations.find((r) => r.rel === 'gender');
+			for (const st of rel.steps) {
+				const dx = byId.get(st.b).x - byId.get(st.a).x;
+				const dy = byId.get(st.b).y - byId.get(st.a).y;
+				assert.ok(Math.abs(dx - st.dx) < 22 && Math.abs(dy - st.dy) < 22,
+					`${st.a}->${st.b} offset (${dx.toFixed(0)},${dy.toFixed(0)}) ~ (${st.dx},${st.dy})`);
+			}
+		});
+
+		QUnit.test('a relation family is parallel (angles agree)', (assert) => {
+			const ds = clone(DATASET);
+			const s = buildSimulation(ds, { seed: 42, warmup: 320 });
+			const byId = new Map(s.nodes().map((n) => [n.id, n]));
+			const rel = ds.relations.find((r) => r.rel === 'tense');
+			const angs = rel.steps.map((st) =>
+				Math.atan2(byId.get(st.b).y - byId.get(st.a).y, byId.get(st.b).x - byId.get(st.a).x));
+			const spread = Math.max(...angs) - Math.min(...angs);
+			assert.ok(spread < 0.25, `tense arrows near-parallel (spread ${spread.toFixed(3)} rad)`);
+		});
+
+		QUnit.test('tweaking one step does not move its siblings (per-step vectors)', (assert) => {
+			// Gaps are authored per step — shorten ONLY man→woman and the other
+			// gender steps must stay at their own vector.
+			const ds = clone(DATASET);
+			const rel = ds.relations.find((r) => r.rel === 'gender');
+			const tweak = rel.steps.find((st) => st.a === 'man');
+			tweak.dx = -40; tweak.dy = 0; // was (-90, 0)
+			const s = buildSimulation(ds, { seed: 42, warmup: 320 });
+			const byId = new Map(s.nodes().map((n) => [n.id, n]));
+			const measure = (a, b) => [byId.get(b).x - byId.get(a).x, byId.get(b).y - byId.get(a).y];
+			const [dx, dy] = measure('man', 'woman');
+			assert.ok(Math.abs(dx - (-40)) < 22 && Math.abs(dy - 0) < 22,
+				`man->woman follows its own tweak (${dx.toFixed(0)},${dy.toFixed(0)})`);
+			for (const st of rel.steps.filter((x) => x.a !== 'man')) {
+				const [sx, sy] = measure(st.a, st.b);
+				assert.ok(Math.abs(sx - (-90)) < 22 && Math.abs(sy - 0) < 22,
+					`${st.a}->${st.b} keeps the shared vector (${sx.toFixed(0)},${sy.toFixed(0)})`);
+			}
+		});
+
+		QUnit.module('camera');
+
+		QUnit.test('bboxOf centre and width', (assert) => {
+			const bb = bboxOf([{ x: 100, y: 100 }, { x: 300, y: 200 }], 0);
+			assert.deepEqual([bb.cx, bb.cy], [200, 150], 'centre');
+			assert.strictEqual(bb.w, 200, 'width = larger span');
+		});
+
+		QUnit.test('bboxOf empty -> whole field', (assert) => {
+			const bb = bboxOf([], 0);
+			assert.deepEqual([bb.cx, bb.cy, bb.w], [800, 500, 1600], 'defaults to full field');
+		});
+
+		QUnit.test('zoomTo sets a transform with the right scale', (assert) => {
+			const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+			const cam = makeCamera(g, 1600);
+			cam.zoomTo([800, 500, 800]);
+			const tr = g.getAttribute('transform');
+			assert.ok(/scale\(2\b/.test(tr), `scale is width/w = 2 (got "${tr}")`);
+			assert.deepEqual(cam.view(), [800, 500, 800], 'view() records last applied');
+		});
+
+		QUnit.test('easeTo duration 0 is immediate', (assert) => {
+			const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+			const cam = makeCamera(g, 1600);
+			cam.easeTo([400, 400, 400], { duration: 0 });
+			assert.ok(/scale\(4\b/.test(g.getAttribute('transform')), 'jumped straight to scale 4');
+		});
+
+		QUnit.test('single point with no pad produces finite scale', (assert) => {
+			const bb = bboxOf([{ x: 100, y: 100 }], 0);
+			assert.ok(bb.w >= 1, 'w >= 1 (not 0)');
+			const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+			const cam = makeCamera(g, 1600);
+			cam.zoomTo([bb.cx, bb.cy, bb.w]);
+			const tr = g.getAttribute('transform');
+			assert.notOk(/scale\((Infinity|NaN)/.test(tr), `scale is finite (got "${tr}")`);
+		});
+
+		QUnit.module('render-base');
+
+		const settle = (el) => el.shadowRoot.querySelector('svg');
+
+		QUnit.test('draws one circle per node', (assert) => {
+			const el = mount();
+			const circles = settle(el).querySelectorAll('g.nodes circle.node');
+			assert.strictEqual(circles.length, DATASET.nodes.length, 'a circle per node');
+		});
+
+		QUnit.test('links drawn but hidden until show-links', (assert) => {
+			const el = mount();
+			const lines = settle(el).querySelectorAll('g.links line');
+			assert.strictEqual(lines.length, DATASET.links.length, 'a line per link');
+			assert.ok([...lines].every((l) => Number(l.getAttribute('stroke-opacity')) === 0), 'all hidden');
+		});
+
+		QUnit.test('node fill matches its topic colour', (assert) => {
+			const el = mount();
+			// element resolves --primary from the page; just assert fills are distinct per topic
+			const byTopic = {};
+			settle(el).querySelectorAll('g.nodes circle.node').forEach((c) => {
+				byTopic[c.dataset.topic] = c.getAttribute('fill');
+			});
+			assert.strictEqual(new Set(Object.values(byTopic)).size, DATASET.topics.length, 'one fill per topic');
+		});
+
+		QUnit.test('labels="none" => no node text; labels="all" => one per node', (assert) => {
+			const a = mount(); a.setAttribute('labels', 'none');
+			assert.strictEqual(settle(a).querySelectorAll('g.labels text.node-label').length, 0, 'none');
+			const b = mount(); b.setAttribute('labels', 'all');
+			assert.strictEqual(settle(b).querySelectorAll('g.labels text.node-label').length, DATASET.nodes.length, 'all');
+		});
+
+		QUnit.module('show-links + reveal');
+
+		QUnit.test('show-links makes edges visible', (assert) => {
+			const el = mount();
+			el.setAttribute('show-links', '');
+			const lines = el.shadowRoot.querySelectorAll('g.links line');
+			assert.ok(lines.length >= DATASET.links.length, 'at least the plain links draw');
+			assert.ok([...lines].some((l) => Number(l.getAttribute('stroke-opacity')) > 0), 'some edge visible');
+		});
+
+		QUnit.test('reveal="2" hides later topics', (assert) => {
+			const el = mount();
+			el.setAttribute('reveal', '2');
+			const shownTopics = new Set();
+			el.shadowRoot.querySelectorAll('g.nodes circle.node').forEach((c) => {
+				if (c.getAttribute('display') !== 'none') shownTopics.add(c.dataset.topic);
+			});
+			const first2 = DATASET.topics.slice(0, 2).map((t) => t.id);
+			assert.deepEqual([...shownTopics].sort(), first2.sort(), 'only first two topics visible');
+		});
+
+		QUnit.module('tag + scope + highlight');
+
+		QUnit.test('tag marks its legend rows and dims other topics', (assert) => {
+			const el = mount();
+			el.setAttribute('tag', 'family,places');
+			const rows = [...el.shadowRoot.querySelectorAll('.legend .row')];
+			assert.strictEqual(rows.length, DATASET.topics.length, 'legend lists every topic');
+			assert.strictEqual(rows.filter((r) => r.classList.contains('on')).length, 2, 'the two tagged rows marked .on');
+			const other = [...el.shadowRoot.querySelectorAll('g.nodes circle.node')]
+				.find((c) => c.dataset.topic === 'sciences');
+			const op = other.getAttribute('opacity');
+			assert.ok(op != null && Number(op) >= 0.3 && Number(op) <= 0.4, 'non-tagged topic dimmed to ~0.35');
+		});
+
+		QUnit.test('scope keeps out-of-scope nodes but mutes them', (assert) => {
+			const el = mount();
+			el.setAttribute('scope', 'family');
+			const circles = el.shadowRoot.querySelectorAll('g.nodes circle.node');
+			const outside = [...circles].find((c) => c.dataset.topic !== 'family');
+			assert.ok(outside, 'out-of-scope node still in the DOM');
+			const op = outside.getAttribute('opacity');
+			assert.ok(op != null && Number(op) >= 0.1 && Number(op) <= 0.2, 'and muted (~0.15), not removed');
+			assert.strictEqual(outside.getAttribute('fill'), 'var(--muted)', 'muted fill');
+		});
+
+		QUnit.test('legend is always on and lists every topic', (assert) => {
+			const el = mount();
+			const rows = [...el.shadowRoot.querySelectorAll('.legend .row')];
+			assert.notOk(el.shadowRoot.querySelector('.legend').hidden, 'legend shown even with no tag/scope');
+			assert.strictEqual(rows.length, DATASET.topics.length, 'a row per topic');
+			assert.strictEqual(rows.filter((r) => r.classList.contains('on')).length, 0, 'nothing marked without tag/scope');
+		});
+
+		QUnit.test('scope marks its own topic row .on', (assert) => {
+			const el = mount();
+			el.setAttribute('scope', 'family');
+			const on = [...el.shadowRoot.querySelectorAll('.legend .row.on')];
+			assert.strictEqual(on.length, 1, 'one row marked');
+			assert.strictEqual(on[0].textContent.trim(), 'People & family', 'and it is the scoped topic');
+		});
+
+		QUnit.test('highlight rings the node', (assert) => {
+			const el = mount();
+			el.setAttribute('highlight', 'king,queen');
+			assert.strictEqual(el.shadowRoot.querySelectorAll('g.nodes circle.pulse').length, 2, 'two pulse rings');
+		});
+
+		QUnit.module('spotlight');
+
+		QUnit.test('draws one arrow per relation step, parallel and equal', (assert) => {
+			const el = mount();
+			el.setAttribute('spotlight', 'gender');
+			const lines = [...el.shadowRoot.querySelectorAll('g.spotlight line')];
+			const genderSteps = DATASET.relations.find((r) => r.rel === 'gender').steps.length;
+			assert.strictEqual(lines.length, genderSteps, 'an arrow per step');
+			const vecs = lines.map((l) => [
+				Number(l.getAttribute('x2')) - Number(l.getAttribute('x1')),
+				Number(l.getAttribute('y2')) - Number(l.getAttribute('y1')),
+			]);
+			const angs = vecs.map(([x, y]) => Math.atan2(y, x));
+			// measure spread relative to the first arrow's heading, wrapped to (-PI, PI],
+			// so a relation whose offset sits on the atan2 branch cut (gender = [-D, 0])
+			// is not reported as a ~2*PI spread when the arrows are in fact parallel
+			const spread = angs.map((a) => Math.atan2(Math.sin(a - angs[0]), Math.cos(a - angs[0])));
+			assert.ok(Math.max(...spread) - Math.min(...spread) < 0.2, 'arrows near-parallel');
+			const lens = vecs.map(([x, y]) => Math.hypot(x, y));
+			assert.ok(Math.max(...lens) - Math.min(...lens) < 30, 'arrows near-equal length');
+		});
+
+		QUnit.test('non-involved nodes dim', (assert) => {
+			const el = mount();
+			el.setAttribute('spotlight', 'tense');
+			const involved = new Set(DATASET.relations.find((r) => r.rel === 'tense').steps.flatMap((s) => [s.a, s.b]));
+			const other = [...el.shadowRoot.querySelectorAll('g.nodes circle.node')]
+				.find((c) => !involved.has(c.dataset.id));
+			const op = other.getAttribute('opacity');
+			assert.ok(op != null && Number(op) >= 0.1 && Number(op) <= 0.2, 'uninvolved node dimmed to ~0.15');
+		});
+
+		QUnit.module('activate');
+
+		QUnit.test('context lights a set, mutes the rest, draws halos + fan', (assert) => {
+			const el = mount();
+			el.setAttribute('activate', 'royalty');
+			const ctx = DATASET.contexts.royalty;
+			assert.strictEqual(el.shadowRoot.querySelectorAll('g.attention circle.halo').length, ctx.nodes.length, 'a halo per activated node');
+			const fan = el.shadowRoot.querySelectorAll('g.attention line');
+			assert.strictEqual(fan.length, ctx.nodes.length - 1, 'fan from `from` to each other node');
+			const outside = [...el.shadowRoot.querySelectorAll('g.nodes circle.node')]
+				.find((c) => !ctx.nodes.includes(c.dataset.id));
+			const op = outside && outside.getAttribute('opacity');
+			assert.ok(op != null && Number(op) >= 0.08 && Number(op) <= 0.16, 'non-activated kept but faint (~0.12)');
+		});
+
+		QUnit.test('fixed budget: total fan stroke-width is ~constant regardless of set size', (assert) => {
+			const total = (attr) => {
+				const el = mount();
+				el.setAttribute('attention-from', 'king');
+				el.setAttribute('activate', attr);
+				return [...el.shadowRoot.querySelectorAll('g.attention line')]
+					.reduce((s, l) => s + Number(l.getAttribute('stroke-width')), 0);
+			};
+			const small = total('king,queen,france');
+			const big = total('king,queen,france,paris,father,mother,son,daughter');
+			assert.ok(Math.abs(small - big) / small < 0.25, `fan ink budget stable (${small.toFixed(1)} vs ${big.toFixed(1)})`);
+		});
+
+		QUnit.test('constellation draws an outline', (assert) => {
+			const el = mount();
+			el.setAttribute('activate', 'royalty');
+			el.setAttribute('constellation', '');
+			assert.strictEqual(el.shadowRoot.querySelectorAll('g.attention polyline.constellation').length, 1, 'one outline');
+		});
+
+		QUnit.module('labels');
+
+		QUnit.test('labels attribute controls node text', (assert) => {
+			const none = mount(); none.setAttribute('labels', 'none');
+			assert.strictEqual(none.shadowRoot.querySelectorAll('text.node-label').length, 0);
+			const all = mount(); all.setAttribute('labels', 'all');
+			assert.strictEqual(all.shadowRoot.querySelectorAll('text.node-label').length, DATASET.nodes.length);
+		});
+
+		QUnit.test('Labels control cycles topics -> all -> auto -> none', (assert) => {
+			const el = mount(); el.setAttribute('controls', 'labels');
+			const lblBtn = () => [...el.shadowRoot.querySelectorAll('.controls button')]
+				.find((b) => b.textContent.startsWith('labels'));
+			const nodeLabels = () => el.shadowRoot.querySelectorAll('text.node-label').length;
+			const captions = () => el.shadowRoot.querySelectorAll('text.topic-caption').length;
+			assert.ok(lblBtn(), 'Labels button present');
+			assert.strictEqual(nodeLabels(), 0, 'star-map starts at "topics": no node labels');
+			assert.strictEqual(captions(), DATASET.topics.length, 'but a caption per topic');
+			lblBtn().click();  // topics -> all
+			assert.strictEqual(nodeLabels(), DATASET.nodes.length, 'all node labels after one click');
+			lblBtn().click(); lblBtn().click();  // all -> auto -> none
+			assert.strictEqual(nodeLabels(), 0, 'no node labels at "none"');
+			assert.strictEqual(captions(), 0, 'and no captions at "none"');
+		});
+
+		QUnit.test('controls absent -> no control row', (assert) => {
+			const el = mount();
+			assert.strictEqual(el.shadowRoot.querySelectorAll('.controls button').length, 0, 'no buttons');
+			assert.ok(el.shadowRoot.querySelector('.controls').hidden, '.controls hidden');
+		});
+
+		QUnit.module('drag');
+
+		QUnit.test('drag sets fx/fy then releases; neighbours light', (assert) => {
+			const el = mount();
+			el.setAttribute('show-links', '');
+			const sim = el._sim;
+			const king = sim.nodes().find((n) => n.id === 'king');
+
+			// simulate the drag lifecycle via the element's own handlers
+			el._onDragStart({ x: king.x, y: king.y }, king);
+			assert.strictEqual(king.fx, king.x, 'fx pinned on start');
+			el._onDrag({ x: king.x + 40, y: king.y + 10 }, king);
+			assert.strictEqual(king.fx, king.x + 40, 'fx follows pointer');
+
+			const franceCircle = [...el.shadowRoot.querySelectorAll('g.nodes circle.node')]
+				.find((c) => c.dataset.id === 'france'); // king–france is a link
+			assert.ok(franceCircle.classList.contains('lit'), 'linked neighbour lit while dragging');
+
+			el._onDragEnd({}, king);
+			assert.strictEqual(king.fx, null, 'released on drop');
+			assert.strictEqual(king.fy, null, 'released on drop');
+		});
+
+		QUnit.test('buildSimulation records each node’s settled home', (assert) => {
+			const s = buildSimulation(clone(DATASET), { seed: 1, warmup: 40 });
+			assert.ok(
+				s.nodes().every((n) => n.home && Number.isFinite(n.home.x) && Number.isFinite(n.home.y)),
+				'every node carries a home {x, y} after warm-up',
+			);
+		});
+
+		QUnit.test('a released node springs back to its settled home spot', (assert) => {
+			withReducedMotion(() => {
+				const el = mount();
+				const son = el._sim.nodes().find((n) => n.id === 'son');
+				const home = { x: son.home.x, y: son.home.y };
+				el._onDragStart({ x: son.x, y: son.y, sourceEvent: { clientX: 0, clientY: 0 } }, son);
+				el._onDrag({ x: son.x + 300, y: son.y - 200, sourceEvent: { clientX: 300, clientY: -200 } }, son);
+				assert.ok(el._dragMoved, 'moved far enough to count as a drag');
+				el._onDragEnd({ sourceEvent: { clientX: 300, clientY: -200 } }, son);
+				assert.ok(Math.hypot(son.x - home.x, son.y - home.y) < 1,
+					'back exactly at home after release (reduced-motion: instant snap)');
+			});
+		});
+
+		QUnit.module('a11y + theming + motion');
+
+		QUnit.test('svg has title and desc', (assert) => {
+			const el = mount();
+			assert.ok(el.shadowRoot.querySelector('svg > title'), 'title');
+			assert.ok(el.shadowRoot.querySelector('svg > desc'), 'desc');
+		});
+
+		QUnit.test('reduced motion => camera duration 0', (assert) => {
+			const el = mount();
+			el._state.reduced = true;               // force it for the assert
+			assert.strictEqual(el._dur('hero'), 0, 'hero duration collapses');
+		});
+
+		QUnit.test('theme change re-colours nodes', async (assert) => {
+			const done = assert.async();
+			const el = mount();
+			const before = el.shadowRoot.querySelector('g.nodes circle.node').getAttribute('fill');
+			document.documentElement.setAttribute('data-theme', 'dark');
+			requestAnimationFrame(() => {
+				const after = el.shadowRoot.querySelector('g.nodes circle.node').getAttribute('fill');
+				document.documentElement.removeAttribute('data-theme');
+				try { assert.notStrictEqual(before, after, 'fill tracked the theme'); }
+				finally { done(); }
+			});
+		});
+
+		QUnit.test('theme observer survives a Reveal relocation', async (assert) => {
+			const done = assert.async();
+			const el = mount();
+			document.getElementById('qunit-fixture').appendChild(el); // disconnect -> reconnect
+			const before = el.shadowRoot.querySelector('g.nodes circle.node').getAttribute('fill');
+			document.documentElement.setAttribute('data-theme', 'dark');
+			requestAnimationFrame(() => {
+				const after = el.shadowRoot.querySelector('g.nodes circle.node').getAttribute('fill');
+				document.documentElement.removeAttribute('data-theme');
+				try { assert.notStrictEqual(before, after, 'fill still tracks the theme after relocation'); }
+				finally { done(); }
+			});
+		});
+
+		QUnit.module('review-fixes');
+
+		// --- C2: shared mutable DATASET ---------------------------------------------
+		QUnit.test('C2: two instances keep independent node data', (assert) => {
+			const a = mount();
+			const b = mount();
+			assert.notStrictEqual(a._state.nodes, b._state.nodes, 'different node arrays');
+			assert.notStrictEqual(a._state.nodes[0], b._state.nodes[0], 'different node objects');
+			const aKing = a._sim.nodes().find((n) => n.id === 'king');
+			const bKing = b._sim.nodes().find((n) => n.id === 'king');
+			const bx = bKing.x; const by = bKing.y;
+			a._onDragStart({ x: aKing.x, y: aKing.y }, aKing);
+			a._onDrag({ x: aKing.x + 200, y: aKing.y + 150 }, aKing);
+			a._onDragEnd({}, aKing);
+			assert.strictEqual(bKing.x, bx, 'B king x untouched by a drag on A');
+			assert.strictEqual(bKing.y, by, 'B king y untouched by a drag on A');
+		});
+
+		// --- C1: drag survives every redraw path ----------------------------------
+		QUnit.test('C1: drag stays bound after non-rebuild redraw paths', (assert) => {
+			const el = mount();
+			el.setAttribute('show-links', '');
+			const bound = () => [...el.shadowRoot.querySelectorAll('g.nodes circle.node')]
+				.every((c) => Array.isArray(c.__on) && c.__on.some((o) => o.type === 'mousedown'));
+			assert.ok(bound(), 'drag bound after mount');
+			el.setAttribute('highlight', 'queen');
+			assert.ok(bound(), 'drag still bound after a highlight change');
+			el.setAttribute('tag', 'family');
+			assert.ok(bound(), 'drag still bound after a tag change');
+			el.setAttribute('controls', 'labels');
+			el.shadowRoot.querySelector('.controls button').click();
+			assert.ok(bound(), 'drag still bound after a control-button redraw');
+		});
+
+		QUnit.test('C1/I7: neighbours still light after an attribute change', (assert) => {
+			const el = mount();
+			el.setAttribute('show-links', '');
+			el.setAttribute('highlight', 'queen');
+			const king = el._sim.nodes().find((n) => n.id === 'king');
+			el._onDragStart({ x: king.x, y: king.y }, king);
+			const franceCircle = [...el.shadowRoot.querySelectorAll('g.nodes circle.node')]
+				.find((c) => c.dataset.id === 'france');
+			assert.ok(franceCircle.classList.contains('lit'), 'king-france neighbour lit after the change');
+			el._onDragEnd({}, king);
+		});
+
+		// --- I1: spotlight must not invert link visibility -----------------------
+		QUnit.test('I1: spotlight does not reveal links while show-links is off', (assert) => {
+			const el = mount();
+			el.setAttribute('spotlight', 'gender');
+			const lines = [...el.shadowRoot.querySelectorAll('g.links line')];
+			assert.ok(lines.length > 0, 'association links present in the DOM');
+			assert.ok(lines.every((l) => Number(l.getAttribute('stroke-opacity')) === 0),
+				'all association links stay hidden under spotlight when show-links is absent');
+		});
+
+		QUnit.test('I1: spotlight still dims already-visible links', (assert) => {
+			const el = mount();
+			el.setAttribute('show-links', '');
+			el.setAttribute('spotlight', 'gender');
+			const lines = [...el.shadowRoot.querySelectorAll('g.links line')];
+			const kf = lines.find((l) => l.dataset.s === 'king' && l.dataset.t === 'france');
+			assert.ok(kf && Math.abs(Number(kf.getAttribute('stroke-opacity')) - 0.12) < 1e-6,
+				'a visible, non-involved link is dimmed to 0.12');
+		});
+
+		// --- I4: emphasised nodes are never dimmed to near-invisible ------------
+		QUnit.test('I4: an activated out-of-scope node keeps full opacity', (assert) => {
+			const el = mount();
+			el.setAttribute('scope', 'family');
+			el.setAttribute('activate', 'royalty'); // royalty includes france (places, out of scope)
+			const france = [...el.shadowRoot.querySelectorAll('g.nodes circle.node')]
+				.find((c) => c.dataset.id === 'france');
+			const op = france.getAttribute('opacity');
+			assert.ok(op == null || Number(op) >= 0.9, 'france not dimmed while it is activated');
+		});
+
+		QUnit.test('I4: highlight dims the rest of the graph slightly', (assert) => {
+			const el = mount();
+			el.setAttribute('highlight', 'king,queen');
+			const other = [...el.shadowRoot.querySelectorAll('g.nodes circle.node')]
+				.find((c) => c.dataset.id === 'atom');
+			const op = other.getAttribute('opacity');
+			assert.ok(op != null && Number(op) >= 0.4 && Number(op) <= 0.6, 'non-highlighted node ~0.5');
+			const king = [...el.shadowRoot.querySelectorAll('g.nodes circle.node')]
+				.find((c) => c.dataset.id === 'king');
+			const kop = king.getAttribute('opacity');
+			assert.ok(kop == null || Number(kop) >= 0.9, 'highlighted node stays full opacity');
+		});
+
+		// --- deferred #1: attention-from outside the activate set --------------
+		QUnit.test('d#1: attention-from node gets a halo and is not muted', (assert) => {
+			const el = mount();
+			el.setAttribute('attention-from', 'atom');       // not in the csv set
+			el.setAttribute('activate', 'king,queen');
+			const halos = [...el.shadowRoot.querySelectorAll('g.attention circle.halo')]
+				.map((h) => h.dataset.id);
+			assert.ok(halos.includes('atom'), 'the from node gets a halo even though it was not listed');
+			const atom = [...el.shadowRoot.querySelectorAll('g.nodes circle.node')]
+				.find((c) => c.dataset.id === 'atom');
+			const op = atom.getAttribute('opacity');
+			assert.ok(op == null || Number(op) >= 0.9, 'the from node is not muted by dimByAct');
+			const fan = [...el.shadowRoot.querySelectorAll('g.attention line')];
+			assert.strictEqual(fan.length, 2, 'fan runs from `atom` to the two listed nodes');
+		});
+
+		// --- I5: missing / empty topics ---------------------------------------
+		QUnit.test('I5: node with unknown/empty topic is warned and drawn muted', (assert) => {
+			const warns = [];
+			const orig = console.warn;
+			console.warn = (...a) => { warns.push(a.join(' ')); };
+			try {
+				const el = mount();
+				const ds = clone(DATASET);
+				ds.nodes.push({ id: 'ghost', name: 'ghost', topics: [] });
+				ds.nodes.push({ id: 'ghost2', name: 'ghost2', topics: ['nope'] });
+				el.setAttribute('data', JSON.stringify(ds));
+				const ghost = [...el.shadowRoot.querySelectorAll('g.nodes circle.node')]
+					.find((c) => c.dataset.id === 'ghost');
+				assert.ok(ghost, 'ghost node still drawn');
+				assert.strictEqual(ghost.getAttribute('fill'), 'var(--muted)', 'muted fill for topic-less node');
+				assert.ok(Number.isFinite(Number(ghost.getAttribute('cx'))), 'ghost placed at a finite x');
+				assert.ok(warns.some((w) => w.includes('ghost')), 'warned about the topic-less node');
+				assert.ok(el._sim.nodes().some((n) => n.id === 'ghost'), 'ghost still participates in the sim');
+			} finally {
+				console.warn = orig;
+			}
+		});
+
+		// --- show-links is draw-only: the layout is frozen once, never re-flowed.
+		// Toggling the web must not move a single node — otherwise the authored
+		// relation vectors (son→daughter == king→queen) shear.
+		QUnit.test('show-links is draw-only — no node moves, vectors stay put', (assert) => {
+			const el = mount();
+			const before = new Map(el._sim.nodes().map((n) => [n.id, [n.x, n.y]]));
+			el.setAttribute('show-links', '');
+			assert.strictEqual(el._sim.force('link'), undefined, 'no link force is ever added');
+			const moved = el._sim.nodes().filter((n) => {
+				const [x, y] = before.get(n.id);
+				return Math.hypot(n.x - x, n.y - y) > 0.001;
+			});
+			assert.strictEqual(moved.length, 0, 'not one node moved when the web came on');
+			el.removeAttribute('show-links');
+			const movedBack = el._sim.nodes().filter((n) => {
+				const [x, y] = before.get(n.id);
+				return Math.hypot(n.x - x, n.y - y) > 0.001;
+			});
+			assert.strictEqual(movedBack.length, 0, 'still no movement when the web goes off');
+		});
+
+		QUnit.test('a relation vector is identical with the web on and off', (assert) => {
+			const el = mount();
+			const byId = () => new Map(el._sim.nodes().map((n) => [n.id, n]));
+			const rel = DATASET.relations.find((r) => r.rel === 'gender');
+			const first = rel.steps[0];
+			const v0 = [byId().get(first.b).x - byId().get(first.a).x, byId().get(first.b).y - byId().get(first.a).y];
+			el.setAttribute('show-links', '');
+			const v1 = [byId().get(first.b).x - byId().get(first.a).x, byId().get(first.b).y - byId().get(first.a).y];
+			assert.ok(Math.hypot(v1[0] - v0[0], v1[1] - v0[1]) < 0.001, 'gender offset unchanged by the web');
+		});
+
+		// camera moves are async unless `reduced`; stub matchMedia so _computeState
+		// reads reduced:true and _applyScope runs synchronously for these asserts.
+		const withReducedMotion = (fn) => {
+			const rm = window.matchMedia;
+			window.matchMedia = (q) => ({
+				matches: /reduce/.test(q),
+				addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {},
+			});
+			try { fn(); } finally { window.matchMedia = rm; }
+		};
+
+		// --- I6 / click-to-zoom: background click frames whole graph -------------
+		QUnit.test('I6: background click frames the whole graph', (assert) => {
+			withReducedMotion(() => {
+				const el = mount();
+				el.setAttribute('scope', 'family');
+				const scopedW = el._camera.view()[2];
+				el._svg.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+				assert.strictEqual(el._clickScope, null, 'background click cleared the click-scope to whole-graph');
+				assert.ok(el._camera.view()[2] > scopedW, 'camera widened back toward the whole graph');
+				el.setAttribute('scope', 'places');
+				assert.strictEqual(el._clickScope, undefined, 'next attribute change re-asserts the slide framing');
+			});
+		});
+
+		QUnit.test('click a node zooms the camera to that node’s topic', (assert) => {
+			withReducedMotion(() => {
+				const el = mount();
+				const wholeW = el._camera.view()[2];
+				const gene = [...el.shadowRoot.querySelectorAll('g.nodes circle.node')]
+					.find((c) => c.dataset.id === 'gene');       // gene -> topic "sciences"
+				gene.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+				assert.strictEqual(el._clickScope, 'sciences', 'click set the scope to the node’s topic');
+				assert.strictEqual(el._state.scope, 'sciences', 'state.scope follows the click');
+				assert.ok(el._camera.view()[2] < wholeW, 'camera zoomed in to the topic');
+			});
+		});
+
+		QUnit.test('_panBy translates the camera, zoom unchanged', (assert) => {
+			const el = mount();
+			el.setAttribute('scope', 'family');
+			const [cx0, cy0, w0] = el._camera.view();
+			el._panBy(60, -30);           // drag right + up
+			const [cx1, cy1, w1] = el._camera.view();
+			assert.strictEqual(w1, w0, 'zoom (view width) not touched by a pan');
+			assert.ok(cx1 < cx0 && cy1 > cy0, 'camera centre moved opposite the drag delta');
+		});
+
+		QUnit.test('mouse wheel zooms about the pointer', (assert) => {
+			const el = mount();
+			el._state.reduced = true;   // _dur('ui') -> 0 so easeTo applies synchronously
+			const w0 = el._camera.view()[2];
+			el._svg.dispatchEvent(new WheelEvent('wheel', { deltaY: 120, bubbles: true, cancelable: true }));
+			const w1 = el._camera.view()[2];
+			assert.ok(w1 > w0, 'wheel down widens the view (zoom out)');
+			el._svg.dispatchEvent(new WheelEvent('wheel', { deltaY: -120, bubbles: true, cancelable: true }));
+			assert.ok(el._camera.view()[2] < w1, 'wheel up narrows the view (zoom in)');
+		});
+
+		QUnit.test('a real pan does not zoom back out; the fallback click is guarded', (assert) => {
+			withReducedMotion(() => {
+				const el = mount();
+				el.setAttribute('scope', 'family');
+				const scopedW = el._camera.view()[2];
+				el._panMoved = true;   // as set by the pan drag handler after a real pan
+				el._svg.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+				assert.strictEqual(el._camera.view()[2], scopedW, 'camera stayed put — no zoom-out');
+			});
+		});
+
+		QUnit.test('clicking a legend row zooms to that topic (and toggles back out)', (assert) => {
+			withReducedMotion(() => {
+				const el = mount();
+				const wholeW = el._camera.view()[2];
+				const rows = [...el.shadowRoot.querySelectorAll('.legend .row')];
+				const idx = el._data.topics.findIndex((t) => t.id === 'places');
+				rows[idx].dispatchEvent(new MouseEvent('click', { bubbles: true }));
+				assert.strictEqual(el._state.scope, 'places', 'row click set scope to its topic');
+				assert.ok(el._camera.view()[2] < wholeW, 'camera zoomed to the topic');
+				// second click on the same row zooms back out
+				[...el.shadowRoot.querySelectorAll('.legend .row')][idx]
+					.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+				assert.strictEqual(el._clickScope, null, 'second click cleared the scope');
+				assert.ok(el._camera.view()[2] > wholeW * 0.9, 'camera widened back out');
+			});
+		});
+
+		QUnit.test('a node tap zooms via the drag end (no native click needed)', (assert) => {
+			// d3-drag preventDefaults mouseup, so a tapped node never fires `click`.
+			// The zoom must come from `_onDragEnd` when the press never became a drag.
+			withReducedMotion(() => {
+				const el = mount();
+				const wholeW = el._camera.view()[2];
+				const gene = el._sim.nodes().find((n) => n.id === 'gene');
+				el._onDragStart({ x: gene.x, y: gene.y, sourceEvent: { clientX: 40, clientY: 40 } }, gene);
+				el._onDragEnd({ sourceEvent: { clientX: 41, clientY: 41 } }, gene);
+				assert.strictEqual(el._clickScope, 'sciences', 'gesture end set the topic scope');
+				assert.ok(el._camera.view()[2] < wholeW, 'camera zoomed to the topic');
+			});
+		});
+
+		QUnit.test('click jitter under the threshold still zooms to the topic', (assert) => {
+			withReducedMotion(() => {
+				const el = mount();
+				const wholeW = el._camera.view()[2];
+				const gene = el._sim.nodes().find((n) => n.id === 'gene');
+				el._onDragStart({ x: gene.x, y: gene.y }, gene);
+				el._onDrag({ x: gene.x + 3, y: gene.y - 2 }, gene);   // 3.6px — click jitter
+				el._onDragEnd({}, gene);
+				assert.strictEqual(el._dragMoved, false, 'tiny jitter is not counted as a move');
+				const gc = [...el.shadowRoot.querySelectorAll('g.nodes circle.node')].find((c) => c.dataset.id === 'gene');
+				gc.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+				assert.strictEqual(el._clickScope, 'sciences', 'the click still registered');
+				assert.ok(el._camera.view()[2] < wholeW, 'camera zoomed to the topic');
+			});
+		});
+
+		QUnit.test('drag-vs-click is judged in screen px, not viewBox units', (assert) => {
+			const el = mount();
+			const king = el._sim.nodes().find((n) => n.id === 'king');
+			el._onDragStart({ x: king.x, y: king.y, sourceEvent: { clientX: 500, clientY: 500 } }, king);
+			// a large viewBox delta but the pointer only moved ~5 screen px
+			el._onDrag({ x: king.x + 60, y: king.y + 60, sourceEvent: { clientX: 503, clientY: 504 } }, king);
+			assert.strictEqual(el._dragMoved, false,
+				'small screen-px travel stays a click (so the zoom handler still runs)');
+			el._onDrag({ x: king.x + 90, y: king.y + 90, sourceEvent: { clientX: 540, clientY: 540 } }, king);
+			assert.strictEqual(el._dragMoved, true, 'past ~12 screen px it is a real drag');
+			el._onDragEnd({ sourceEvent: {} }, king);
+		});
+
+		QUnit.test('a moved drag does not trigger a zoom click', (assert) => {
+			const el = mount();
+			const king = el._sim.nodes().find((n) => n.id === 'king');
+			el._onDragStart({ x: king.x, y: king.y }, king);
+			el._onDrag({ x: king.x + 120, y: king.y + 40 }, king);
+			el._onDragEnd({}, king);
+			const kc = [...el.shadowRoot.querySelectorAll('g.nodes circle.node')].find((c) => c.dataset.id === 'king');
+			el._state.reduced = true;
+			kc.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			assert.strictEqual(el._clickScope, undefined, 'the click after a real drag is ignored');
+		});
+
+		// --- deferred #10: diagonal step vector (capital-of) ---------------
+		QUnit.test('d#10: capital (diagonal offset) settles to its vector and stays parallel', (assert) => {
+			const ds = clone(DATASET);
+			const s = buildSimulation(ds, { seed: 42, warmup: 320 });
+			const byId = new Map(s.nodes().map((n) => [n.id, n]));
+			const rel = ds.relations.find((r) => r.rel === 'capital-of');
+			const angs = [];
+			for (const st of rel.steps) {
+				const dx = byId.get(st.b).x - byId.get(st.a).x;
+				const dy = byId.get(st.b).y - byId.get(st.a).y;
+				assert.ok(Math.abs(dx - st.dx) < 22 && Math.abs(dy - st.dy) < 22,
+					`${st.a}->${st.b} offset (${dx.toFixed(0)},${dy.toFixed(0)}) ~ (${st.dx.toFixed(0)},${st.dy.toFixed(0)})`);
+				angs.push(Math.atan2(dy, dx));
+			}
+			const wrapped = angs.map((x) => Math.atan2(Math.sin(x - angs[0]), Math.cos(x - angs[0])));
+			assert.ok(Math.max(...wrapped) - Math.min(...wrapped) < 0.25,
+				'capital arrows near-parallel (diagonal — catches a sign/transpose error)');
+		});
+
+		QUnit.module('mode + controls');
+
+		QUnit.test('mode absent defaults to star-map', (assert) => {
+			const el = mount();
+			assert.strictEqual(el._state.labelsMode, 'topics', 'star-map shows topic captions');
+			assert.strictEqual(el._state.showLinks, false, 'no web');
+			assert.strictEqual(el._state.spotlight, null, 'no vectors');
+		});
+
+		QUnit.test('mode="web" presets the association web on', (assert) => {
+			const el = mount(); el.setAttribute('mode', 'web');
+			assert.strictEqual(el._state.showLinks, true, 'web on');
+			assert.ok(el.shadowRoot.querySelectorAll('g.links line').length > 0, 'edges drawn');
+			assert.ok([...el.shadowRoot.querySelectorAll('g.links line')]
+				.some((l) => Number(l.getAttribute('stroke-opacity')) > 0), 'edges visible');
+			assert.strictEqual(el._state.labelsMode, 'all', 'web mode shows labels');
+		});
+
+		QUnit.test('mode="vectors" presets the gender arrows', (assert) => {
+			const el = mount(); el.setAttribute('mode', 'vectors');
+			assert.strictEqual(el._state.spotlight, 'gender');
+			assert.ok(el.shadowRoot.querySelectorAll('g.spotlight line.vec').length > 0, 'arrows drawn');
+		});
+
+		QUnit.test('mode="constellation" activates a context + starfield', (assert) => {
+			const el = mount(); el.setAttribute('mode', 'constellation');
+			assert.ok(el._state.activate && el._state.activate.ids.size > 0, 'a context is active');
+			assert.strictEqual(el._state.starmap, true, 'starfield look on');
+		});
+
+		QUnit.test('an explicit attribute overrides the mode preset', (assert) => {
+			const el = mount();
+			el.setAttribute('mode', 'web');       // preset labels:all
+			el.setAttribute('labels', 'none');    // explicit wins
+			assert.strictEqual(el._state.labelsMode, 'none');  // explicit attr still wins
+			assert.strictEqual(el._state.showLinks, true, 'still gets the web from the mode');
+		});
+
+		QUnit.test('Mode button walks the sequence and resets overrides', (assert) => {
+			const el = mount(); el.setAttribute('controls', 'mode labels');
+			const modeBtn = () => [...el.shadowRoot.querySelectorAll('.controls button')]
+				.find((b) => b.textContent.startsWith('mode·'));
+			assert.ok(modeBtn().textContent.includes('star-map'), 'starts at star-map');
+			// flip a label override, then a mode step must clear it
+			[...el.shadowRoot.querySelectorAll('.controls button')].find((b) => b.textContent.startsWith('labels')).click();
+			assert.ok(el._ov.labels, 'label override set');
+			modeBtn().click();
+			assert.strictEqual(Object.keys(el._ov).length, 0, 'Mode step wiped the live overrides');
+			assert.ok(modeBtn().textContent === 'mode·labels', 'advanced to the next mode');
+		});
+
+		QUnit.test('controls="zoom" gives working +/- buttons', (assert) => {
+			const el = mount(); el.setAttribute('controls', 'zoom');
+			el._state.reduced = true;
+			const btns = [...el.shadowRoot.querySelectorAll('.controls button')];
+			const minus = btns.find((b) => b.textContent === '−');
+			const plus = btns.find((b) => b.textContent === '+');
+			assert.ok(minus && plus, 'both zoom buttons present');
+			const w0 = el._camera.view()[2];
+			minus.click();
+			assert.ok(el._camera.view()[2] > w0, 'minus zooms out (wider view)');
+			plus.click(); plus.click();
+			assert.ok(el._camera.view()[2] < w0, 'plus zooms in past the start');
+		});
+
+		QUnit.start();
+</script>
+</body>
+</html>

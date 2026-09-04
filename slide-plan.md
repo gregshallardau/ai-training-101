@@ -1,6 +1,12 @@
 # (Not) AI Training
 
-## Slide 1 — AI Show Case
+> **Slide numbers = file numbers.** Each `## Slide NN` section corresponds 1:1 to
+> `slides/NN-*.html` — the deck renders slides in filename order (see
+> `build/vite-plugin-slides.js`). `slides/00-title.html` (title) and
+> `slides/01-overview.html` (jump menu) are deck chrome, so NN 00 and 01 have no
+> numbered sections here.
+
+## Slide 02 — AI Show Case
 
 I need some really cool AI things to show that I can do with Microsoft Copilot. Maybe make an interactive one-page web app?
 
@@ -12,7 +18,7 @@ So there are two explanations.
    BUT I think if I went through this, in about 5 minutes all of you would have left the meeting, and the few staying are nerds like me, or aren't actually in the room anymore.
 2. So let's go the other path. And actually the maths and science is actually pretty cool, but when I went down this second path, learning about AI made me learn about me — who I am, and how I work. And the better I got at getting to know me, the better I used AI, and the better results I got.
 
-## Slide 2 — "Ideas in Space" (The Map)
+## Slide 03 — "Ideas in Space" (The Map)
 
 Our brain has different ideas in different places.
 
@@ -30,7 +36,7 @@ So we can see our sentences be broken up, but then fade away the filler words (t
 
 And we have the verb, noun, adjectives, and the meaning of these is all connected.
 
-## Slide 3 — The Meaning of Words → Introduce: Context
+## Slide 04 — The Meaning of Words — Context (introduces Context)
 
 Show glossary slide: 🧩 Token — a chunk of text. A word.
 
@@ -45,11 +51,11 @@ And as we start thinking about words, we start realising — hey, words are simi
 
 Show the Glossary — add C.
 
-## Slide 4 — The Glossary: Token
+## Slide 05 — The Glossary: Token
 
 - 🧩 Token — a chunk of text. A word.
 
-## Slide 5 — Word Association Game → Introduce: Vector
+## Slide 06 — Word Association Game — Vector (introduces Vector)
 
 Trying to give them the idea of vector directions without saying it. I say the first, then put up sister > ????. And as I go through, we have all these examples:
 
@@ -82,12 +88,12 @@ Directionality:
 
 🧭 Vector — a direction and a distance. Similar words (or ideas) point the same way.
 
-## Slide 6 — The Glossary: Vector
+## Slide 07 — The Glossary: Vector
 
 - 🧩 Token — a chunk of text. A word.
 - 🧭 Vector — a direction and a distance. Similar words (or ideas) point the same way.
 
-## Slide 7 — Context (With Pictures)
+## Slide 08 — Context (With Pictures)
 
 What animal would you find here?
 
@@ -97,7 +103,7 @@ Show them pictures and show how their brains get context from the picture:
 - A chicken coop (no chickens would be in the photo) = Chickens
 - Horse racing track = Horse
 
-## Slide 8 — Context (With Words)
+## Slide 09 — Context (With Words)
 
 We keep adding words to guess who the person is. We're trying to show that exactly the same prompt, but with different context, is going to get a totally different answer.
 
@@ -121,14 +127,14 @@ This is how AI is trained: give it a whole bunch of information, and its brain c
 
 🧠 Model — all the dial positions together. The complete knowledge.
 
-## Slide 9 — The Glossary: Weight & Model
+## Slide 10 — The Glossary: Weight & Model
 
 - 🧩 Token — a chunk of text. A word.
 - 🧭 Vector — a direction and a distance. Similar words (or ideas) point the same way.
 - 🎛️ Weight — a dial. How strongly two tokens are connected.
 - 🧠 Model — all the dial positions together. The complete knowledge.
 
-## Slide 10 — What Is a Model
+## Slide 11 — What Is a Model
 
 Remember those tokens we spoke about earlier.
 
@@ -138,14 +144,14 @@ Prompt: the question we ask or what we want to do.
 
 TODO: Put in the "What is a model" content.
 
-## Slide 11 — Everything Is Linked — Don't Train It on Only One Topic
+## Slide 12 — Everything Is Linked — Don't Train It on Only One Topic
 
 - TODO: "why not just train it on our topic — don't give it science when we're doing arts?"
 - TODO: researchers removed all the other fields from a model's training and the responses got worse — everything appears to be linked
 - TODO: find and cite the paper (leads: domain-coverage ablations, Longpre et al. NAACL 2024; over-specialisation work)
 - TODO: breadth of knowledge is what makes the focused answers good
 
-## Slide 12 — But It Wasn't Trained on You
+## Slide 13 — But It Wasn't Trained on You
 
 But then with an AI model, it has zero context of who we are. Its context is built from the world — it was trained on books, .......
 
@@ -173,7 +179,7 @@ So everything we do and say is shaped by everything that has come before.
 
 ✍️ Prompt — what you type. Where you start.
 
-## Slide 13 — The Glossary: Prompt
+## Slide 14 — The Glossary: Prompt
 
 - 🧩 Token — a chunk of text. A word.
 - 🧭 Vector — a direction and a distance. Similar words (or ideas) point the same way.
@@ -181,7 +187,7 @@ So everything we do and say is shaped by everything that has come before.
 - 🧠 Model — all the dial positions together. The complete knowledge.
 - ✍️ Prompt — what you type. Where you start.
 
-## Slide 14 — The Prompt Knows Nothing
+## Slide 15 — The Prompt Knows Nothing
 
 The prompt knows nothing if it has no context.
 
@@ -214,7 +220,7 @@ It's not about asking better questions.
 
 It's about bringing more of yourself to the question.
 
-## Slide 15 — You're Not a Prompt Builder, You're a Context Builder
+## Slide 16 — You're Not a Prompt Writer, You're a Context Builder
 
 We looked earlier at asking the exact same question and getting completely different answers.
 
@@ -226,7 +232,7 @@ But here's the shift:
 
 A prompt is a question. A context builder is someone who layers in who they are, what they need, and why it matters before they ask.
 
-## Slide 16 — The Same Question, Three Answers
+## Slide 17 — The Same Question, Three Answers
 
 Let's ask the same question three ways:
 
@@ -250,7 +256,7 @@ Same question. But now the model has context about who you are, who you're writi
 
 The email it writes is nothing like the first one. Because the context is different.
 
-## Slide 17 — The Context Layers
+## Slide 18 — The Context Layers
 
 Think of context like layers you add to a question:
 
@@ -272,7 +278,7 @@ Think of context like layers you add to a question:
 
 Each layer changes the output. Add more layers, get better results.
 
-## Slide 18 — The Mental Shift
+## Slide 19 — The Mental Shift
 
 Most people think: "What do I need to type?"
 
@@ -290,7 +296,7 @@ You wouldn't walk up to your colleague and say "help me" and expect them to know
 
 That's context. That's what you're doing when you talk to AI.
 
-## Slide 19 — The Analogy
+## Slide 20 — The Analogy
 
 You wouldn't send a chef into a kitchen with no order, no dietary requirements, no guest count, and expect a good meal.
 
@@ -302,7 +308,7 @@ That's an order. That's context.
 
 Every prompt is an order to a chef who has never met you.
 
-## Slide 20 — Context in the Real World
+## Slide 21 — Context in the Real World
 
 Here's how a broker actually builds context, from broad to specific. This is what you do now — you probably just haven't thought about it.
 
@@ -321,7 +327,118 @@ Every good prompt starts with layers:
 
 Then you layer it all together.
 
-## Slide 21 — Dumb and Dumber
+TODO: each of the eight layers above gets a **chip-border texture** (solid /
+dashed / dotted …) meaning "which kind of context this is" — see the [NEW SLIDE]
+entry — reused on the next slide and on Slide 30 so the layers carry one
+consistent tag through the deck.
+
+## [NEW SLIDE] — Context Can Have Many Forms (Multimodal Context)
+> TODO: this slide is not built yet — it exists here as a plan entry only. When
+> built it becomes `slides/22-context-can-have-many-forms.html`, inserted between
+> Slide 21 (Context in the Real World) and Slide 22 (Dumb and Dumber). Current
+> Slides 22–26 shift to 24–28, Transformers (Slide 27) moves up to sit at 23 right
+> after this slide, and Slides 28–31 shift to 29–32 — see the Slide 27 section for
+> the target order and the full rename list.
+
+The message: **the context you give an AI doesn't have to be typed.** An LLM can
+take context in many forms — typed words, Word docs, PDFs, Excel sheets,
+PowerPoint, images, video, audio — and turns them all into the same tokens.
+
+**Working concept — a "context matrix":** this slide reuses the eight questions
+from Slide 21 (Context in the Real World) and tags each answer with *what it
+actually is* and *the form it arrives in* — a policy PDF, a claims spreadsheet,
+an article, an email thread, words you type. The model takes all of those forms
+directly, so "context builder" means you can hand it the artefacts, not just your
+summary of them.
+
+**The chips do both jobs at once.** Each word/concept sits in one labelled chip,
+and two visual attributes of that chip each carry one axis (the label always says
+what the chip is — colour/texture are never the only cue):
+
+1. **Chip fill colour = the input type (`.type-*`) the context arrives in.** Six
+   type chips (approved — each chip is a *family* of formats, not one app):
+   - **words / text** (typed or pasted · Word · PDFs · docs) — blue `#2B579A`
+   - **PowerPoint / slides** — orange `#D24726`
+   - **structured data** (Excel · CSV · SQL/database extracts · tables) — green `#217346`
+   - **voice / audio** (calls, memos, dictation) — teal `#0D9488`
+   - **image** (photos, screenshots, scans) — violet `#7C3AED`
+   - **video** (meeting recordings, demos) — crimson `#E11D48`
+   - Defined in CSS as a small form-chip set — **specific-case, deck-author-
+     approved utility, NOT core theme** (per the framework rule this is the
+     author's call on a genuinely missing utility); chip text colour (white vs
+     dark) tuned at build for contrast.
+2. **Chip border texture = which kind of context it is (`.context-*`)** — the
+   **5W+How set** (approved): the classic investigative questions, backed by
+   situation-model theory. An **orange chip with a solid border** reads: "this
+   answers *WHO* — and it arrived as PowerPoint".
+
+**Table 2 — context kinds (approved legend):**
+
+| Kind | Grounded in | Covers (facts from the broker story / Slide 21 answers) | Border |
+|---|---|---|---|
+| WHO | situation-model *protagonist*; Hymes *participants* | the client — Sarah, solo psychologist, 12 yrs in practice; you + your specialty | solid |
+| WHAT | the action/state — what's being done & what's held | trying to do: renewal / claim / new business; what they have: PI $10M, $2,400/yr; what they need from you | dashed |
+| WHEN | situation-model *time*; *chronological* context | renewal due in 3 weeks; no claims in 12 years; premium jumped this year | dotted |
+| WHERE | situation-model *space*; Hymes *setting* | Melbourne's east; telehealth; the premises/site | double |
+| WHY | situation-model *causation* | PI premiums up 30–50%; AIQ tightened after large mental-health claims; why she's anxious | groove |
+| HOW | Hymes *key* (register / tone) | how to say it: calm, reassuring, plain English; formal vs casual | ridge |
+
+Grounding (for the author's notes — *not* shown on the slide): situation-model
+theory — Zwaan & Radvansky (1998), *Psychological Bulletin*; Hymes' SPEAKING grid;
+communication-context textbooks (physical / social / chronological / cultural).
+
+Slide labels stay plain; the wh-word is printed small-cap inside each chip so the
+texture is never the only cue. **Chip anatomy: `CONTEXT · the thing (TYPE)`** —
+markup `class="chip context-when type-data"`; the label always names the real
+artefact **and** the document type, so the colour is self-explaining ("green
+*because it's the Excel file*"), never a colour floating without a reason. The
+groove / ridge borders are visual-3D styles — [build check] confirm they read at
+chip size, else swap to a small glyph prefix per kind.
+
+Example cells (both attributes on one chip, document type always in the label):
+- `WHEN · claims_history.xlsx` = dotted border, green fill — *history arrived as a spreadsheet (structured data)*
+- `WHY · market commentary.pdf` = groove border, blue fill — *the drivers arrived as words in a document*
+- `WHO · Sarah's client deck.pptx` = solid border, orange fill — *who the client is arrived as PowerPoint*
+- `HOW · tone notes (typed)` = ridge border, blue fill — *the register is just words*
+- `WHEN · scanned policy schedule (image)` = dotted border, violet fill — *a scan is an image to the model until OCR turns it into words*
+
+**Multi-kind facts** — colour tags the medium, kind tags the fact. If one
+artefact feeds two layers (e.g. one Excel holding the client list *and* the
+renewals), show **two chips of the same colour, one per fact**; when a single
+fact genuinely straddles two kinds, use a compound label on one chip:
+`WHO + WHAT · client_tasks.xlsx`. One chip can't carry two border textures (one
+border per edge), so there are no hybrid-border classes.
+
+Core content bullets:
+- Text-bearing documents (PDFs, Word docs, Excel, slides): the model pulls the
+  words out of them — scans/photos of pages via OCR, digital files via an
+  extraction step (a tool / Python) — and from there they're just tokens, exactly
+  like typed words.
+- Images / video / audio (no words to lift out): the model "sees" / "hears" them.
+  Sketch: a projector — the image is beamed/projected into token space and comes
+  out the far side as a stream of "tokens".
+- **Diagram idea (the user's sketch):** a cool little projector diagram — beam a
+  picture onto the wall and scatter it into token chips: image → 🧩 tokens. Echoes
+  Slide 08 Context (With Pictures): our own brains pull context out of pictures
+  the same way.
+- Pay-off line: paste the whiteboard photo, the client's PDF or your spreadsheet
+  straight in — that *is* context, just in another form.
+- Caution: garbage in, garbage out — verify what a file actually says (ties to
+  Slide 25 Trust in Information). If it reads a claim PDF or a policy word-for-
+  word, it will use words you didn't notice were in there.
+- Consistency: the same form chips + chip-border textures recur across Slides 18 / 21
+  / this slide / 30, so the colour-and-texture language is one system.
+
+TODO (deck build, later — record only for now):
+- [ ] insert the stub `slides/22-context-can-have-many-forms.html` between 21 and 22 (slide-builder: apply the rename list in the Slide 27 section, then add the overview link)
+- [ ] write the slide prose from the bullets above
+- [x] **specific-case CSS (deck-author approved)** — DONE: the framework is built. `deck.css` now ships the six **input-type** chips (`.chip.type-words/slides/data/voice/image/video`, Table 1 hues) **plus** the six **context-kind** border textures (`.chip.context-who/what/when/where/why/how`, Table 2), kept out of the core theme/glossary colours; documented in the `deck.css` block comment (framework docs are not edited). Usage: `class="chip context-when type-data"`. Remaining work is *building the chips onto the slide* (markup + labels), not the CSS
+- [ ] CSS build check (once chips are placed on the slide): groove / ridge must read at chip size (else swap to a small glyph prefix per kind); confirm each fill's white text has enough contrast
+- [ ] decide the matrix visual: a simple grid (rows = the eight questions, columns = forms, chips in the cells) vs the Slide 21 list with a form chip on each answer; plain HTML/table vs a registered `<deck-*>` via artefact-builder
+- [ ] build the projector → tokens diagram — a one-off inline SVG on the slide, or a registered `<deck-*>` via artefact-builder if it should animate/interact (framework rule: no invented classes)
+- [ ] glossary tie-in: the closing wall already carries a **Multi-Modal** chip ("reads more than words — pictures, voice, files too") — this slide is where that idea gets introduced
+
+## Slide 22 — Dumb and Dumber
 
 When it is trying to be helpful, that is when it's at its most dangerous.
 
@@ -329,11 +446,11 @@ When it is trying to be helpful, that is when it's at its most dangerous.
 - Example screenshot: "Yes, you told me not to do that before and I did it anyway"
 - Screenshot of OpenClaw wiping a CTO's entire system.
 
-## Slide 22 — You Don't Have to Do One and Done
+## Slide 23 — You Don't Have to Do One and Done
 
 Say that I need to write an email, here is the idea I have, ask me a couple of questions and I will give answers. When I think you have the right idea, then I will tell you to write the draft.
 
-## Slide 23 — Precision Is Key
+## Slide 24 — Precision Is Key
 
 Remember earlier — words have meaning.
 
@@ -341,7 +458,7 @@ Precision is key. Pick words or phrases that have meaning.
 
 One output is another input.
 
-## Slide 24 — Trust in Information
+## Slide 25 — Trust in Information
 
 Where information comes from matters.
 
@@ -352,23 +469,43 @@ Where information comes from matters.
 
 If you have information that you may or may not trust, verify it — it could pollute everything you do.
 
-## Slide 25 — Your Context Is Reusable
+## Slide 26 — Your Context Is Reusable
 
 Your context is reusable. Build your own context.
 
-## Slide 26 — Transformers: Robots in Disguise
+## Slide 27 — Transformers: Robots in Disguise
 
 - OCR: Picture to words
 - Voice to words
 - Words to spreadsheet
 - Spreadsheet to words
+- TODO: **move this slide (currently file 27) up** to sit directly after the new
+  "Context Can Have Many Forms" slide — it becomes `slides/23-transformers-robots-in-disguise.html`
 
+**Target deck order after the multimodal insert + this move:**
 
-## Slide 27 — It's not about the Car, its about the Driver.
+`21 context-in-the-real-world → 22 context-can-have-many-forms (NEW) → 23 transformers-robots-in-disguise (moved) → 24 dumb-and-dumber → 25 not-one-and-done → 26 precision-is-key → 27 trust-in-information → 28 context-is-reusable → 29 its-not-about-the-car → 30 choose-the-right-model → 31 email-examples → 32 glossary-wall`
+
+**Rename list (bottom-up `git mv`, via slide-builder, when the new slide is built):**
+
+- `22-dumb-and-dumber.html` → `24-dumb-and-dumber.html`
+- `23-not-one-and-done.html` → `25-not-one-and-done.html`
+- `24-precision-is-key.html` → `26-precision-is-key.html`
+- `25-trust-in-information.html` → `27-trust-in-information.html`
+- `26-context-is-reusable.html` → `28-context-is-reusable.html`
+- `27-transformers-robots-in-disguise.html` → `23-transformers-robots-in-disguise.html`
+- `28-its-not-about-the-car.html` → `29-its-not-about-the-car.html`
+- `29-choose-the-right-model.html` → `30-choose-the-right-model.html`
+- `30-email-examples.html` → `31-email-examples.html`
+- `31-glossary-wall.html` → `32-glossary-wall.html`
+
+Then add the new slide's link to the `01-overview.html` jump menu and reorder the list to match.
+
+## Slide 28 — It's not about the Car, its about the Driver.
 
 Slide about skills behind the wheel are more imporant.
 
-## Slide 28 — Choose the Right Model for the Right Task
+## Slide 29 — Choose the Right Model for the Right Task
 
 Different models, different outcomes.
 
@@ -378,7 +515,7 @@ You need to work out what works for you based on what you are trying to achieve.
 
 A car analogy: you don't take a Ferrari 4WD-ing, but you don't take the 4WD to the racetrack. Each has a purpose — not right or wrong.
 
-## Appendix 1 — Email Examples with Context
+## Slide 30 — Email Examples with Context
 
 ### Health Industry (Massage Therapists, Psychologists, Physios)
 
@@ -467,3 +604,30 @@ A car analogy: you don't take a Ferrari 4WD-ing, but you don't take the 4WD to t
 **Layer 5 — The prompt:**
 
 "Mark's a Hunter Valley stud owner, 25 mares at $150K each + $75K stud fee cover, $48K/year with IAG, no claims. Equine claims are up, IAG is requiring vet certificates, infertility cover is shrinking. Mark's renewal in 4 weeks — he's not price-sensitive, he just needs to lock in equivalent cover before it disappears. Write me a market inquiry email to 3 specialist equine underwriters asking for renewal quotes with the same terms, flagging that infertility cover is critical. Tone: professional, direct, urgent but not desperate."
+
+## Slide 31 — The Glossary (wall)
+
+Closing wall of every word used in the talk — `slides/31-glossary-wall.html`.
+
+Core five (introduced one-by-one on the glossary slides through the deck):
+
+- 🧩 Token — a chunk of text. A word.
+- 🧭 Vector — a direction and a distance. Similar words (or ideas) point the same way.
+- 🎛️ Weight — a dial. How strongly two tokens are connected.
+- 🧠 Model — all the dial positions together. The complete knowledge.
+- ✍️ Prompt — what you type. Where you start.
+
+Extended terms — already on the wall, but not yet on any earlier glossary slide:
+
+- Context — everything that came before. The situation around the words.
+- Large Language Model — a model trained on a huge amount of text and conversation.
+- Multi-Modal — reads more than words — pictures, voice, files too. *(The pending new "Context Can Have Many Forms" slide — to be inserted between Slides 21 and 22 — is where this gets introduced.)*
+- System Prompt — the instructions the tool gives itself before you type.
+- Prompt Engineering — the old art of wording the perfect question.
+- Context Engineering — the new skill: bringing who you are and what you need to the question.
+- Hallucination — when it makes things up — sure of itself.
+
+TODO (deck):
+
+- [ ] decide where the extended terms get introduced earlier in the talk (several slot naturally into the multimodal / Transformers / trust-in-information beats)
+- [ ] `slides/31-glossary-wall.html` currently carries `id="glossary-prompt"` / `data-slug="glossary-prompt"` — a leftover that duplicates slide 14's slug and breaks the overview's `#/glossary-wall` link. Fix to `id="glossary-wall"`.

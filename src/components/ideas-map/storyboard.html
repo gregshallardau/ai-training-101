@@ -1,0 +1,662 @@
+<title>Ideas Map Storyboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+	:root {
+		--ground: #e9ebf0;
+		--panel: #ffffff;
+		--ink: #0b0c0e;
+		--muted: #5b616e;
+		--hair: #d3d7df;
+		--accent: #1d4ed8;
+		--accent-wash: rgba(37, 99, 235, 0.10);
+
+		/* deck-mock palette — mirrors src/styles/vars/semantic.css */
+		--m-bg: #ffffff;
+		--m-fg: #0b0c0e;
+		--m-muted: #5b616e;
+		--m-line: #9aa0ac;
+		--m-primary: #2563eb;
+		--m-primary-strong: #1d4ed8;
+		/* generated topic hue wheel (mock of the anchored-on --primary scale) */
+		--m-r1: #2563eb; --m-r2: #d97706; --m-r3: #16a34a; --m-r4: #dc2626;
+		--m-r5: #7c3aed; --m-r6: #0891b2; --m-r7: #db2777; --m-r8: #65a30d; --m-r9: #64748b;
+	}
+	@media (prefers-color-scheme: dark) {
+		:root:not([data-theme="light"]) {
+			--ground: #131519;
+			--panel: #1a1d22;
+			--ink: #f6f7f9;
+			--muted: #9aa0ac;
+			--hair: #2c313a;
+			--accent: #60a5fa;
+			--accent-wash: rgba(59, 130, 246, 0.16);
+
+			--m-bg: #0b0c0e;
+			--m-fg: #f6f7f9;
+			--m-muted: #9aa0ac;
+			--m-line: #3a3f4a;
+			--m-primary: #3b82f6;
+			--m-primary-strong: #60a5fa;
+			--m-r1: #3b82f6; --m-r2: #f59e0b; --m-r3: #22c55e; --m-r4: #ef4444;
+			--m-r5: #a78bfa; --m-r6: #22d3ee; --m-r7: #f472b6; --m-r8: #a3e635; --m-r9: #94a3b8;
+		}
+	}
+	:root[data-theme="dark"] {
+		--ground: #131519;
+		--panel: #1a1d22;
+		--ink: #f6f7f9;
+		--muted: #9aa0ac;
+		--hair: #2c313a;
+		--accent: #60a5fa;
+		--accent-wash: rgba(59, 130, 246, 0.16);
+
+		--m-bg: #0b0c0e;
+		--m-fg: #f6f7f9;
+		--m-muted: #9aa0ac;
+		--m-line: #3a3f4a;
+		--m-primary: #3b82f6;
+		--m-primary-strong: #60a5fa;
+		--m-r1: #3b82f6; --m-r2: #f59e0b; --m-r3: #22c55e; --m-r4: #ef4444;
+		--m-r5: #a78bfa; --m-r6: #22d3ee; --m-r7: #f472b6; --m-r8: #a3e635; --m-r9: #94a3b8;
+	}
+
+	* { box-sizing: border-box; }
+	body {
+		margin: 0;
+		background: var(--ground);
+		color: var(--ink);
+		font: 400 15px/1.6 "Archivo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+		-webkit-font-smoothing: antialiased;
+	}
+	.wrap { max-width: 1180px; margin: 0 auto; padding: clamp(24px, 5vw, 56px) clamp(18px, 4vw, 40px) 72px; }
+
+	header { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; flex-wrap: wrap; }
+	.eyebrow {
+		font: 500 12px/1 "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+		letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted);
+	}
+	h1 {
+		font: 700 clamp(30px, 5vw, 46px)/1.05 "Archivo", sans-serif;
+		margin: 14px 0 0; letter-spacing: -0.02em; text-wrap: balance;
+	}
+	h1 .tag { font-family: "IBM Plex Mono", monospace; font-weight: 500; color: var(--accent); }
+	.lede { margin: 16px 0 0; max-width: 64ch; color: var(--muted); font-size: 16px; }
+	.lede a { color: var(--accent); text-decoration: none; border-bottom: 1px solid currentColor; }
+	.meta { margin-top: 14px; font: 400 12.5px/1.7 "IBM Plex Mono", monospace; color: var(--muted); }
+
+	.themebtn {
+		flex: none; font: 500 12px/1 "IBM Plex Mono", monospace; color: var(--ink);
+		background: var(--panel); border: 1px solid var(--hair); border-radius: 999px;
+		padding: 9px 15px; cursor: pointer; letter-spacing: 0.04em;
+	}
+	.themebtn:hover { border-color: var(--accent); }
+	.themebtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+	.legend {
+		margin-top: 40px; padding: 16px 20px; background: var(--panel);
+		border: 1px solid var(--hair); border-radius: 12px;
+		display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: center;
+	}
+	.legend h2 {
+		font: 500 11px/1 "IBM Plex Mono", monospace; letter-spacing: 0.16em;
+		text-transform: uppercase; color: var(--muted); margin: 0 8px 0 0;
+	}
+	.key { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+	.key svg { flex: none; }
+
+	.board {
+		margin-top: 32px; display: grid; gap: 22px;
+		grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+	}
+	.sleeve-head {
+		margin: 56px 0 4px; padding-top: 26px; border-top: 1px solid var(--hair);
+	}
+	.sleeve-head .eyebrow { color: var(--accent); }
+	.sleeve-head h2 {
+		font: 700 clamp(22px, 3.4vw, 30px)/1.1 "Archivo", sans-serif;
+		margin: 10px 0 4px; letter-spacing: -0.015em;
+	}
+	.sleeve-head p { margin: 6px 0 0; color: var(--muted); font-size: 14px; max-width: 62ch; }
+	figure.sleeve { border-style: dashed; }
+	figure {
+		margin: 0; background: var(--panel); border: 1px solid var(--hair);
+		border-radius: 14px; overflow: hidden; display: flex; flex-direction: column;
+	}
+	.cap-top { padding: 16px 18px 12px; }
+	.step { font: 500 12px/1 "IBM Plex Mono", monospace; color: var(--accent); letter-spacing: 0.1em; }
+	figure h3 {
+		font: 600 18px/1.25 "Archivo", sans-serif; margin: 8px 0 10px;
+		letter-spacing: -0.01em; text-wrap: balance;
+	}
+	.attrs { display: flex; flex-wrap: wrap; gap: 6px; }
+	.attr {
+		font: 500 12px/1.5 "IBM Plex Mono", monospace; color: var(--accent);
+		background: var(--accent-wash); border-radius: 6px; padding: 2px 7px; white-space: nowrap;
+	}
+	.attr.none { color: var(--muted); background: transparent; border: 1px dashed var(--hair); }
+
+	.frame { background: var(--m-bg); border-top: 1px solid var(--hair); border-bottom: 1px solid var(--hair); }
+	.frame svg { display: block; width: 100%; height: auto; }
+
+	.cap-bot { padding: 14px 18px 18px; display: grid; gap: 9px; }
+	.row { display: grid; grid-template-columns: 58px 1fr; gap: 12px; align-items: baseline; }
+	.row dt {
+		font: 500 10.5px/1.4 "IBM Plex Mono", monospace; letter-spacing: 0.12em;
+		text-transform: uppercase; color: var(--muted);
+	}
+	.row dd { margin: 0; font-size: 13.5px; line-height: 1.5; }
+
+	footer {
+		margin-top: 48px; padding-top: 22px; border-top: 1px solid var(--hair);
+		color: var(--muted); font-size: 13px; max-width: 74ch;
+	}
+	footer code { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--ink); }
+
+	@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+	<header>
+		<div>
+			<div class="eyebrow">Component storyboard · pre-build</div>
+			<h1><span class="tag">&lt;deck-ideas-map&gt;</span><br>key views &amp; moments</h1>
+			<p class="lede">
+				A force-directed graph of ideas that recurs through the deck, from a
+				dim <strong>star map</strong> (slide 3) to a lit
+				<strong>constellation</strong> on the context slides. Clusters are
+				colour-coded by topic and overlap; nodes drag; a custom force keeps
+				the <a href="https://arxiv.org/pdf/1301.3781">word2vec</a> regularity
+				— <em>one step in a fixed direction is the same relationship
+				everywhere</em>, across topics (<code>man→woman</code> in family is
+				the same step as <code>bull→cow</code> in animals). Each frame is one
+				attribute-driven state of the same graph.
+			</p>
+			<div class="meta">
+				design&nbsp;·&nbsp;src/components/ideas-map/design.md<br>
+				customise&nbsp;·&nbsp;src/components/ideas-map/authoring.md&nbsp;&nbsp;(or /ideas-map)<br>
+				branch&nbsp;·&nbsp;ideas-map&nbsp;&nbsp;|&nbsp;&nbsp;positions below are hand-placed to mimic a settled sim
+			</div>
+		</div>
+		<button class="themebtn" id="themebtn" type="button">◐ theme</button>
+	</header>
+
+	<div class="legend" id="legend"><h2>Legend</h2></div>
+	<div class="board" id="board"></div>
+
+	<div class="sleeve-head">
+		<div class="eyebrow">Up the sleeve · not committed</div>
+		<h2>Transformer beats</h2>
+		<p>
+			From <a href="https://proceedings.neurips.cc/paper_files/paper/2017/file/3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf">Attention Is All You Need</a>.
+			Spec'd as optional attributes (design §12) so any of these can be brought
+			into a slide later without a redesign. None are built yet.
+		</p>
+	</div>
+	<div class="board" id="board2"></div>
+
+	<footer>
+		Static mock — no simulation running. Node positions are hand-placed to look
+		like a settled force layout: overlapping topic clusters, with the
+		relationship pairs (gender, parent, tense, capital) sitting in clean
+		parallelograms the way <code>forceRelations</code> would hold them. In the
+		real component only ~6 direction vectors are authored
+		(<code>RELATION_OFFSETS</code>); everything else is the sim. Drag, camera
+		scoping, and legend colours are described in the spec §3–§6.
+	</footer>
+</div>
+
+<script>
+(() => {
+	const SVGNS = 'http://www.w3.org/2000/svg';
+	const el = (n, a = {}) => { const e = document.createElementNS(SVGNS, n); for (const k in a) e.setAttribute(k, a[k]); return e; };
+	const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+	// ---- hand-placed "settled" graph in a -1..1 field --------------------
+	// family lattice: gender step = (-0.18, 0) [left], parent step = (0, +0.16) [up]
+	const N = {
+		// family
+		son:      [0.30, 0.10, 'family'], daughter: [0.12, 0.10, 'family'],
+		father:   [0.30, 0.26, 'family'], mother:   [0.12, 0.26, 'family'],
+		king:     [0.42, -0.06, 'family'], queen:   [0.24, -0.06, 'family'],
+		uncle:    [0.46, 0.30, 'family'], aunt:     [0.28, 0.30, 'family'],
+		boy:      [0.16, -0.04, 'family'], girl:    [-0.02, -0.04, 'family'],
+		// places (capital step ≈ (0.14, -0.12))
+		france:   [-0.34, -0.12, 'places'], paris:  [-0.20, -0.24, 'places'],
+		italy:    [-0.30, -0.34, 'places'], rome:   [-0.16, -0.46, 'places'],
+		japan:    [-0.44, -0.40, 'places'], tokyo:  [-0.30, -0.52, 'places'],
+		// sciences
+		cell:     [-0.54, 0.50, 'sciences'], gene:  [-0.42, 0.56, 'sciences'],
+		evolution:[-0.33, 0.44, 'sciences'], atom:  [-0.58, 0.38, 'sciences'],
+		energy:   [-0.46, 0.33, 'sciences'],
+		// materials (overlaps sciences)
+		copper:   [-0.66, 0.12, 'materials'], zinc:  [-0.66, -0.03, 'materials'],
+		iron:     [-0.57, -0.12, 'materials'], gold:  [-0.55, 0.20, 'materials'],
+		// grammar (tense step = (0.13, 0))
+		walk:     [-0.06, -0.52, 'grammar'], walked: [0.07, -0.52, 'grammar'],
+		run:      [-0.04, -0.63, 'grammar'], ran:    [0.09, -0.63, 'grammar'],
+		go:       [-0.02, -0.74, 'grammar'], went:   [0.11, -0.74, 'grammar'],
+		// arts (overlaps family + sciences)
+		music:    [-0.12, 0.34, 'arts'], painting: [0.05, 0.30, 'arts'],
+		poem:     [-0.09, 0.21, 'arts'], dance:    [0.07, 0.41, 'arts'],
+		// animals — a SECOND cluster that the gender + parent steps also apply to
+		bull:     [0.60, -0.28, 'animals'], cow:     [0.42, -0.28, 'animals'],
+		lion:     [0.66, -0.42, 'animals'], lioness: [0.48, -0.42, 'animals'],
+		calf:     [0.42, -0.44, 'animals'],
+	};
+	const TOPICS = [
+		['family', 'People & family'], ['animals', 'Animals'], ['places', 'Places'],
+		['sciences', 'Sciences'], ['materials', 'Materials'], ['grammar', 'Word forms'],
+		['arts', 'Arts'],
+	];
+	const RAMP = ['--m-r1', '--m-r2', '--m-r3', '--m-r4', '--m-r5', '--m-r6', '--m-r7', '--m-r8', '--m-r9'];
+	const TOPIC_COLOR = {}; TOPICS.forEach(([id], i) => TOPIC_COLOR[id] = RAMP[i % RAMP.length]);
+
+	const RELATIONS = {
+		gender: [['son', 'daughter'], ['king', 'queen'], ['uncle', 'aunt'], ['boy', 'girl'],
+			['bull', 'cow'], ['lion', 'lioness']],
+		parent: [['son', 'father'], ['daughter', 'mother'], ['calf', 'cow']],
+		tense:  [['walk', 'walked'], ['run', 'ran'], ['go', 'went']],
+		capital:[['france', 'paris'], ['italy', 'rome'], ['japan', 'tokyo']],
+	};
+	const LINKS = [
+		['son', 'daughter'], ['son', 'father'], ['daughter', 'mother'], ['king', 'queen'],
+		['king', 'father'], ['boy', 'son'], ['girl', 'daughter'], ['uncle', 'aunt'],
+		['france', 'paris'], ['italy', 'rome'], ['japan', 'tokyo'], ['paris', 'rome'],
+		['cell', 'gene'], ['gene', 'evolution'], ['atom', 'energy'], ['cell', 'atom'],
+		['copper', 'zinc'], ['zinc', 'iron'], ['gold', 'copper'],
+		['walk', 'walked'], ['run', 'ran'], ['go', 'went'],
+		['music', 'painting'], ['music', 'poem'], ['painting', 'dance'],
+		['king', 'france'], ['gene', 'cell'],
+		['bull', 'cow'], ['lion', 'lioness'], ['calf', 'cow'], ['cow', 'lioness'],
+	];
+
+	const VB = { w: 520, h: 340 };
+	const R = 4.6;
+
+	function baseProj(x, y) { return [30 + (x + 1) / 2 * 460, 310 - (y + 1) / 2 * 280]; }
+	function scopeProj(topic) {
+		const pts = Object.values(N).filter((v) => v[2] === topic);
+		const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
+		const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+		const span = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) + 0.30;
+		const s = (Math.min(VB.w, VB.h) * 0.82) / span;           // px per coord unit
+		return (x, y) => [VB.w / 2 + (x - cx) * s, VB.h / 2 - (y - cy) * s];
+	}
+
+	function arrow(g, p1, p2, color, dash) {
+		const a = { x1: p1[0], y1: p1[1], x2: p2[0], y2: p2[1], stroke: color, 'stroke-width': 2.4, 'stroke-linecap': 'round' };
+		if (dash) a['stroke-dasharray'] = '5 5';
+		g.appendChild(el('line', a));
+		const ang = Math.atan2(p2[1] - p1[1], p2[0] - p1[0]);
+		const h = 8;
+		g.appendChild(el('path', {
+			d: `M ${p2[0]} ${p2[1]} L ${p2[0] - h * Math.cos(ang - 0.42)} ${p2[1] - h * Math.sin(ang - 0.42)} L ${p2[0] - h * Math.cos(ang + 0.42)} ${p2[1] - h * Math.sin(ang + 0.42)} Z`,
+			fill: color,
+		}));
+	}
+	function readout(svg, lines, accent) {
+		const pad = 9, lh = 15, w = 236, h = pad * 2 + lh * lines.length;
+		const x = 14, y = VB.h - h - 12;
+		svg.appendChild(el('rect', { x, y, width: w, height: h, rx: 7, fill: css('--m-bg'), stroke: css('--m-line') }));
+		lines.forEach((ln, i) => {
+			const t = el('text', {
+				x: x + pad, y: y + pad + 11 + i * lh,
+				'font-family': '"IBM Plex Mono", monospace',
+				'font-size': i === 0 ? 12 : 10.5,
+				fill: i === 0 ? (accent || css('--m-fg')) : css('--m-muted'),
+			});
+			t.textContent = ln;
+			svg.appendChild(t);
+		});
+	}
+	function clusterCaption(svg, topic, P, color, op = 1) {
+		const pts = Object.entries(N).filter(([, v]) => v[2] === topic).map(([, v]) => P(v[0], v[1]));
+		if (!pts.length) return;
+		const cx = pts.reduce((a, p) => a + p[0], 0) / pts.length;
+		const cy = Math.min(...pts.map((p) => p[1])) - 10;
+		const t = el('text', { x: cx, y: cy, 'text-anchor': 'middle', 'font-family': '"IBM Plex Mono", monospace', 'font-size': 9, 'letter-spacing': '0.14em', fill: color, opacity: op });
+		t.textContent = topic.toUpperCase();
+		svg.appendChild(t);
+	}
+
+	// ---- render one frame ----------------------------------------------
+	function frame(o) {
+		o = Object.assign({ links: false, tags: [], scope: null, spotlight: null, steps: false, drag: null, labelAll: false, activate: null, attnFrom: null, constellation: false, heads: false, causal: false, sequence: false, budget: false, readout: null }, o);
+		const act = o.activate ? new Set(o.activate) : null;
+		const svg = el('svg', { viewBox: `0 0 ${VB.w} ${VB.h}`, role: 'img' });
+		const fg = css('--m-fg'), muted = css('--m-muted'), line = css('--m-line');
+		const primary = css('--m-primary'), strong = css('--m-primary-strong');
+		const P = o.scope ? scopeProj(o.scope) : baseProj;
+		const tags = new Set(o.scope ? [...o.tags, o.scope] : o.tags);
+		const active = !!(o.spotlight || o.steps || o.drag || act);
+
+		const dragLinks = new Set();
+		const dragNbr = new Set();
+		if (o.drag) {
+			LINKS.forEach(([a, b]) => { if (a === o.drag || b === o.drag) { dragLinks.add(a + '|' + b); dragNbr.add(a); dragNbr.add(b); } });
+		}
+		const stepRels = () => [...RELATIONS.gender, ...RELATIONS.parent, ...RELATIONS.capital];
+		const nodeColor = (id) => {
+			const tp = N[id][2];
+			if (act && !act.has(id)) return muted;
+			if (o.scope && tp !== o.scope) return muted;
+			return css(TOPIC_COLOR[tp] || '--m-muted');
+		};
+		const nodeOpacity = (id) => {
+			const tp = N[id][2];
+			if (act) return act.has(id) ? 1 : 0.12;
+			if (o.scope && tp !== o.scope) return 0.16;
+			if (o.drag) return dragNbr.has(id) ? 1 : 0.32;
+			if (o.spotlight) return RELATIONS[o.spotlight].some((pr) => pr.includes(id)) ? 1 : 0.16;
+			if (o.steps) return stepRels().some((pr) => pr.includes(id)) ? 1 : 0.28;
+			if (o.tags.length && !tags.has(tp)) return 0.34;
+			return 1;
+		};
+
+		// links
+		if (o.links || o.drag) {
+			LINKS.forEach(([a, b]) => {
+				const p1 = P(...N[a].slice(0, 2)), p2 = P(...N[b].slice(0, 2));
+				let stroke = line, w = 1.3, op = active ? 0.22 : 0.5;
+				if (o.drag && dragLinks.has(a + '|' + b)) { stroke = strong; w = 2.4; op = 1; }
+				if (o.scope && (N[a][2] !== o.scope || N[b][2] !== o.scope)) op = 0.06;
+				svg.appendChild(el('line', { x1: p1[0], y1: p1[1], x2: p2[0], y2: p2[1], stroke, 'stroke-width': w, 'stroke-opacity': op }));
+			});
+		}
+
+		// consistent-step arrows (frame "steps") or spotlight
+		if (o.steps) {
+			const g = el('g');
+			RELATIONS.gender.forEach(([a, b]) => arrow(g, P(...N[a].slice(0, 2)), P(...N[b].slice(0, 2)), css('--m-primary-strong')));
+			RELATIONS.parent.forEach(([a, b]) => arrow(g, P(...N[a].slice(0, 2)), P(...N[b].slice(0, 2)), css('--m-primary-strong')));
+			RELATIONS.capital.forEach(([a, b]) => arrow(g, P(...N[a].slice(0, 2)), P(...N[b].slice(0, 2)), css('--m-primary-strong')));
+			svg.appendChild(g);
+			readout(svg, ['←  male→female   ↑  child→parent   ↗  country→capital',
+				'gender holds in family AND animals — same step',
+				'every relationship = its own fixed vector, any angle'], css('--m-primary-strong'));
+		}
+		if (o.spotlight) {
+			const g = el('g');
+			RELATIONS[o.spotlight].forEach(([a, b]) => arrow(g, P(...N[a].slice(0, 2)), P(...N[b].slice(0, 2)), strong));
+			svg.appendChild(g);
+			readout(svg, [`spotlight · ${o.spotlight}`, 'every arrow: same direction, same length'], strong);
+		}
+
+		// attention / activation — star map → constellation
+		if (act) {
+			const ids = o.activate;
+			const from = o.attnFrom;
+			const g = el('g');
+			// fixed budget: raw weights (decreasing), normalised to sum 1
+			const raw = ids.map((id, i) => (id === from ? 0 : 1 / (i + 1)));
+			const tot = raw.reduce((a, b) => a + b, 0) || 1;
+			const wnorm = raw.map((v) => v / tot);
+			// halos (radius ∝ normalised weight, so a big set = small halos)
+			ids.forEach((id, i) => {
+				const [px, py] = P(...N[id].slice(0, 2));
+				const w = id === from ? 1 : wnorm[i] * ids.length * 0.6;
+				g.appendChild(el('circle', { cx: px, cy: py, r: R + 4 + w * 6, fill: css(TOPIC_COLOR[N[id][2]]), 'fill-opacity': 0.18 }));
+			});
+			// heads: N coloured fans, each a different rule; else single fan / mesh
+			const HEAD_C = ['--m-primary-strong', '--m-r2', '--m-r3'];
+			if (o.heads && from) {
+				const pf = P(...N[from].slice(0, 2));
+				const rules = [
+					ids.filter((id) => stepRels().some((pr) => pr[0] === from && pr[1] === id || pr[1] === from && pr[0] === id)),
+					ids.filter((id) => id !== from && N[id][2] === N[from][2]),
+					ids.filter((id) => id !== from && N[id][2] !== N[from][2]),
+				];
+				rules.forEach((set, h) => set.forEach((id) => {
+					const pt = P(...N[id].slice(0, 2));
+					g.appendChild(el('line', { x1: pf[0] + (h - 1) * 2, y1: pf[1], x2: pt[0], y2: pt[1], stroke: css(HEAD_C[h]), 'stroke-width': 2.4, 'stroke-opacity': 0.75, 'stroke-linecap': 'round' }));
+				}));
+			} else if (from) {
+				const pf = P(...N[from].slice(0, 2));
+				ids.forEach((id, i) => {
+					if (id === from) return;
+					if (o.causal && i > ids.indexOf(from)) return;   // causal: earlier only
+					const pt = P(...N[id].slice(0, 2));
+					g.appendChild(el('line', { x1: pf[0], y1: pf[1], x2: pt[0], y2: pt[1], stroke: strong, 'stroke-width': 1 + wnorm[i] * 14, 'stroke-opacity': 0.8, 'stroke-linecap': 'round' }));
+				});
+			} else {
+				for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) {
+					const p1 = P(...N[ids[i]].slice(0, 2)), p2 = P(...N[ids[j]].slice(0, 2));
+					g.appendChild(el('line', { x1: p1[0], y1: p1[1], x2: p2[0], y2: p2[1], stroke: strong, 'stroke-width': 1.4, 'stroke-opacity': 0.55 }));
+				}
+			}
+			// constellation outline (reading order)
+			if (o.constellation) {
+				const pts = ids.map((id) => P(...N[id].slice(0, 2)).join(',')).join(' ');
+				g.appendChild(el('polyline', { points: pts, fill: 'none', stroke: strong, 'stroke-width': 1, 'stroke-dasharray': '2 4', 'stroke-opacity': 0.7 }));
+			}
+			// sequence: ordinal badges
+			if (o.sequence) ids.forEach((id, i) => {
+				const [px, py] = P(...N[id].slice(0, 2));
+				const t = el('text', { x: px + R + 4, y: py - R - 2, 'font-family': '"IBM Plex Mono", monospace', 'font-size': 8.5, fill: muted });
+				t.textContent = i + 1;
+				g.appendChild(t);
+			});
+			// budget meter
+			if (o.budget) {
+				const mx = 14, my = VB.h - 84, mw = 150;
+				const lab = el('text', { x: mx, y: my - 4, 'font-family': '"IBM Plex Mono", monospace', 'font-size': 9, fill: muted });
+				lab.textContent = `attention budget · split ${ids.length - (from ? 1 : 0)} ways`;
+				g.appendChild(lab);
+				g.appendChild(el('rect', { x: mx, y: my, width: mw, height: 8, fill: 'none', stroke: line }));
+				let cx = mx;
+				wnorm.forEach((w, i) => {
+					if (ids[i] === from) return;
+					const seg = w * mw;
+					g.appendChild(el('rect', { x: cx, y: my, width: Math.max(0.5, seg - 1), height: 8, fill: css(TOPIC_COLOR[N[ids[i]][2]]) }));
+					cx += seg;
+				});
+			}
+			svg.appendChild(g);
+			readout(svg, o.readout || [from ? `attention from · ${from}` : `activate · ${ids.length} ideas`,
+				'these light up; everything else fades to a star',
+				'add more context → more of the constellation'], strong);
+		}
+
+		// nodes + labels
+		Object.keys(N).forEach((id) => {
+			const [x, y] = N[id];
+			const [px, py] = P(x, y);
+			const g = el('g', { opacity: nodeOpacity(id) });
+			if (o.drag && id === o.drag) g.appendChild(el('circle', { cx: px, cy: py, r: R + 6, fill: 'none', stroke: strong, 'stroke-width': 1.5, 'stroke-dasharray': '3 3' }));
+			g.appendChild(el('circle', { cx: px, cy: py, r: o.scope && N[id][2] === o.scope ? R + 1.5 : R, fill: nodeColor(id), stroke: strong, 'stroke-width': 0.8 }));
+			const involved = act ? act.has(id)
+				: o.steps ? stepRels().some((pr) => pr.includes(id))
+				: o.spotlight ? RELATIONS[o.spotlight].some((pr) => pr.includes(id))
+				: o.drag ? dragNbr.has(id)
+				: o.scope ? N[id][2] === o.scope
+				: o.labelAll;
+			if (involved) {
+				const t = el('text', { x: px, y: py + (o.scope ? R + 13 : R + 11), 'text-anchor': 'middle', 'font-family': '"IBM Plex Mono", monospace', 'font-size': o.scope ? 10.5 : 9.5, fill: fg });
+				t.textContent = id;
+				g.appendChild(t);
+			}
+			svg.appendChild(g);
+		});
+
+		// drag cursor glyph
+		if (o.drag) {
+			const [px, py] = P(...N[o.drag].slice(0, 2));
+			const c = el('path', { d: `M ${px + 6} ${py + 6} l 4 14 l 3 -6 l 6 -1 z`, fill: fg, stroke: css('--m-bg'), 'stroke-width': 1 });
+			svg.appendChild(c);
+		}
+
+		// cluster captions
+		if (!o.scope) TOPICS.forEach(([id]) => {
+			const dim = o.tags.length && !tags.has(id);
+			clusterCaption(svg, id, P, css(TOPIC_COLOR[id]), dim ? 0.4 : 1);
+		});
+		if (o.scope) clusterCaption(svg, o.scope, P, css(TOPIC_COLOR[o.scope] || '--m-primary'), 1);
+
+		// legend (inside frame) for tag / scope
+		if (tags.size) {
+			const items = [...tags];
+			const bw = 128, bh = 14 + items.length * 16;
+			svg.appendChild(el('rect', { x: VB.w - bw - 12, y: 12, width: bw, height: bh, rx: 6, fill: css('--m-bg'), stroke: line }));
+			items.forEach((tp, i) => {
+				const yy = 12 + 15 + i * 16;
+				svg.appendChild(el('circle', { cx: VB.w - bw + 2, cy: yy - 3, r: 4, fill: css(TOPIC_COLOR[tp]) }));
+				const t = el('text', { x: VB.w - bw + 12, y: yy, 'font-family': '"IBM Plex Mono", monospace', 'font-size': 9.5, fill: fg });
+				t.textContent = (TOPICS.find((z) => z[0] === tp) || [tp, tp])[1];
+				svg.appendChild(t);
+			});
+		}
+
+		// label-toggle control (present in the real component; decorative here)
+		const tg = el('g', { opacity: 0.9 });
+		tg.appendChild(el('rect', { x: VB.w - 40, y: VB.h - 26, width: 28, height: 16, rx: 5, fill: css('--m-bg'), stroke: line }));
+		const tt = el('text', { x: VB.w - 26, y: VB.h - 14, 'text-anchor': 'middle', 'font-family': '"IBM Plex Mono", monospace', 'font-size': 9, fill: muted });
+		tt.textContent = 'Aa';
+		tg.appendChild(tt);
+		svg.appendChild(tg);
+
+		return svg;
+	}
+
+	// ---- frames -------------------------------------------------------
+	const FRAMES = [
+		{ step: '01', title: 'Ideas in space — the star map', attrs: ['labels="none"', 'Aa toggle'],
+			sees: 'Colour-coded clusters of word-points, overlapping where topics share ideas. Labels are off; the corner Aa toggle turns them on live.',
+			teaches: 'Talk over the regions and plant seeds ("we’ll come back to this") without committing to words yet.',
+			opts: {} },
+		{ step: '02', title: 'Name the ideas', attrs: ['labels="all"'],
+			sees: 'Same map, same positions — every point now labelled. No arrows, no links, no vectors yet. Just words in space.',
+			teaches: 'Read the room in: here are the actual ideas and roughly how they sit together. Nothing claimed about how they relate.',
+			opts: { labelAll: true } },
+		{ step: '03', title: 'One step is one relationship', attrs: ['(built-in RELATION_OFFSETS)'],
+			sees: 'gender arrows (man→woman, king→queen, bull→cow…) all identical; parent arrows identical at another angle; country→capital identical on the diagonal.',
+			teaches: 'A relationship is a fixed vector — any angle — and it holds across every topic it touches. This is what forceRelations pins.',
+			opts: { steps: true } },
+		{ step: '04', title: 'Switch on the web', attrs: ['show-links'],
+			sees: 'The link force is added; edges fade in and related words pull closer.',
+			teaches: 'The words were always associated — now the wiring shows. (slide 6)',
+			opts: { links: true, labelAll: false } },
+		{ step: '05', title: 'Drag an idea to trace it', attrs: ['(pointer drag)'],
+			sees: 'Grab a node; its links and their far ends light up, the rest dims. Release and it eases back into place.',
+			teaches: 'You can pull on any idea to see what it is connected to.',
+			opts: { links: true, drag: 'son' } },
+		{ step: '06', title: 'Tag topics', attrs: ['tag="family,animals"'],
+			sees: 'The two named topics get a legend and come forward; every other topic keeps its colour but drops to ~35%.',
+			teaches: 'Name the regions you are talking about — colour is always on, tagging is about focus.',
+			opts: { links: true, tags: ['family', 'animals'] } },
+		{ step: '07', title: 'Zoom into a scope', attrs: ['scope="family"'],
+			sees: 'Camera eases to fit the family cluster. Out-of-scope nodes stay on screen but drop to ~15% — the overlap is still visible.',
+			teaches: 'Focus on one idea-space without pretending the rest of the map vanished.',
+			opts: { links: true, scope: 'family' } },
+		{ step: '08', title: 'Spotlight a relationship', attrs: ['spotlight="gender"'],
+			sees: 'One arrow per gender pair — family and animals both — all parallel, all the same length.',
+			teaches: 'The regularity is not cherry-picked, and not tied to one topic: the same step repeats everywhere it applies.',
+			opts: { links: true, spotlight: 'gender' } },
+		{ step: '09', title: 'Add context — the constellation lights up', attrs: ['activate="…"', 'attention-from="king"'],
+			sees: 'The ideas the context touches halo and brighten; every other node drops to a faint star. Attention edges fan out from the focus, thickest to what matters most.',
+			teaches: 'Attention made literal: the lit subgraph is what the model is looking at. Add another layer of context and more of the constellation appears.',
+			opts: { links: true, activate: ['king', 'queen', 'father', 'uncle', 'france', 'paris'], attnFrom: 'king', constellation: true } },
+	];
+
+	const SLEEVE = [
+		{ step: 'S1', title: 'Fixed attention budget', attrs: ['budget'],
+			sees: 'A 100% bar split among the lit ideas. Six ideas → six fat slices. Add six more and every slice — and every fan edge — gets thinner.',
+			teaches: 'You can only hold so much on topic at once. Irrelevant context steals budget from what matters.',
+			opts: { links: true, budget: true, constellation: false, attnFrom: 'king',
+				activate: ['king', 'queen', 'father', 'uncle', 'france', 'paris', 'italy', 'rome', 'gene', 'cell', 'music', 'walk'],
+				readout: ['attention · one fixed pool', 'more lit ideas → thinner slice each', 'junk context dilutes the signal'] } },
+		{ step: 'S2', title: 'Context layers sharpen it', attrs: ['activate="role,industry,product"'],
+			sees: 'Each context layer lights its own cluster; because the budget is fixed, the most specific layer pulls the fan toward its region and the vaguer ones thin out.',
+			teaches: 'Add a layer of specific context → more lights AND sharper attention. The visual argument for "you are a context builder".',
+			opts: { links: true, attnFrom: 'king', constellation: true,
+				activate: ['king', 'father', 'uncle', 'france', 'paris', 'rome'],
+				readout: ['+ role  + industry  + product', 'union lights up, budget renormalises', 'specific layer wins the attention'] } },
+		{ step: 'S3', title: 'Multi-head', attrs: ['heads="3"'],
+			sees: 'Three fans from the same query in three colours — one follows the relationship steps, one stays inside the topic, one reaches across topics.',
+			teaches: 'The model looks several ways at once: syntax, nearby meaning, and long-range links, in parallel.',
+			opts: { links: true, heads: true, attnFrom: 'king',
+				activate: ['king', 'queen', 'father', 'uncle', 'france', 'paris'],
+				readout: ['3 heads · 3 lenses on the same words', 'step · same-topic · long-range', 'run in parallel, then combined'] } },
+		{ step: 'S4', title: 'Sequence + causal mask', attrs: ['sequence', 'causal'],
+			sees: 'The lit ideas get an order (badges); the connect-the-dots line is reading order; attention from a word only reaches earlier words.',
+			teaches: 'Order is added, not built in — and the answer is built left-to-right from what is already there.',
+			opts: { links: true, sequence: true, constellation: true, causal: true, attnFrom: 'paris',
+				activate: ['king', 'father', 'france', 'paris', 'rome', 'italy'],
+				readout: ['position is added, not inherent', 'attention: earlier words only', 'answer builds left → right'] } },
+	];
+
+	function build(list, mount, sleeve) {
+		mount.textContent = '';
+		list.forEach((f) => {
+			const fig = document.createElement('figure');
+			if (sleeve) fig.className = 'sleeve';
+			const top = document.createElement('div');
+			top.className = 'cap-top';
+			top.innerHTML = `<div class="step">${f.step}</div><h3>${f.title}</h3>`;
+			const attrs = document.createElement('div');
+			attrs.className = 'attrs';
+			f.attrs.forEach((a) => {
+				const s = document.createElement('span');
+				s.className = 'attr' + (a.startsWith('(') ? ' none' : '');
+				s.textContent = a;
+				attrs.appendChild(s);
+			});
+			top.appendChild(attrs);
+			const frm = document.createElement('div');
+			frm.className = 'frame';
+			frm.appendChild(frame(f.opts));
+			const bot = document.createElement('dl');
+			bot.className = 'cap-bot';
+			bot.innerHTML = `<div class="row"><dt>Sees</dt><dd>${f.sees}</dd></div>` +
+				`<div class="row"><dt>Teaches</dt><dd>${f.teaches}</dd></div>`;
+			fig.append(top, frm, bot);
+			mount.appendChild(fig);
+		});
+	}
+
+	const LG = [
+		['word', (g) => g.appendChild(el('circle', { cx: 9, cy: 9, r: 4, fill: css('--m-r1'), stroke: css('--m-primary-strong'), 'stroke-width': 0.8 }))],
+		['topic hue', (g) => { g.appendChild(el('circle', { cx: 4, cy: 9, r: 3.4, fill: css('--m-r2') })); g.appendChild(el('circle', { cx: 11, cy: 9, r: 3.4, fill: css('--m-r5') })); g.appendChild(el('circle', { cx: 17, cy: 6, r: 3.4, fill: css('--m-r7') })); }],
+		['link', (g) => g.appendChild(el('line', { x1: 1, y1: 9, x2: 17, y2: 9, stroke: css('--m-line'), 'stroke-width': 1.5 }))],
+		['consistent step', (g) => arrow(g, [1, 13], [17, 5], css('--m-primary-strong'))],
+		['activated', (g) => { g.appendChild(el('circle', { cx: 9, cy: 9, r: 8, fill: css('--m-r1'), 'fill-opacity': 0.22 })); g.appendChild(el('circle', { cx: 9, cy: 9, r: 3.6, fill: css('--m-r1') })); }],
+		['attention', (g) => g.appendChild(el('line', { x1: 1, y1: 13, x2: 17, y2: 5, stroke: css('--m-primary-strong'), 'stroke-width': 2.6, 'stroke-opacity': 0.8 }))],
+		['faint star / out of scope', (g) => g.appendChild(el('circle', { cx: 9, cy: 9, r: 4, fill: css('--m-muted'), opacity: 0.2 }))],
+		['dragged', (g) => { g.appendChild(el('circle', { cx: 9, cy: 9, r: 6, fill: 'none', stroke: css('--m-primary-strong'), 'stroke-width': 1.2, 'stroke-dasharray': '3 3' })); g.appendChild(el('circle', { cx: 9, cy: 9, r: 3.6, fill: css('--m-primary') })); }],
+	];
+	function legend() {
+		const box = document.getElementById('legend');
+		box.querySelectorAll('.key').forEach((n) => n.remove());
+		LG.forEach(([label, draw]) => {
+			const k = document.createElement('span');
+			k.className = 'key';
+			const s = el('svg', { width: 19, height: 18, viewBox: '0 0 19 18' });
+			draw(s);
+			k.appendChild(s);
+			const t = document.createElement('span');
+			t.textContent = label;
+			k.appendChild(t);
+			box.appendChild(k);
+		});
+	}
+
+	const board = document.getElementById('board');
+	const board2 = document.getElementById('board2');
+	function renderAll() {
+		build(FRAMES, board, false);
+		build(SLEEVE, board2, true);
+		legend();
+	}
+	renderAll();
+
+	document.getElementById('themebtn').addEventListener('click', () => {
+		const cur = document.documentElement.getAttribute('data-theme');
+		const next = cur === 'dark' ? 'light' : cur === 'light' ? 'dark'
+			: (matchMedia('(prefers-color-scheme: dark)').matches ? 'light' : 'dark');
+		document.documentElement.setAttribute('data-theme', next);
+		requestAnimationFrame(renderAll);
+	});
+})();
+</script>

@@ -1,0 +1,56 @@
+// <deck-ideas-map> DATASET - fill in for your talk. EVERYTHING about an idea
+// lives on that idea's entry: its cluster, its links, its relation steps, its
+// constellations. There are no separate links/relations/contexts sections to
+// cross-reference — the component derives them from this node list at load.
+// Delete these // comments for the slide attribute (JSON, not JSONC).
+
+{
+  // Optional: prettier cluster names. A cluster with no label here is shown as
+  // its id with capitals ("capital-of" -> "Capital Of"). Clusters + their order
+  // are derived from the node list (first topic value seen wins).
+  "topicLabels": {
+    "family":  "People & family",
+    "grammar": "Word forms"
+  },
+
+  // ---- nodes: one entry per idea. Move an idea to another cluster by typing
+  //      a different `topic` value on its entry — never by moving the line.
+  //      Add a NEW cluster by just giving an idea "topic": "new-slug". ----
+  "nodes": [
+    {
+      "id":    "man",        // required, kebab-case slug (relations/links/slides reference this)
+      "topic": "family",     // required - which cluster this idea lives in
+      // "name": "Man",      // optional - shown on the map; defaults to the id
+      // "also": ["music"],  // optional - rare: a second cluster it straddles
+      "links": [ "king" ],   // optional - plain associations, by node id
+      "rels": [              // optional - every directed step of this idea
+        {
+          "rel":    "gender",       // step name (see seed/relation-vocabulary.md)
+          "to":     "woman",        // the node this idea steps to
+          "offset": [ -90, 0 ]      // its OWN vector: where `to` sits vs this idea
+        }
+      ],
+      // "contexts": { "royalty": 0.7 },  // optional - constellation membership + weight (0..1)
+      // "from":     ["royalty"]          // optional - this idea is the focus of those constellations
+    },
+    {
+      "id":    "woman",
+      "topic": "family"
+      // every step is written once, on the SOURCE idea only - never mirrored here
+    },
+    {
+      "id":       "king",
+      "topic":    "family",
+      "links":    [ "france" ],
+      "rels":     [
+        { "rel": "gender", "to": "queen", "offset": [ -90, 0 ] }
+      ],
+      "from":     [ "royalty" ]
+    },
+    {
+      "id":       "queen",
+      "topic":    "family",
+      "contexts": { "royalty": 1 }
+    }
+  ]
+}

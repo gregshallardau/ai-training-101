@@ -1,0 +1,1112 @@
+{
+  "topicLabels": {
+    "family": "People & family",
+    "animals": "Animals",
+    "places": "Countries & capitals",
+    "grammar": "Word forms",
+    "nature": "Nature",
+    "sciences": "Science",
+    "arts": "Arts & music",
+    "food": "Food & drink",
+    "professions": "Jobs",
+    "technology": "Technology"
+  },
+  "nodes": [
+    {
+      "id": "man",
+      "topic": "family",
+      "rels": [
+        {
+          "rel": "gender",
+          "to": "woman",
+          "offset": [
+            -90,
+            0
+          ]
+        }
+      ],
+      "links": [
+        "father"
+      ]
+    },
+    {
+      "id": "woman",
+      "topic": "family",
+      "links": [
+        "mother"
+      ]
+    },
+    {
+      "id": "king",
+      "topic": "family",
+      "rels": [
+        {
+          "rel": "gender",
+          "to": "queen",
+          "offset": [
+            -90,
+            0
+          ]
+        }
+      ],
+      "from": [
+        "royalty"
+      ],
+      "links": [
+        "france"
+      ]
+    },
+    {
+      "id": "queen",
+      "topic": "family",
+      "contexts": {
+        "royalty": 1
+      }
+    },
+    {
+      "id": "son",
+      "topic": "family",
+      "rels": [
+        {
+          "rel": "gender",
+          "to": "daughter",
+          "offset": [
+            -90,
+            0
+          ]
+        },
+        {
+          "rel": "parent",
+          "to": "father",
+          "offset": [
+            0,
+            -90
+          ]
+        }
+      ]
+    },
+    {
+      "id": "daughter",
+      "topic": "family",
+      "rels": [
+        {
+          "rel": "parent",
+          "to": "mother",
+          "offset": [
+            0,
+            -90
+          ]
+        }
+      ],
+      "links": [
+        "book"
+      ]
+    },
+    {
+      "id": "father",
+      "topic": "family",
+      "contexts": {
+        "royalty": 0.4
+      },
+      "links": [
+        "gene"
+      ]
+    },
+    {
+      "id": "mother",
+      "topic": "family",
+      "links": [
+        "chef"
+      ]
+    },
+    {
+      "id": "child",
+      "topic": "family",
+      "rels": [
+        {
+          "rel": "plural",
+          "to": "children",
+          "offset": [
+            0,
+            90
+          ]
+        }
+      ]
+    },
+    {
+      "id": "children",
+      "topic": "family",
+      "links": [
+        "tree"
+      ]
+    },
+    {
+      "id": "lion",
+      "topic": "animals",
+      "rels": [
+        {
+          "rel": "gender",
+          "to": "lioness",
+          "offset": [
+            -90,
+            0
+          ]
+        }
+      ],
+      "links": [
+        "king"
+      ]
+    },
+    {
+      "id": "lioness",
+      "topic": "animals"
+    },
+    {
+      "id": "bull",
+      "topic": "animals",
+      "rels": [
+        {
+          "rel": "gender",
+          "to": "cow",
+          "offset": [
+            -90,
+            0
+          ]
+        }
+      ],
+      "links": [
+        "farmer"
+      ]
+    },
+    {
+      "id": "cow",
+      "topic": "animals",
+      "rels": [
+        {
+          "rel": "produces",
+          "to": "milk",
+          "offset": [
+            -63,
+            63
+          ]
+        }
+      ]
+    },
+    {
+      "id": "calf",
+      "topic": "animals",
+      "rels": [
+        {
+          "rel": "parent",
+          "to": "cow",
+          "offset": [
+            0,
+            -90
+          ]
+        }
+      ],
+      "links": [
+        "farmer"
+      ]
+    },
+    {
+      "id": "cub",
+      "topic": "animals",
+      "rels": [
+        {
+          "rel": "parent",
+          "to": "lion",
+          "offset": [
+            0,
+            -90
+          ]
+        }
+      ],
+      "links": [
+        "lioness"
+      ]
+    },
+    {
+      "id": "horse",
+      "topic": "animals",
+      "links": [
+        "farmer",
+        "car"
+      ]
+    },
+    {
+      "id": "tiger",
+      "topic": "animals",
+      "links": [
+        "forest",
+        "lion"
+      ]
+    },
+    {
+      "id": "dog",
+      "topic": "animals",
+      "links": [
+        "cat",
+        "child"
+      ]
+    },
+    {
+      "id": "cat",
+      "topic": "animals",
+      "links": [
+        "mouse"
+      ]
+    },
+    {
+      "id": "france",
+      "topic": "places",
+      "name": "France",
+      "rels": [
+        {
+          "rel": "capital-of",
+          "to": "paris",
+          "offset": [
+            63,
+            -49.5
+          ]
+        }
+      ],
+      "contexts": {
+        "royalty": 0.7
+      },
+      "links": [
+        "wine",
+        "cheese"
+      ]
+    },
+    {
+      "id": "paris",
+      "topic": "places",
+      "name": "Paris",
+      "contexts": {
+        "royalty": 0.5
+      },
+      "links": [
+        "painting"
+      ]
+    },
+    {
+      "id": "italy",
+      "topic": "places",
+      "name": "Italy",
+      "rels": [
+        {
+          "rel": "capital-of",
+          "to": "rome",
+          "offset": [
+            63,
+            -49.5
+          ]
+        }
+      ],
+      "links": [
+        "pasta"
+      ]
+    },
+    {
+      "id": "rome",
+      "topic": "places",
+      "name": "Rome",
+      "links": [
+        "sculpture"
+      ]
+    },
+    {
+      "id": "japan",
+      "topic": "places",
+      "name": "Japan",
+      "rels": [
+        {
+          "rel": "capital-of",
+          "to": "tokyo",
+          "offset": [
+            63,
+            -49.5
+          ]
+        }
+      ],
+      "links": [
+        "train",
+        "rice"
+      ]
+    },
+    {
+      "id": "tokyo",
+      "topic": "places",
+      "name": "Tokyo",
+      "links": [
+        "robot"
+      ]
+    },
+    {
+      "id": "uk",
+      "topic": "places",
+      "name": "UK",
+      "rels": [
+        {
+          "rel": "capital-of",
+          "to": "london",
+          "offset": [
+            63,
+            -49.5
+          ]
+        }
+      ],
+      "links": [
+        "lion",
+        "queen"
+      ]
+    },
+    {
+      "id": "london",
+      "topic": "places",
+      "name": "London",
+      "links": [
+        "queen"
+      ]
+    },
+    {
+      "id": "egypt",
+      "topic": "places",
+      "name": "Egypt",
+      "rels": [
+        {
+          "rel": "capital-of",
+          "to": "cairo",
+          "offset": [
+            63,
+            -49.5
+          ]
+        }
+      ],
+      "links": [
+        "river"
+      ]
+    },
+    {
+      "id": "cairo",
+      "topic": "places",
+      "name": "Cairo",
+      "links": [
+        "river"
+      ]
+    },
+    {
+      "id": "mouse",
+      "topic": "grammar",
+      "rels": [
+        {
+          "rel": "plural",
+          "to": "mice",
+          "offset": [
+            0,
+            90
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mice",
+      "topic": "grammar"
+    },
+    {
+      "id": "good",
+      "topic": "grammar",
+      "rels": [
+        {
+          "rel": "comparative",
+          "to": "better",
+          "offset": [
+            100,
+            40
+          ]
+        }
+      ],
+      "links": [
+        "doctor"
+      ]
+    },
+    {
+      "id": "better",
+      "topic": "grammar",
+      "rels": [
+        {
+          "rel": "superlative",
+          "to": "best",
+          "offset": [
+            100,
+            40
+          ]
+        }
+      ]
+    },
+    {
+      "id": "best",
+      "topic": "grammar"
+    },
+    {
+      "id": "bad",
+      "topic": "grammar",
+      "rels": [
+        {
+          "rel": "comparative",
+          "to": "worse",
+          "offset": [
+            100,
+            40
+          ]
+        }
+      ],
+      "links": [
+        "judge"
+      ]
+    },
+    {
+      "id": "worse",
+      "topic": "grammar",
+      "rels": [
+        {
+          "rel": "superlative",
+          "to": "worst",
+          "offset": [
+            100,
+            40
+          ]
+        }
+      ]
+    },
+    {
+      "id": "worst",
+      "topic": "grammar"
+    },
+    {
+      "id": "tree",
+      "topic": "nature",
+      "links": [
+        "book"
+      ],
+      "rels": [
+        {
+          "rel": "produces",
+          "to": "apple",
+          "offset": [
+            -63,
+            63
+          ]
+        }
+      ]
+    },
+    {
+      "id": "flower",
+      "topic": "nature",
+      "links": [
+        "painting"
+      ]
+    },
+    {
+      "id": "forest",
+      "topic": "nature",
+      "links": [
+        "tree"
+      ]
+    },
+    {
+      "id": "river",
+      "topic": "nature",
+      "links": [
+        "france"
+      ]
+    },
+    {
+      "id": "mountain",
+      "topic": "nature",
+      "links": [
+        "gravity",
+        "river"
+      ]
+    },
+    {
+      "id": "ocean",
+      "topic": "nature",
+      "links": [
+        "river"
+      ]
+    },
+    {
+      "id": "moon",
+      "topic": "nature",
+      "links": [
+        "planet",
+        "ocean"
+      ]
+    },
+    {
+      "id": "sun",
+      "topic": "nature",
+      "links": [
+        "plant"
+      ],
+      "rels": [
+        {
+          "rel": "produces",
+          "to": "energy",
+          "offset": [
+            -63,
+            63
+          ]
+        }
+      ]
+    },
+    {
+      "id": "leaf",
+      "topic": "nature",
+      "links": [
+        "tree",
+        "plant"
+      ]
+    },
+    {
+      "id": "cell",
+      "topic": "sciences"
+    },
+    {
+      "id": "gene",
+      "topic": "sciences",
+      "links": [
+        "evolution"
+      ]
+    },
+    {
+      "id": "atom",
+      "topic": "sciences",
+      "links": [
+        "energy"
+      ]
+    },
+    {
+      "id": "energy",
+      "topic": "sciences"
+    },
+    {
+      "id": "electron",
+      "topic": "sciences",
+      "links": [
+        "computer",
+        "atom"
+      ]
+    },
+    {
+      "id": "planet",
+      "topic": "sciences",
+      "links": [
+        "sun"
+      ]
+    },
+    {
+      "id": "gravity",
+      "topic": "sciences"
+    },
+    {
+      "id": "evolution",
+      "topic": "sciences",
+      "links": [
+        "lion"
+      ]
+    },
+    {
+      "id": "nucleus",
+      "topic": "sciences",
+      "links": [
+        "cell",
+        "atom"
+      ]
+    },
+    {
+      "id": "painting",
+      "topic": "arts",
+      "links": [
+        "sculpture"
+      ]
+    },
+    {
+      "id": "sculpture",
+      "topic": "arts"
+    },
+    {
+      "id": "novel",
+      "topic": "arts",
+      "links": [
+        "teacher",
+        "book"
+      ]
+    },
+    {
+      "id": "dance",
+      "topic": "arts",
+      "links": [
+        "music",
+        "guitar"
+      ]
+    },
+    {
+      "id": "mozart",
+      "topic": "arts",
+      "links": [
+        "piano"
+      ],
+      "contexts": {
+        "celebrity": 1
+      }
+    },
+    {
+      "id": "music",
+      "topic": "arts",
+      "links": [
+        "piano",
+        "software"
+      ]
+    },
+    {
+      "id": "guitar",
+      "topic": "arts",
+      "links": [
+        "music"
+      ]
+    },
+    {
+      "id": "piano",
+      "topic": "arts",
+      "links": [
+        "guitar"
+      ]
+    },
+    {
+      "id": "book",
+      "topic": "arts",
+      "links": [
+        "children"
+      ]
+    },
+    {
+      "id": "bread",
+      "topic": "food",
+      "links": [
+        "rice"
+      ]
+    },
+    {
+      "id": "cheese",
+      "topic": "food"
+    },
+    {
+      "id": "rice",
+      "topic": "food"
+    },
+    {
+      "id": "pasta",
+      "topic": "food",
+      "links": [
+        "cheese"
+      ]
+    },
+    {
+      "id": "fruit",
+      "topic": "food"
+    },
+    {
+      "id": "vegetable",
+      "topic": "food",
+      "links": [
+        "farmer"
+      ]
+    },
+    {
+      "id": "coffee",
+      "topic": "food",
+      "links": [
+        "energy"
+      ]
+    },
+    {
+      "id": "chocolate",
+      "topic": "food",
+      "links": [
+        "mozart",
+        "coffee"
+      ]
+    },
+    {
+      "id": "apple",
+      "topic": "food",
+      "links": [
+        "fruit"
+      ]
+    },
+    {
+      "id": "wine",
+      "topic": "food",
+      "links": [
+        "cheese"
+      ]
+    },
+    {
+      "id": "teacher",
+      "topic": "professions",
+      "links": [
+        "book",
+        "child"
+      ]
+    },
+    {
+      "id": "doctor",
+      "topic": "professions",
+      "links": [
+        "cell",
+        "gene"
+      ]
+    },
+    {
+      "id": "chef",
+      "topic": "professions",
+      "links": [
+        "bread"
+      ]
+    },
+    {
+      "id": "farmer",
+      "topic": "professions",
+      "links": [
+        "cow",
+        "plant",
+        "vegetable"
+      ]
+    },
+    {
+      "id": "judge",
+      "topic": "professions",
+      "links": [
+        "uk"
+      ]
+    },
+    {
+      "id": "engineer",
+      "topic": "professions",
+      "links": [
+        "computer"
+      ]
+    },
+    {
+      "id": "scientist",
+      "topic": "professions",
+      "links": [
+        "atom"
+      ]
+    },
+    {
+      "id": "artist",
+      "topic": "professions",
+      "links": [
+        "painting",
+        "sculpture"
+      ]
+    },
+    {
+      "id": "computer",
+      "topic": "technology",
+      "links": [
+        "internet",
+        "electron"
+      ]
+    },
+    {
+      "id": "internet",
+      "topic": "technology"
+    },
+    {
+      "id": "smartphone",
+      "topic": "technology",
+      "links": [
+        "internet",
+        "screen"
+      ]
+    },
+    {
+      "id": "robot",
+      "topic": "technology",
+      "links": [
+        "scientist",
+        "engineer"
+      ]
+    },
+    {
+      "id": "software",
+      "topic": "technology",
+      "links": [
+        "computer"
+      ]
+    },
+    {
+      "id": "car",
+      "topic": "technology",
+      "links": [
+        "train",
+        "engineer"
+      ]
+    },
+    {
+      "id": "train",
+      "topic": "technology"
+    },
+    {
+      "id": "keyboard",
+      "topic": "technology",
+      "links": [
+        "computer",
+        "piano"
+      ]
+    },
+    {
+      "id": "screen",
+      "topic": "technology",
+      "links": [
+        "computer"
+      ]
+    },
+    {
+      "id": "plant",
+      "topic": "nature",
+      "links": [
+        "biology"
+      ],
+      "rels": [
+        {
+          "rel": "produces",
+          "to": "fruit",
+          "offset": [
+            -63,
+            63
+          ]
+        },
+        {
+          "rel": "produces",
+          "to": "vegetable",
+          "offset": [
+            -63,
+            63
+          ]
+        },
+        {
+          "rel": "produces",
+          "to": "flower",
+          "offset": [
+            -63,
+            63
+          ]
+        },
+        {
+          "rel": "produces",
+          "to": "wheat",
+          "offset": [
+            -63,
+            63
+          ]
+        }
+      ]
+    },
+    {
+      "id": "biology",
+      "topic": "sciences",
+      "links": [
+        "cell",
+        "chemistry"
+      ]
+    },
+    {
+      "id": "chemistry",
+      "topic": "sciences",
+      "links": [
+        "atom",
+        "electron"
+      ]
+    },
+    {
+      "id": "gordon-ramsay",
+      "topic": "professions",
+      "name": "Gordon Ramsay",
+      "also": [
+        "food"
+      ],
+      "contexts": {
+        "celebrity": 0.8
+      },
+      "links": [
+        "chef",
+        "restaurant"
+      ]
+    },
+    {
+      "id": "einstein",
+      "topic": "sciences",
+      "name": "Einstein",
+      "from": [
+        "celebrity"
+      ],
+      "links": [
+        "atom",
+        "gravity",
+        "scientist",
+        "music"
+      ]
+    },
+    {
+      "id": "restaurant",
+      "topic": "food",
+      "links": [
+        "chef",
+        "bread"
+      ]
+    },
+    {
+      "id": "chicken",
+      "topic": "animals",
+      "rels": [
+        {
+          "rel": "produces",
+          "to": "egg",
+          "offset": [
+            -63,
+            63
+          ]
+        }
+      ],
+      "links": [
+        "farmer"
+      ]
+    },
+    {
+      "id": "wheat",
+      "topic": "food",
+      "rels": [
+        {
+          "rel": "part-of",
+          "to": "bread",
+          "offset": [
+            63,
+            63
+          ]
+        },
+        {
+          "rel": "part-of",
+          "to": "pancakes",
+          "offset": [
+            63,
+            63
+          ]
+        },
+        {
+          "rel": "part-of",
+          "to": "cake",
+          "offset": [
+            63,
+            63
+          ]
+        }
+      ]
+    },
+    {
+      "id": "milk",
+      "topic": "food",
+      "rels": [
+        {
+          "rel": "part-of",
+          "to": "cheese",
+          "offset": [
+            63,
+            63
+          ]
+        },
+        {
+          "rel": "part-of",
+          "to": "butter",
+          "offset": [
+            63,
+            63
+          ]
+        },
+        {
+          "rel": "part-of",
+          "to": "pancakes",
+          "offset": [
+            63,
+            63
+          ]
+        },
+        {
+          "rel": "part-of",
+          "to": "cake",
+          "offset": [
+            63,
+            63
+          ]
+        }
+      ]
+    },
+    {
+      "id": "butter",
+      "topic": "food",
+      "rels": [
+        {
+          "rel": "part-of",
+          "to": "pancakes",
+          "offset": [
+            63,
+            63
+          ]
+        },
+        {
+          "rel": "part-of",
+          "to": "cake",
+          "offset": [
+            63,
+            63
+          ]
+        }
+      ]
+    },
+    {
+      "id": "egg",
+      "topic": "food",
+      "rels": [
+        {
+          "rel": "part-of",
+          "to": "pancakes",
+          "offset": [
+            63,
+            63
+          ]
+        },
+        {
+          "rel": "part-of",
+          "to": "cake",
+          "offset": [
+            63,
+            63
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cake",
+      "topic": "food"
+    },
+    {
+      "id": "pancakes",
+      "topic": "food"
+    }
+  ]
+}

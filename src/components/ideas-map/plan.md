@@ -1,0 +1,1984 @@
+# deck-ideas-map Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Build `<deck-ideas-map>` — a force-directed "constellation of ideas" custom element that recurs across the deck, driven per-slide by attributes.
+
+**Architecture:** One `d3.forceSimulation` (seeded, settled synchronously at mount, frozen) with a custom `forceRelations` force that pins related pairs to a shared offset vector. A `<g class="view">` gets a `d3.interpolateZoom` camera transform for `scope`. Nodes are colour-coded by topic from a generated HCL hue wheel. All state beyond `data` is a pure visual overlay recomputed in `attributeChangedCallback` — no re-layout. Code is split into focused modules under `src/components/ideas-map/`, with the DeckElement class in `index.js`.
+
+**Tech Stack:** Vanilla Custom Element on `DeckElement`, `d3` v7 (lazy via `@/lib/d3.js`), Shadow DOM CSS with semantic custom properties, QUnit + Puppeteer tests (`test/*.html`, run by `npm test`).
+
+**Spec:** `./design.md`
+
+## Global Constraints
+
+- **Component contract** (`src/components/README.md`): class `extends DeckElement`; `static tag`; `static styles` string injected into Shadow DOM; `customElements.define` only in `index.js`; `connectedCallback` idempotent (base class guards with `_upgraded`); a component may `import` from `@/lib/*`, a slide may not.
+- **Semantic CSS custom properties only** — `var(--bg) var(--fg) var(--muted) var(--line) var(--primary) var(--primary-strong) var(--secondary) var(--success) var(--danger) var(--warning)`, `var(--space-*)`, `var(--radius-*)`, `var(--motion-*)`, `var(--font-*)`. Never a tier-1 primitive (`--color-*`), never a raw colour/length literal in CSS. Numeric geometry constants in JS are allowed.
+- **d3 import is lazy** — only inside this component, via `import { d3, readPalette } from '@/lib/d3.js'`. Never from `src/main.js`.
+- **The topic colour scale is a generated HCL hue wheel anchored on `--primary`** — a deliberate, documented exception to "no colour literals" (spec §7). It is the only place colours are computed rather than read from a semantic var.
+- **Motion reads `--motion-*` via `cssVar` with a numeric fallback** — `parseFloat(this.cssVar('--motion-hero-duration')) || 600`, `… '--motion-ui-duration') || 150`. No hard-coded ms.
+- **`<svg viewBox="0 0 1600 1000">`**, CSS `width: 100%` — no `ResizeObserver`; all geometry in viewBox units.
+- **Registry edit is exactly two lines** (`reference/registry-edit.md`): one `import './ideas-map/index.js';` beside the commented examples, one `COMPONENTS` entry `'ideas-map': { tag: 'deck-ideas-map', dir: 'ideas-map' },`. Tabs. Minimal diff.
+- **Slide files stay Shape 2** (`docs/cheatsheet.md`): `<section id data-slug>` + `<h2>` + the tag. No `<style>`, no behaviour on the slide.
+- **v1 scope decisions** (spec §11): drag **releases** on drop (no pin); `spotlight` **is** in v1; **none** of the §12 deferred overlays (`budget`, `heads`, `sequence`, `causal`, `layer`, `matrix`) are built; attention with no `from` node is a **light mesh**; `weights` are **per-node** 0–1.
+- **Layout constants** (starting values; Task 15 tunes): `W = 1600`, `H = 1000`, `NODE_R = 9`, `LINK_DIST = 150`, `CHARGE = -340`, `CLUSTER = 0.05`, `COLLIDE = NODE_R * 1.7`, `D = 90`, `REL = 0.35`, `SEED = 0x1d4a5`, `WARMUP = 320`.
+
+---
+
+## File Structure
+
+| File | Responsibility |
+|---|---|
+| `src/components/ideas-map/dataset.js` | `DATASET` (topics, nodes, links, relations, contexts), `RELATION_OFFSETS`, and the layout constants above. Data only, no logic. |
+| `src/components/ideas-map/palette.js` | `topicColors(topicIds, resolve)` → `Map<id,{fill,stroke}>` — the generated HCL hue wheel. Pure; DOM-free (takes a `resolve` fn). |
+| `src/components/ideas-map/simulation.js` | `forceRelations(relations, offsets)` custom force; `buildSimulation(dataset, opts)` → a settled, stopped `d3` simulation; `topicCentroids(nodes, topics)`. Pure-ish; no DOM. |
+| `src/components/ideas-map/camera.js` | `bboxOf(nodes, pad)` → `{cx,cy,w}`; `makeCamera(viewEl, W)` → `{ zoomTo, easeTo, view }`. |
+| `src/components/ideas-map/render.js` | `drawGraph(svg, state)` — builds/updates the SVG layer `<g>`s (links, spotlight, attention, nodes, labels). Given a fully-resolved `state`; contains no attribute parsing. |
+| `src/components/ideas-map/index.js` | `class DeckIdeasMap extends DeckElement` — lifecycle, attribute parsing → `state`, sim build + settle, drag, camera calls, label toggle + legend DOM, `customElements.define`. |
+| `src/components/registry.js` | +2 lines (import + `COMPONENTS` entry). |
+| `slides/03-ideas-in-space.html` | Replace the `TODO` bullets with the tag; narration → `<aside class="notes">`. |
+| `test/ideas-map.html` | QUnit harness; one `QUnit.module` per concern, grown task by task. |
+
+Each task appends its tests to the single `test/ideas-map.html`. "Run the tests" means `npm test` (runs every `test/*.html` via Puppeteer; our module's results appear in the combined output). A task's tests must pass **and** no previously-passing assertion may regress.
+
+---
+
+### Task 1: Walking skeleton — element registers and renders an empty stage
+
+**Files:**
+- Create: `src/components/ideas-map/dataset.js`
+- Create: `src/components/ideas-map/index.js`
+- Modify: `src/components/registry.js`
+- Create: `test/ideas-map.html`
+
+**Interfaces:**
+- Produces: `DATASET` (`{topics:[{id,name}], nodes:[{id,name,topics:[id]}], links:[{source,target}], relations:[{rel,pairs:[[id,id]]}], contexts:{[key]:{from,nodes:[id],weights:{[id]:number}}}}`), `RELATION_OFFSETS` (`{[rel]:[dx,dy]}`), and constants `W H NODE_R LINK_DIST CHARGE CLUSTER COLLIDE D REL SEED WARMUP` — all named exports of `dataset.js`.
+- Produces: custom element `deck-ideas-map` (class `DeckIdeasMap`), self-registered on import of `index.js`. After connect, `el.shadowRoot` contains `<svg>` with a `g.view`.
+
+- [ ] **Step 1: Write `dataset.js`**
+
+```js
+// src/components/ideas-map/dataset.js
+// Data + tuning constants for <deck-ideas-map>. No logic here.
+
+export const W = 1600;
+export const H = 1000;
+export const NODE_R = 9;
+export const LINK_DIST = 150;
+export const CHARGE = -340;
+export const CLUSTER = 0.05;   // weak, so topic clusters overlap
+export const COLLIDE = NODE_R * 1.7;
+export const D = 90;           // base step length for RELATION_OFFSETS
+export const REL = 0.35;       // forceRelations strength
+export const SEED = 0x1d4a5;
+export const WARMUP = 320;     // synchronous settle ticks at mount
+
+export const RELATION_OFFSETS = {
+	gender:  [-D, 0],           // one step left  = male -> female
+	parent:  [0, -D],           // one step up    = child -> parent
+	tense:   [D, 0],            // one step right
+	capital: [D * 0.7, -D * 0.55],
+};
+
+export const DATASET = {
+	topics: [
+		{ id: 'family',   name: 'People & family' },
+		{ id: 'animals',  name: 'Animals' },
+		{ id: 'places',   name: 'Places' },
+		{ id: 'sciences', name: 'Sciences' },
+		{ id: 'grammar',  name: 'Word forms' },
+		{ id: 'arts',     name: 'Arts' },
+	],
+	nodes: [
+		{ id: 'man',    name: 'man',    topics: ['family'] },
+		{ id: 'woman',  name: 'woman',  topics: ['family'] },
+		{ id: 'king',   name: 'king',   topics: ['family'] },
+		{ id: 'queen',  name: 'queen',  topics: ['family'] },
+		{ id: 'son',    name: 'son',    topics: ['family'] },
+		{ id: 'daughter', name: 'daughter', topics: ['family'] },
+		{ id: 'father', name: 'father', topics: ['family'] },
+		{ id: 'mother', name: 'mother', topics: ['family'] },
+		{ id: 'bull',   name: 'bull',   topics: ['animals'] },
+		{ id: 'cow',    name: 'cow',    topics: ['animals'] },
+		{ id: 'lion',   name: 'lion',   topics: ['animals'] },
+		{ id: 'lioness', name: 'lioness', topics: ['animals'] },
+		{ id: 'calf',   name: 'calf',   topics: ['animals'] },
+		{ id: 'france', name: 'France', topics: ['places'] },
+		{ id: 'paris',  name: 'Paris',  topics: ['places'] },
+		{ id: 'italy',  name: 'Italy',  topics: ['places'] },
+		{ id: 'rome',   name: 'Rome',   topics: ['places'] },
+		{ id: 'japan',  name: 'Japan',  topics: ['places'] },
+		{ id: 'tokyo',  name: 'Tokyo',  topics: ['places'] },
+		{ id: 'cell',   name: 'cell',   topics: ['sciences'] },
+		{ id: 'gene',   name: 'gene',   topics: ['sciences'] },
+		{ id: 'atom',   name: 'atom',   topics: ['sciences'] },
+		{ id: 'energy', name: 'energy', topics: ['sciences'] },
+		{ id: 'walk',   name: 'walk',   topics: ['grammar'] },
+		{ id: 'walked', name: 'walked', topics: ['grammar'] },
+		{ id: 'run',    name: 'run',    topics: ['grammar'] },
+		{ id: 'ran',    name: 'ran',    topics: ['grammar'] },
+		{ id: 'go',     name: 'go',     topics: ['grammar'] },
+		{ id: 'went',   name: 'went',   topics: ['grammar'] },
+		{ id: 'music',  name: 'music',  topics: ['arts'] },
+		{ id: 'painting', name: 'painting', topics: ['arts'] },
+		{ id: 'mozart', name: 'Mozart', topics: ['arts', 'music'] },
+	],
+	links: [
+		{ source: 'king', target: 'france' },
+		{ source: 'gene', target: 'cell' },
+		{ source: 'atom', target: 'energy' },
+		{ source: 'paris', target: 'rome' },
+		{ source: 'music', target: 'painting' },
+		{ source: 'lion', target: 'cell' },
+	],
+	relations: [
+		{ rel: 'gender', pairs: [['man', 'woman'], ['king', 'queen'], ['son', 'daughter'], ['bull', 'cow'], ['lion', 'lioness']] },
+		{ rel: 'parent', pairs: [['son', 'father'], ['daughter', 'mother'], ['calf', 'cow']] },
+		{ rel: 'tense',  pairs: [['walk', 'walked'], ['run', 'ran'], ['go', 'went']] },
+		{ rel: 'capital', pairs: [['france', 'paris'], ['italy', 'rome'], ['japan', 'tokyo']] },
+	],
+	contexts: {
+		royalty: {
+			from: 'king',
+			nodes: ['king', 'queen', 'france', 'paris', 'father'],
+			weights: { queen: 1, france: 0.7, paris: 0.5, father: 0.4 },
+		},
+	},
+};
+```
+
+- [ ] **Step 2: Write `index.js` (skeleton)**
+
+```js
+// src/components/ideas-map/index.js
+import { DeckElement } from '../deck-element.js';
+import { d3 } from '@/lib/d3.js';
+import { W, H } from './dataset.js';
+
+class DeckIdeasMap extends DeckElement {
+	static tag = 'deck-ideas-map';
+	static observedAttributes = [
+		'data', 'show-links', 'reveal', 'tag', 'scope',
+		'highlight', 'spotlight', 'activate', 'attention-from',
+		'constellation', 'labels', 'label',
+	];
+
+	static styles = `
+		:host { display: block; color: var(--fg); font: inherit; }
+		svg { width: 100%; height: auto; display: block; background: transparent; }
+		text { fill: var(--fg); }
+	`;
+
+	render() {
+		const svg = d3.select(this.shadowRoot)
+			.append('svg')
+			.attr('viewBox', `0 0 ${W} ${H}`)
+			.attr('role', 'img')
+			.attr('aria-label', this.getAttribute('label') || 'ideas in space');
+		svg.append('title').text(this.getAttribute('label') || 'ideas in space');
+		svg.append('g').attr('class', 'view');
+	}
+}
+
+customElements.define(DeckIdeasMap.tag, DeckIdeasMap);
+```
+
+- [ ] **Step 3: Edit `registry.js`** — add, keeping tabs and the commented examples:
+
+```js
+// in the "component imports" block:
+import './ideas-map/index.js';
+
+// in COMPONENTS:
+	'ideas-map': { tag: 'deck-ideas-map', dir: 'ideas-map' },
+```
+
+- [ ] **Step 4: Write `test/ideas-map.html`**
+
+```html
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>deck-ideas-map tests</title>
+	<link rel="stylesheet" href="../node_modules/qunit/qunit/qunit.css">
+	<script src="../node_modules/qunit/qunit/qunit.js"></script>
+	<script>QUnit.config.autostart = false;</script>
+</head>
+<body>
+	<div id="qunit"></div>
+	<div id="qunit-fixture"></div>
+	<script type="module">
+		import '/src/components/ideas-map/index.js';
+		import { DATASET, RELATION_OFFSETS } from '/src/components/ideas-map/dataset.js';
+
+		const mount = () => {
+			const el = document.createElement('deck-ideas-map');
+			document.getElementById('qunit-fixture').appendChild(el);
+			return el;
+		};
+
+		QUnit.module('skeleton');
+
+		QUnit.test('element is defined', (assert) => {
+			assert.ok(customElements.get('deck-ideas-map'), 'custom element registered');
+		});
+
+		QUnit.test('renders an svg with a view group', (assert) => {
+			const el = mount();
+			const svg = el.shadowRoot.querySelector('svg');
+			assert.ok(svg, 'svg present in shadow root');
+			assert.strictEqual(svg.getAttribute('viewBox'), '0 0 1600 1000', 'viewBox set');
+			assert.ok(svg.querySelector('g.view'), 'g.view present');
+			assert.strictEqual(svg.getAttribute('role'), 'img', 'role=img for a11y');
+		});
+
+		QUnit.test('dataset integrity', (assert) => {
+			const ids = new Set(DATASET.nodes.map((n) => n.id));
+			for (const l of DATASET.links) {
+				assert.ok(ids.has(l.source) && ids.has(l.target), `link ${l.source}->${l.target} endpoints exist`);
+			}
+			for (const r of DATASET.relations) {
+				assert.ok(RELATION_OFFSETS[r.rel], `relation ${r.rel} has an offset vector`);
+				for (const [a, b] of r.pairs) {
+					assert.ok(ids.has(a) && ids.has(b), `relation pair ${a},${b} endpoints exist`);
+				}
+			}
+			const topicIds = new Set(DATASET.topics.map((t) => t.id));
+			for (const n of DATASET.nodes) {
+				for (const t of n.topics) assert.ok(topicIds.has(t), `node ${n.id} topic ${t} exists`);
+			}
+		});
+
+		QUnit.start();
+	</script>
+</body>
+</html>
+```
+
+- [ ] **Step 5: Run tests**
+
+Run: `npm test`
+Expected: PASS — the `skeleton` module reports all assertions passing; existing reveal test files still pass.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add src/components/ideas-map/dataset.js src/components/ideas-map/index.js src/components/registry.js test/ideas-map.html
+git commit -m "feat(ideas-map): walking skeleton — element registers, renders empty stage"
+```
+
+---
+
+### Task 2: Topic colour scale (`palette.js`)
+
+**Files:**
+- Create: `src/components/ideas-map/palette.js`
+- Modify: `test/ideas-map.html` (append a `QUnit.module('palette')`)
+
+**Interfaces:**
+- Consumes: nothing from earlier tasks.
+- Produces: `topicColors(topicIds, resolve)` — `topicIds: string[]`, `resolve: (cssVarName:string)=>string` returning a colour string. Returns `Map<string, {fill:string, stroke:string}>`. Hues are spread evenly around the wheel starting from the HCL hue of `resolve('--primary')`, keeping that colour's chroma and lightness for `fill`; `stroke` is the same hue at `lightness - 18`.
+
+- [ ] **Step 1: Write the failing test** — append to the module script in `test/ideas-map.html`, before `QUnit.start()`:
+
+```js
+import { topicColors } from '/src/components/ideas-map/palette.js';
+
+QUnit.module('palette');
+
+QUnit.test('distinct hues for each topic, anchored on --primary', (assert) => {
+	const resolve = (v) => (v === '--primary' ? '#2563eb' : '#000');
+	const m = topicColors(['a', 'b', 'c', 'd', 'e'], resolve);
+	assert.strictEqual(m.size, 5, 'one entry per topic');
+	const fills = [...m.values()].map((c) => c.fill);
+	assert.strictEqual(new Set(fills).size, 5, 'all fills distinct');
+	assert.ok(/^(#|rgb|hsl|lab|lch)/.test(fills[0]), 'fill is a colour string');
+	assert.notStrictEqual(m.get('a').fill, m.get('a').stroke, 'stroke differs from fill');
+});
+
+QUnit.test('re-resolves when --primary changes', (assert) => {
+	const a = topicColors(['x'], () => '#2563eb').get('x').fill;
+	const b = topicColors(['x'], () => '#16a34a').get('x').fill;
+	assert.notStrictEqual(a, b, 'anchor colour changes the scale');
+});
+
+QUnit.test('deterministic', (assert) => {
+	const r = () => '#2563eb';
+	assert.deepEqual(
+		[...topicColors(['a', 'b'], r).entries()],
+		[...topicColors(['a', 'b'], r).entries()],
+		'same input -> same output',
+	);
+});
+```
+
+- [ ] **Step 2: Run to verify it fails**
+
+Run: `npm test`
+Expected: FAIL — `palette` module errors on missing module `/src/components/ideas-map/palette.js`.
+
+- [ ] **Step 3: Write `palette.js`**
+
+```js
+// src/components/ideas-map/palette.js
+import { d3 } from '@/lib/d3.js';
+
+/**
+ * Generated categorical scale for topic colours: an evenly-spaced hue wheel
+ * anchored on --primary's HCL, keeping its chroma and lightness. A deliberate,
+ * documented exception to "semantic vars only" (spec §7) — the only computed
+ * colour in the component.
+ *
+ * @param {string[]} topicIds
+ * @param {(cssVarName: string) => string} resolve
+ * @returns {Map<string, {fill: string, stroke: string}>}
+ */
+export function topicColors(topicIds, resolve) {
+	const base = d3.hcl(resolve('--primary') || '#2563eb');
+	const c = Number.isFinite(base.c) ? base.c : 45;
+	const l = Number.isFinite(base.l) ? base.l : 50;
+	const h0 = Number.isFinite(base.h) ? base.h : 250;
+	const n = Math.max(topicIds.length, 1);
+	const out = new Map();
+	topicIds.forEach((id, i) => {
+		const h = (h0 + (360 * i) / n) % 360;
+		out.set(id, {
+			fill: d3.hcl(h, c, l).formatHex(),
+			stroke: d3.hcl(h, c, Math.max(l - 18, 0)).formatHex(),
+		});
+	});
+	return out;
+}
+```
+
+- [ ] **Step 4: Run to verify it passes**
+
+Run: `npm test`
+Expected: PASS — `palette` module all green; `skeleton` still green.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/components/ideas-map/palette.js test/ideas-map.html
+git commit -m "feat(ideas-map): generated HCL topic colour scale"
+```
+
+---
+
+### Task 3: Simulation scaffold (`simulation.js` — forces except relations)
+
+**Files:**
+- Create: `src/components/ideas-map/simulation.js`
+- Modify: `test/ideas-map.html` (append `QUnit.module('simulation')`)
+
+**Interfaces:**
+- Consumes: `DATASET`, and constants `LINK_DIST CHARGE CLUSTER COLLIDE SEED WARMUP` from `dataset.js`.
+- Produces:
+  - `topicCentroids(nodes, topics)` → `Map<topicId, {x, y}>` — seeded target points, one per topic, spread on a circle of radius `min(W,H) * 0.32` about `(W/2, H/2)` in topic order.
+  - `buildSimulation(dataset, { seed = SEED, warmup = WARMUP, showLinks = false, relations = true })` → a `d3.forceSimulation` that has already run `warmup` ticks and been `.stop()`ed. Node objects are the same array instances as `dataset.nodes`, each mutated with numeric `x, y, vx, vy`. Forces registered under names: `link` (only if `showLinks`), `charge`, `x`, `y`, `collide`, `center`, and `relations` (added in Task 4).
+
+- [ ] **Step 1: Write the failing test**
+
+```js
+import { buildSimulation, topicCentroids } from '/src/components/ideas-map/simulation.js';
+
+QUnit.module('simulation');
+
+const clone = (o) => JSON.parse(JSON.stringify(o));
+
+QUnit.test('seeded layout is deterministic', (assert) => {
+	const a = buildSimulation(clone(DATASET), { seed: 123, warmup: 60 });
+	const b = buildSimulation(clone(DATASET), { seed: 123, warmup: 60 });
+	const pa = a.nodes().map((n) => [Math.round(n.x), Math.round(n.y)]);
+	const pb = b.nodes().map((n) => [Math.round(n.x), Math.round(n.y)]);
+	assert.deepEqual(pa, pb, 'same seed -> same settled positions');
+});
+
+QUnit.test('no NaN positions', (assert) => {
+	const s = buildSimulation(clone(DATASET), { seed: 7, warmup: 80 });
+	assert.ok(s.nodes().every((n) => Number.isFinite(n.x) && Number.isFinite(n.y)), 'all finite');
+});
+
+QUnit.test('nodes cluster near their topic centroid', (assert) => {
+	const ds = clone(DATASET);
+	const s = buildSimulation(ds, { seed: 42, warmup: 200 });
+	const cents = topicCentroids(ds.nodes, ds.topics);
+	const globalC = { x: 800, y: 500 };
+	let closer = 0;
+	for (const n of s.nodes()) {
+		const c = cents.get(n.topics[0]);
+		const dC = Math.hypot(n.x - c.x, n.y - c.y);
+		const dG = Math.hypot(n.x - globalC.x, n.y - globalC.y);
+		if (dC < dG + 120) closer++;
+	}
+	assert.ok(closer / s.nodes().length > 0.7, 'most nodes sit toward their topic centroid');
+});
+
+QUnit.test('link force only present with showLinks', (assert) => {
+	const off = buildSimulation(clone(DATASET), { seed: 1, warmup: 5, showLinks: false });
+	const on = buildSimulation(clone(DATASET), { seed: 1, warmup: 5, showLinks: true });
+	assert.strictEqual(off.force('link'), undefined, 'no link force by default');
+	assert.ok(on.force('link'), 'link force added with showLinks');
+});
+```
+
+- [ ] **Step 2: Run to verify it fails**
+
+Run: `npm test`
+Expected: FAIL — missing `/src/components/ideas-map/simulation.js`.
+
+- [ ] **Step 3: Write `simulation.js`** (relations force is a stub here, filled in Task 4)
+
+```js
+// src/components/ideas-map/simulation.js
+import { d3 } from '@/lib/d3.js';
+import {
+	W, H, LINK_DIST, CHARGE, CLUSTER, COLLIDE, NODE_R, SEED, WARMUP,
+} from './dataset.js';
+
+export function topicCentroids(nodes, topics) {
+	const R = Math.min(W, H) * 0.32;
+	const m = new Map();
+	topics.forEach((t, i) => {
+		const a = (2 * Math.PI * i) / topics.length - Math.PI / 2;
+		m.set(t.id, { x: W / 2 + R * Math.cos(a), y: H / 2 + R * Math.sin(a) });
+	});
+	return m;
+}
+
+// Placeholder — real implementation lands in Task 4.
+export function forceRelations() {
+	const f = () => {};
+	f.initialize = () => {};
+	f.strength = () => f;
+	return f;
+}
+
+export function buildSimulation(dataset, opts = {}) {
+	const {
+		seed = SEED, warmup = WARMUP, showLinks = false, relations = true,
+	} = opts;
+	const rng = d3.randomLcg(seed);
+	const cents = topicCentroids(dataset.nodes, dataset.topics);
+
+	// seeded initial positions near the topic centroid
+	for (const n of dataset.nodes) {
+		const c = cents.get(n.topics[0]) || { x: W / 2, y: H / 2 };
+		n.x = c.x + (rng() - 0.5) * 220;
+		n.y = c.y + (rng() - 0.5) * 220;
+		n.vx = 0;
+		n.vy = 0;
+	}
+
+	const sim = d3.forceSimulation(dataset.nodes)
+		.randomSource(d3.randomLcg(seed ^ 0x9e3779b9))
+		.force('charge', d3.forceManyBody().strength(CHARGE))
+		.force('x', d3.forceX((n) => (cents.get(n.topics[0]) || { x: W / 2 }).x).strength(CLUSTER))
+		.force('y', d3.forceY((n) => (cents.get(n.topics[0]) || { y: H / 2 }).y).strength(CLUSTER))
+		.force('collide', d3.forceCollide(COLLIDE))
+		.force('center', d3.forceCenter(W / 2, H / 2))
+		.stop();
+
+	if (showLinks) {
+		const relPairs = relations
+			? dataset.relations.flatMap((r) => r.pairs.map(([a, b]) => ({ source: a, target: b })))
+			: [];
+		const links = dataset.links.map((l) => ({ ...l })).concat(relPairs);
+		sim.force('link', d3.forceLink(links).id((n) => n.id).distance((l) => l.distance ?? LINK_DIST));
+	}
+
+	if (relations) {
+		sim.force('relations', forceRelations(dataset.relations));
+	}
+
+	sim.alpha(1);
+	for (let i = 0; i < warmup; i++) sim.tick();
+	sim.alpha(0).stop();
+	return sim;
+}
+```
+
+- [ ] **Step 4: Run to verify it passes**
+
+Run: `npm test`
+Expected: PASS — `simulation` module green (the `relations` stub is inert, so clustering/determinism hold); earlier modules still green.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/components/ideas-map/simulation.js test/ideas-map.html
+git commit -m "feat(ideas-map): seeded force simulation with topic clustering"
+```
+
+---
+
+### Task 4: `forceRelations` — the consistent-step constraint
+
+**Files:**
+- Modify: `src/components/ideas-map/simulation.js` (replace the `forceRelations` stub)
+- Modify: `test/ideas-map.html` (append `QUnit.module('forceRelations')`)
+
+**Interfaces:**
+- Consumes: `RELATION_OFFSETS`, `REL` from `dataset.js`; `dataset.relations`.
+- Produces: `forceRelations(relations, offsets = RELATION_OFFSETS, strength = REL)` → a d3 force. On `initialize(nodes)` it resolves each pair to node object references by `id`. On each tick, for every resolved pair `(s, t)` with offset `Δ`: `err = (s.x + Δx - t.x, s.y + Δy - t.y)`, then `t.vx += errx*k; t.vy += erry*k; s.vx -= errx*k; s.vy -= erry*k` where `k = strength * alpha`. `.strength(v)` setter returns the force.
+
+- [ ] **Step 1: Write the failing test**
+
+```js
+QUnit.module('forceRelations');
+
+QUnit.test('pairs settle to the shared offset vector', (assert) => {
+	const ds = clone(DATASET);
+	const s = buildSimulation(ds, { seed: 42, warmup: 320 });
+	const byId = new Map(s.nodes().map((n) => [n.id, n]));
+	const rel = ds.relations.find((r) => r.rel === 'gender');
+	const off = RELATION_OFFSETS.gender;
+	for (const [a, b] of rel.pairs) {
+		const dx = byId.get(b).x - byId.get(a).x;
+		const dy = byId.get(b).y - byId.get(a).y;
+		assert.ok(Math.abs(dx - off[0]) < 22 && Math.abs(dy - off[1]) < 22,
+			`${a}->${b} offset (${dx.toFixed(0)},${dy.toFixed(0)}) ~ (${off[0]},${off[1]})`);
+	}
+});
+
+QUnit.test('a relation family is parallel (angles agree)', (assert) => {
+	const ds = clone(DATASET);
+	const s = buildSimulation(ds, { seed: 42, warmup: 320 });
+	const byId = new Map(s.nodes().map((n) => [n.id, n]));
+	const rel = ds.relations.find((r) => r.rel === 'tense');
+	const angs = rel.pairs.map(([a, b]) =>
+		Math.atan2(byId.get(b).y - byId.get(a).y, byId.get(b).x - byId.get(a).x));
+	const spread = Math.max(...angs) - Math.min(...angs);
+	assert.ok(spread < 0.25, `tense arrows near-parallel (spread ${spread.toFixed(3)} rad)`);
+});
+```
+
+- [ ] **Step 2: Run to verify it fails**
+
+Run: `npm test`
+Expected: FAIL — offsets are clustering-driven, not pinned; the tolerance assertions fail.
+
+- [ ] **Step 3: Replace the `forceRelations` stub in `simulation.js`**
+
+```js
+import { W, H, LINK_DIST, CHARGE, CLUSTER, COLLIDE, NODE_R, SEED, WARMUP, REL, RELATION_OFFSETS } from './dataset.js';
+
+export function forceRelations(relations, offsets = RELATION_OFFSETS, strength = REL) {
+	let pairs = [];
+	let k = strength;
+
+	function force(alpha) {
+		const a = k * alpha;
+		for (const p of pairs) {
+			const errx = p.s.x + p.dx - p.t.x;
+			const erry = p.s.y + p.dy - p.t.y;
+			p.t.vx += errx * a; p.t.vy += erry * a;
+			p.s.vx -= errx * a; p.s.vy -= erry * a;
+		}
+	}
+	force.initialize = (nodes) => {
+		const by = new Map(nodes.map((n) => [n.id, n]));
+		pairs = [];
+		for (const r of relations) {
+			const off = offsets[r.rel];
+			if (!off) { console.warn(`[ideas-map] relation "${r.rel}" has no RELATION_OFFSETS entry`); continue; }
+			for (const [aId, bId] of r.pairs) {
+				const s = by.get(aId); const t = by.get(bId);
+				if (!s || !t) { console.warn(`[ideas-map] relation pair ${aId},${bId} unresolved`); continue; }
+				pairs.push({ s, t, dx: off[0], dy: off[1] });
+			}
+		}
+	};
+	force.strength = (v) => (v === undefined ? k : (k = v, force));
+	return force;
+}
+```
+
+- [ ] **Step 4: Run to verify it passes**
+
+Run: `npm test`
+Expected: PASS — `forceRelations` module green; `simulation` clustering test still green (relations pin locally, clustering still holds globally).
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/components/ideas-map/simulation.js test/ideas-map.html
+git commit -m "feat(ideas-map): forceRelations pins related pairs to a shared offset"
+```
+
+---
+
+### Task 5: Camera (`camera.js`)
+
+**Files:**
+- Create: `src/components/ideas-map/camera.js`
+- Modify: `test/ideas-map.html` (append `QUnit.module('camera')`)
+
+**Interfaces:**
+- Consumes: `W` from `dataset.js`; `d3`.
+- Produces:
+  - `bboxOf(nodes, pad = 60)` → `{ cx, cy, w }` — centre and width (the larger of bbox width / bbox height, plus `2*pad`) of the given `{x,y}` nodes. Empty array → `{ cx: W/2, cy: H/2, w: W }`.
+  - `makeCamera(viewEl, width = W)` → `{ zoomTo(view), easeTo(view, { duration = 0 }), view() }`. `view` is `[cx, cy, w]`. `zoomTo` sets `viewEl.setAttribute('transform', 'translate(...) scale(k)')` with `k = width / w`, translating so `(cx,cy)` maps to `(width/2, (H/W)*width/2)`. `easeTo` with `duration <= 0` calls `zoomTo` immediately; otherwise `d3.select(viewEl).transition().duration(duration).tween('cam', ...)` interpolating with `d3.interpolateZoom(view(), target)`. `view()` returns the last applied `[cx,cy,w]`.
+
+- [ ] **Step 1: Write the failing test**
+
+```js
+import { bboxOf, makeCamera } from '/src/components/ideas-map/camera.js';
+
+QUnit.module('camera');
+
+QUnit.test('bboxOf centre and width', (assert) => {
+	const bb = bboxOf([{ x: 100, y: 100 }, { x: 300, y: 200 }], 0);
+	assert.deepEqual([bb.cx, bb.cy], [200, 150], 'centre');
+	assert.strictEqual(bb.w, 200, 'width = larger span');
+});
+
+QUnit.test('bboxOf empty -> whole field', (assert) => {
+	const bb = bboxOf([], 0);
+	assert.deepEqual([bb.cx, bb.cy, bb.w], [800, 500, 1600], 'defaults to full field');
+});
+
+QUnit.test('zoomTo sets a transform with the right scale', (assert) => {
+	const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+	const cam = makeCamera(g, 1600);
+	cam.zoomTo([800, 500, 800]);
+	const tr = g.getAttribute('transform');
+	assert.ok(/scale\(2\b/.test(tr), `scale is width/w = 2 (got "${tr}")`);
+	assert.deepEqual(cam.view(), [800, 500, 800], 'view() records last applied');
+});
+
+QUnit.test('easeTo duration 0 is immediate', (assert) => {
+	const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+	const cam = makeCamera(g, 1600);
+	cam.easeTo([400, 400, 400], { duration: 0 });
+	assert.ok(/scale\(4\b/.test(g.getAttribute('transform')), 'jumped straight to scale 4');
+});
+```
+
+- [ ] **Step 2: Run to verify it fails**
+
+Run: `npm test`
+Expected: FAIL — missing `/src/components/ideas-map/camera.js`.
+
+- [ ] **Step 3: Write `camera.js`**
+
+```js
+// src/components/ideas-map/camera.js
+import { d3 } from '@/lib/d3.js';
+import { W, H } from './dataset.js';
+
+export function bboxOf(nodes, pad = 60) {
+	if (!nodes.length) return { cx: W / 2, cy: H / 2, w: W };
+	const xs = nodes.map((n) => n.x);
+	const ys = nodes.map((n) => n.y);
+	const x0 = Math.min(...xs); const x1 = Math.max(...xs);
+	const y0 = Math.min(...ys); const y1 = Math.max(...ys);
+	return {
+		cx: (x0 + x1) / 2,
+		cy: (y0 + y1) / 2,
+		w: Math.max(x1 - x0, y1 - y0) + pad * 2,
+	};
+}
+
+export function makeCamera(viewEl, width = W) {
+	const aspect = H / W;
+	let current = [width / 2, (width * aspect) / 2, width];
+
+	function apply(view) {
+		const [cx, cy, w] = view;
+		const k = width / w;
+		const tx = width / 2 - cx * k;
+		const ty = (width * aspect) / 2 - cy * k;
+		viewEl.setAttribute('transform', `translate(${tx},${ty}) scale(${k})`);
+		current = view;
+	}
+
+	return {
+		zoomTo: apply,
+		view: () => current,
+		easeTo(target, { duration = 0 } = {}) {
+			if (duration <= 0) { apply(target); return; }
+			const i = d3.interpolateZoom(current, target);
+			d3.select(viewEl).transition().duration(duration)
+				.tween('cam', () => (t) => apply(i(t)));
+		},
+	};
+}
+```
+
+- [ ] **Step 4: Run to verify it passes**
+
+Run: `npm test`
+Expected: PASS — `camera` module green.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/components/ideas-map/camera.js test/ideas-map.html
+git commit -m "feat(ideas-map): interpolateZoom camera + bbox fit"
+```
+
+---
+
+### Task 6: Base render — nodes, hidden links, labels wired into the element
+
+**Files:**
+- Create: `src/components/ideas-map/render.js`
+- Modify: `src/components/ideas-map/index.js`
+- Modify: `test/ideas-map.html` (append `QUnit.module('render-base')`)
+
+**Interfaces:**
+- Consumes: `buildSimulation`, `topicColors`, `bboxOf`, `makeCamera`, `DATASET`, constants.
+- Produces:
+  - `drawGraph(svg, state)` — given `svg` (a d3 selection or element) and a resolved `state`, (re)builds five child `<g>`s of `svg.querySelector('g.view')` in this order: `g.links`, `g.spotlight`, `g.attention`, `g.nodes`, `g.labels`. Clears and redraws each from `state` every call (v1: full redraw, positions come from `state.nodes`). `state` shape: `{ nodes, links, colors:Map, showLinks:boolean, labelsMode:'none'|'topics'|'all'|'auto', reduced:boolean, tag:Set, scope:string|null, highlight:Set, spotlight:string|null, relations, offsets, activate:{ids:Set, from:string|null, weights:Map, constellation:boolean}|null, reveal:number|null, topicOrder:string[] }`. Tasks 7–11 extend `drawGraph` behaviour; Task 6 implements only nodes + hidden links + labels(mode `none`/`all`).
+  - `index.js`: `render()` now builds the sim, settles, computes `this._state`, calls `drawGraph`, sets up the camera on `g.view`. Adds `this._resolve = (v) => this.cssVar(v)`.
+
+- [ ] **Step 1: Write the failing test**
+
+```js
+QUnit.module('render-base');
+
+const settle = (el) => el.shadowRoot.querySelector('svg');
+
+QUnit.test('draws one circle per node', (assert) => {
+	const el = mount();
+	const circles = settle(el).querySelectorAll('g.nodes circle.node');
+	assert.strictEqual(circles.length, DATASET.nodes.length, 'a circle per node');
+});
+
+QUnit.test('links drawn but hidden until show-links', (assert) => {
+	const el = mount();
+	const lines = settle(el).querySelectorAll('g.links line');
+	assert.strictEqual(lines.length, DATASET.links.length, 'a line per link');
+	assert.ok([...lines].every((l) => Number(l.getAttribute('stroke-opacity')) === 0), 'all hidden');
+});
+
+QUnit.test('node fill matches its topic colour', (assert) => {
+	const el = mount();
+	const colors = (await import('/src/components/ideas-map/palette.js')).topicColors(
+		DATASET.topics.map((t) => t.id), () => '#2563eb');
+	// element resolves --primary from the page; just assert fills are distinct per topic
+	const byTopic = {};
+	settle(el).querySelectorAll('g.nodes circle.node').forEach((c) => {
+		byTopic[c.dataset.topic] = c.getAttribute('fill');
+	});
+	assert.strictEqual(new Set(Object.values(byTopic)).size, DATASET.topics.length, 'one fill per topic');
+});
+
+QUnit.test('labels="none" => no node text; labels="all" => one per node', (assert) => {
+	const a = mount(); a.setAttribute('labels', 'none');
+	assert.strictEqual(settle(a).querySelectorAll('g.labels text.node-label').length, 0, 'none');
+	const b = mount(); b.setAttribute('labels', 'all');
+	assert.strictEqual(settle(b).querySelectorAll('g.labels text.node-label').length, DATASET.nodes.length, 'all');
+});
+```
+
+Note: mark the third test `async` (`QUnit.test('...', async (assert) => { ... })`) because of the dynamic `import`.
+
+- [ ] **Step 2: Run to verify it fails**
+
+Run: `npm test`
+Expected: FAIL — no `render.js`; `g.nodes` etc. absent.
+
+- [ ] **Step 3: Write `render.js`**
+
+```js
+// src/components/ideas-map/render.js
+import { NODE_R } from './dataset.js';
+
+const NS = 'http://www.w3.org/2000/svg';
+const make = (tag, attrs = {}) => {
+	const e = document.createElementNS(NS, tag);
+	for (const k in attrs) e.setAttribute(k, attrs[k]);
+	return e;
+};
+
+function layer(view, cls) {
+	let g = view.querySelector(`g.${cls}`);
+	if (!g) { g = make('g', { class: cls }); view.appendChild(g); }
+	g.textContent = '';
+	return g;
+}
+
+function nodeColor(n, state) {
+	const c = state.colors.get(n.topics[0]) || { fill: 'currentColor', stroke: 'currentColor' };
+	return c;
+}
+
+function labelled(n, state) {
+	if (state.labelsMode === 'none' || state.labelsMode === 'topics') return false;
+	if (state.labelsMode === 'all') return true;
+	return true; // 'auto' — Task 8 refines with scope/highlight
+}
+
+export function drawGraph(svgOrEl, state) {
+	const svg = svgOrEl.node ? svgOrEl.node() : svgOrEl;
+	const view = svg.querySelector('g.view');
+	const gLinks = layer(view, 'links');
+	layer(view, 'spotlight');
+	layer(view, 'attention');
+	const gNodes = layer(view, 'nodes');
+	const gLabels = layer(view, 'labels');
+
+	const byId = new Map(state.nodes.map((n) => [n.id, n]));
+
+	for (const l of state.links) {
+		const s = byId.get(l.source.id ?? l.source);
+		const t = byId.get(l.target.id ?? l.target);
+		if (!s || !t) continue;
+		gLinks.appendChild(make('line', {
+			x1: s.x, y1: s.y, x2: t.x, y2: t.y,
+			stroke: 'var(--line)', 'stroke-width': 1.5,
+			'stroke-opacity': state.showLinks ? 0.55 : 0,
+		}));
+	}
+
+	for (const n of state.nodes) {
+		const c = nodeColor(n, state);
+		gNodes.appendChild(make('circle', {
+			class: 'node', 'data-id': n.id, 'data-topic': n.topics[0],
+			cx: n.x, cy: n.y, r: NODE_R,
+			fill: c.fill, stroke: c.stroke, 'stroke-width': 1.5,
+		}));
+		if (labelled(n, state)) {
+			const t = make('text', {
+				class: 'node-label', x: n.x, y: n.y + NODE_R + 14,
+				'text-anchor': 'middle', 'font-size': 13,
+			});
+			t.textContent = n.name;
+			gLabels.appendChild(t);
+		}
+	}
+}
+```
+
+- [ ] **Step 4: Extend `index.js`**
+
+```js
+import { DeckElement } from '../deck-element.js';
+import { d3, readPalette } from '@/lib/d3.js';
+import { W, H, DATASET, RELATION_OFFSETS } from './dataset.js';
+import { buildSimulation } from './simulation.js';
+import { topicColors } from './palette.js';
+import { makeCamera, bboxOf } from './camera.js';
+import { drawGraph } from './render.js';
+
+class DeckIdeasMap extends DeckElement {
+	static tag = 'deck-ideas-map';
+	static observedAttributes = [
+		'data', 'show-links', 'reveal', 'tag', 'scope',
+		'highlight', 'spotlight', 'activate', 'attention-from',
+		'constellation', 'labels', 'label',
+	];
+
+	static styles = `
+		:host { display: block; color: var(--fg); font: inherit; }
+		svg { width: 100%; height: auto; display: block; background: transparent; }
+		text { fill: var(--fg); }
+		circle.node { cursor: grab; }
+	`;
+
+	get dataset() {
+		try { return JSON.parse(this.getAttribute('data') || 'null') || DATASET; }
+		catch { return DATASET; }
+	}
+
+	render() {
+		const svg = d3.select(this.shadowRoot).append('svg')
+			.attr('viewBox', `0 0 ${W} ${H}`)
+			.attr('role', 'img')
+			.attr('aria-label', this.getAttribute('label') || 'ideas in space');
+		svg.append('title').text(this.getAttribute('label') || 'ideas in space');
+		svg.append('desc').text('a force-directed map of ideas');
+		const view = svg.append('g').attr('class', 'view').node();
+
+		this._svg = svg.node();
+		this._camera = makeCamera(view, W);
+		this._data = this.dataset;
+		this._sim = buildSimulation(this._data, { showLinks: this.hasAttribute('show-links') });
+		this._computeState();
+		drawGraph(this._svg, this._state);
+		this._camera.zoomTo([W / 2, H / 2, W]);
+	}
+
+	_computeState() {
+		const topicOrder = this._data.topics.map((t) => t.id);
+		this._state = {
+			nodes: this._sim.nodes(),
+			links: (this._sim.force('link') && this._sim.force('link').links()) || this._data.links,
+			colors: topicColors(topicOrder, (v) => this.cssVar(v)),
+			showLinks: this.hasAttribute('show-links'),
+			labelsMode: this.getAttribute('labels') || 'auto',
+			reduced: matchMedia('(prefers-reduced-motion: reduce)').matches,
+			tag: new Set((this.getAttribute('tag') || '').split(',').map((s) => s.trim()).filter(Boolean)),
+			scope: this.getAttribute('scope') || null,
+			highlight: new Set((this.getAttribute('highlight') || '').split(',').map((s) => s.trim()).filter(Boolean)),
+			spotlight: this.getAttribute('spotlight') || null,
+			activate: null,
+			reveal: this.hasAttribute('reveal') ? Number(this.getAttribute('reveal')) : null,
+			relations: this._data.relations,
+			offsets: RELATION_OFFSETS,
+			topicOrder,
+		};
+	}
+
+	attributeChangedCallback() {
+		if (!this._upgraded) return;
+		this._computeState();
+		drawGraph(this._svg, this._state);
+	}
+
+	disconnectedCallback() { this._sim && this._sim.stop(); }
+}
+
+customElements.define(DeckIdeasMap.tag, DeckIdeasMap);
+```
+
+- [ ] **Step 5: Run to verify it passes**
+
+Run: `npm test`
+Expected: PASS — `render-base` green; earlier modules green.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add src/components/ideas-map/render.js src/components/ideas-map/index.js test/ideas-map.html
+git commit -m "feat(ideas-map): render nodes, hidden links, labels; wire camera"
+```
+
+---
+
+### Task 7: `show-links` and `reveal`
+
+**Files:**
+- Modify: `src/components/ideas-map/index.js`, `src/components/ideas-map/render.js`
+- Modify: `test/ideas-map.html` (append `QUnit.module('show-links + reveal')`)
+
+**Interfaces:**
+- Consumes: Task 6 `state` + `drawGraph`.
+- Produces:
+  - Toggling `show-links` rebuilds the simulation with `showLinks: true` (so the link force + relation-implied links exist), re-heats with `sim.alpha(0.6)` + a synchronous `WARMUP/2` settle, then redraws. Edges render at `stroke-opacity` 0.55.
+  - `reveal="N"` (integer): `drawGraph` withholds nodes/links whose topic index (in `state.topicOrder`) is `>= N` — they get `display: none`. Camera "fit all" (Task 8) considers only shown nodes.
+
+- [ ] **Step 1: Write the failing test**
+
+```js
+QUnit.module('show-links + reveal');
+
+QUnit.test('show-links makes edges visible', (assert) => {
+	const el = mount();
+	el.setAttribute('show-links', '');
+	const lines = el.shadowRoot.querySelectorAll('g.links line');
+	assert.ok(lines.length >= DATASET.links.length, 'at least the plain links draw');
+	assert.ok([...lines].some((l) => Number(l.getAttribute('stroke-opacity')) > 0), 'some edge visible');
+});
+
+QUnit.test('reveal="2" hides later topics', (assert) => {
+	const el = mount();
+	el.setAttribute('reveal', '2');
+	const shownTopics = new Set();
+	el.shadowRoot.querySelectorAll('g.nodes circle.node').forEach((c) => {
+		if (c.getAttribute('display') !== 'none') shownTopics.add(c.dataset.topic);
+	});
+	const first2 = DATASET.topics.slice(0, 2).map((t) => t.id);
+	assert.deepEqual([...shownTopics].sort(), first2.sort(), 'only first two topics visible');
+});
+```
+
+- [ ] **Step 2: Run to verify it fails**
+
+Run: `npm test`
+Expected: FAIL — `show-links` currently only flips opacity via the pre-built (linkless) sim; `reveal` not handled.
+
+- [ ] **Step 3: Implement in `index.js`** — replace `attributeChangedCallback`:
+
+```js
+attributeChangedCallback(name) {
+	if (!this._upgraded) return;
+	if (name === 'data') { this._data = this.dataset; this._rebuild(); return; }
+	if (name === 'show-links') { this._rebuild({ reheat: true }); return; }
+	this._computeState();
+	if (this._state.scope) this._applyScope();
+	drawGraph(this._svg, this._state);
+}
+
+_rebuild({ reheat = false } = {}) {
+	this._sim && this._sim.stop();
+	this._sim = buildSimulation(this._data, { showLinks: this.hasAttribute('show-links') });
+	if (reheat) {
+		this._sim.alpha(0.6);
+		for (let i = 0; i < 160; i++) this._sim.tick();
+		this._sim.alpha(0).stop();
+	}
+	this._computeState();
+	drawGraph(this._svg, this._state);
+}
+```
+
+- [ ] **Step 4: Implement `reveal` in `render.js`** — inside `drawGraph`, compute a hidden-topic set and skip / hide:
+
+```js
+const revealHidden = state.reveal == null ? null
+	: new Set(state.topicOrder.slice(state.reveal));
+
+// in the links loop, before appendChild:
+if (revealHidden && (revealHidden.has(s.topics[0]) || revealHidden.has(t.topics[0]))) continue;
+
+// in the nodes loop, when creating the circle, add:
+...(revealHidden && revealHidden.has(n.topics[0]) ? { display: 'none' } : {}),
+```
+
+Concretely, change the circle creation to:
+
+```js
+const attrs = {
+	class: 'node', 'data-id': n.id, 'data-topic': n.topics[0],
+	cx: n.x, cy: n.y, r: NODE_R,
+	fill: c.fill, stroke: c.stroke, 'stroke-width': 1.5,
+};
+if (revealHidden && revealHidden.has(n.topics[0])) attrs.display = 'none';
+gNodes.appendChild(make('circle', attrs));
+if (revealHidden && revealHidden.has(n.topics[0])) continue; // no label
+```
+
+- [ ] **Step 5: Run to verify it passes**
+
+Run: `npm test`
+Expected: PASS — `show-links + reveal` green; earlier modules green (note: `render-base` "links hidden" test still passes because a bare mount has no `show-links`).
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add src/components/ideas-map/index.js src/components/ideas-map/render.js test/ideas-map.html
+git commit -m "feat(ideas-map): show-links rebuilds with link force; reveal withholds topics"
+```
+
+---
+
+### Task 8: `tag`, `scope`, `highlight`
+
+**Files:**
+- Modify: `src/components/ideas-map/index.js`, `src/components/ideas-map/render.js`
+- Modify: `test/ideas-map.html` (append `QUnit.module('tag + scope + highlight')`)
+
+**Interfaces:**
+- Consumes: Task 6/7 `state`, `bboxOf`, camera.
+- Produces:
+  - `tag` (Set of topic ids): a legend `<div>` in the shadow root (built from `.row`/`.chip` classes, added to `static styles` verbatim from `reference/component-styles.md`), one row per tagged topic (swatch + `topic.name`). Non-tagged topics' node circles get `opacity` 0.35. Empty `tag` → legend hidden.
+  - `scope` (topic id): implies that topic into `tag`. `this._applyScope()` calls `this._camera.easeTo(bboxOf(scopeNodes, 90), { duration: this._dur('hero') })`; no scope → `easeTo([...fit all shown...])`. Out-of-scope node circles get `fill: var(--muted)` and `opacity` 0.15 (kept in DOM).
+  - `highlight` (Set of node ids): a `circle.pulse` (r = NODE_R + 6, `fill: none`, `stroke: var(--primary-strong)`) appended in `g.nodes` behind each highlighted node; those labels always render.
+  - `this._dur(kind)` → `parseFloat(this.cssVar(kind === 'hero' ? '--motion-hero-duration' : '--motion-ui-duration')) || (kind === 'hero' ? 600 : 150)`; returns `0` when `this._state.reduced`.
+
+- [ ] **Step 1: Write the failing test**
+
+```js
+QUnit.module('tag + scope + highlight');
+
+QUnit.test('tag builds a legend and dims other topics', (assert) => {
+	const el = mount();
+	el.setAttribute('tag', 'family,places');
+	const rows = el.shadowRoot.querySelectorAll('.legend .row');
+	assert.strictEqual(rows.length, 2, 'one legend row per tagged topic');
+	const other = [...el.shadowRoot.querySelectorAll('g.nodes circle.node')]
+		.find((c) => c.dataset.topic === 'sciences');
+	assert.ok(Number(other.getAttribute('opacity')) <= 0.4, 'non-tagged topic dimmed');
+});
+
+QUnit.test('scope keeps out-of-scope nodes but mutes them', (assert) => {
+	const el = mount();
+	el.setAttribute('scope', 'family');
+	const circles = el.shadowRoot.querySelectorAll('g.nodes circle.node');
+	const outside = [...circles].find((c) => c.dataset.topic !== 'family');
+	assert.ok(outside, 'out-of-scope node still in the DOM');
+	assert.ok(Number(outside.getAttribute('opacity')) <= 0.2, 'and muted, not removed');
+	assert.strictEqual(outside.getAttribute('fill'), 'var(--muted)', 'muted fill');
+});
+
+QUnit.test('highlight rings the node', (assert) => {
+	const el = mount();
+	el.setAttribute('highlight', 'king,queen');
+	assert.strictEqual(el.shadowRoot.querySelectorAll('g.nodes circle.pulse').length, 2, 'two pulse rings');
+});
+```
+
+- [ ] **Step 2: Run to verify it fails**
+
+Run: `npm test`
+Expected: FAIL — no legend, no dim/mute/pulse logic.
+
+- [ ] **Step 3: Add legend styles to `static styles`** (copy from `reference/component-styles.md`, plus a `.legend` wrapper):
+
+```js
+static styles = `
+	:host { display: block; color: var(--fg); font: inherit; position: relative; }
+	svg { width: 100%; height: auto; display: block; background: transparent; }
+	text { fill: var(--fg); }
+	circle.node { cursor: grab; }
+	.legend {
+		position: absolute; top: var(--space-gap); right: var(--space-gap);
+		background: var(--bg); border: 1px solid var(--line);
+		border-radius: var(--radius-card); padding: var(--space-gap);
+		display: flex; flex-direction: column; gap: var(--space-gap);
+	}
+	.legend[hidden] { display: none; }
+	.row { display: flex; gap: var(--space-gap); align-items: center; font-size: 0.8em; }
+	.row .chip {
+		display: inline-block; width: 0.8em; height: 0.8em; border-radius: var(--radius-round);
+	}
+	.btn.ghost {
+		font: inherit; position: absolute; bottom: var(--space-gap); right: var(--space-gap);
+		padding: var(--space-gap) var(--space-inline);
+		background: transparent; color: var(--primary);
+		border: 1px solid var(--line); border-radius: var(--radius-control); cursor: pointer;
+	}
+`;
+```
+
+- [ ] **Step 4: Build the legend + scope/highlight in `index.js`**
+
+```js
+render() {
+	// ...existing svg build...
+	this._legend = document.createElement('div');
+	this._legend.className = 'legend';
+	this._legend.hidden = true;
+	this.shadowRoot.appendChild(this._legend);
+	// ...rest as before: camera, sim, state, drawGraph, zoomTo...
+	this._applyScope();
+}
+
+_dur(kind) {
+	if (this._state.reduced) return 0;
+	const v = parseFloat(this.cssVar(kind === 'hero' ? '--motion-hero-duration' : '--motion-ui-duration'));
+	return Number.isFinite(v) ? v : (kind === 'hero' ? 600 : 150);
+}
+
+_renderLegend() {
+	const tags = this._state.scope ? new Set([...this._state.tag, this._state.scope]) : this._state.tag;
+	this._legend.textContent = '';
+	this._legend.hidden = tags.size === 0;
+	for (const id of tags) {
+		const t = this._data.topics.find((x) => x.id === id);
+		const row = document.createElement('div');
+		row.className = 'row';
+		const chip = document.createElement('span');
+		chip.className = 'chip';
+		chip.style.background = (this._state.colors.get(id) || {}).fill || 'var(--primary)';
+		row.append(chip, document.createTextNode(t ? t.name : id));
+		this._legend.appendChild(row);
+	}
+}
+
+_applyScope() {
+	const shown = this._state.nodes.filter((n) =>
+		this._state.reveal == null || this._state.topicOrder.indexOf(n.topics[0]) < this._state.reveal);
+	const target = this._state.scope
+		? bboxOf(shown.filter((n) => n.topics[0] === this._state.scope), 90)
+		: bboxOf(shown, 90);
+	this._camera.easeTo([target.cx, target.cy, target.w], { duration: this._dur('hero') });
+}
+```
+
+Wire these into `attributeChangedCallback`: after `this._computeState()`, call `this._renderLegend()`, `this._applyScope()`, then `drawGraph`.
+
+- [ ] **Step 5: Apply dim / mute / pulse in `render.js`** — extend the nodes loop:
+
+```js
+const scopedOut = state.scope && n.topics[0] !== state.scope;
+const tagged = state.scope ? new Set([...state.tag, state.scope]) : state.tag;
+const dimByTag = tagged.size > 0 && !tagged.has(n.topics[0]);
+
+const attrs = {
+	class: 'node', 'data-id': n.id, 'data-topic': n.topics[0],
+	cx: n.x, cy: n.y, r: NODE_R,
+	fill: scopedOut ? 'var(--muted)' : c.fill,
+	stroke: c.stroke, 'stroke-width': 1.5,
+};
+if (scopedOut) attrs.opacity = 0.15;
+else if (dimByTag) attrs.opacity = 0.35;
+if (revealHidden && revealHidden.has(n.topics[0])) attrs.display = 'none';
+
+if (state.highlight.has(n.id)) {
+	gNodes.appendChild(make('circle', {
+		class: 'pulse', cx: n.x, cy: n.y, r: NODE_R + 6,
+		fill: 'none', stroke: 'var(--primary-strong)', 'stroke-width': 2,
+	}));
+}
+gNodes.appendChild(make('circle', attrs));
+```
+
+Also update `labelled()`: in `'auto'` mode return `state.highlight.has(n.id) || (state.scope ? n.topics[0] === state.scope : true)`.
+
+- [ ] **Step 6: Run to verify it passes**
+
+Run: `npm test`
+Expected: PASS — `tag + scope + highlight` green; earlier modules green.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add src/components/ideas-map/index.js src/components/ideas-map/render.js test/ideas-map.html
+git commit -m "feat(ideas-map): tag legend, scope camera + mute, highlight rings"
+```
+
+---
+
+### Task 9: `spotlight`
+
+**Files:**
+- Modify: `src/components/ideas-map/render.js`
+- Modify: `test/ideas-map.html` (append `QUnit.module('spotlight')`)
+
+**Interfaces:**
+- Consumes: `state.spotlight` (a `rel` id), `state.relations`, `state.nodes`.
+- Produces: when `state.spotlight` is set, `g.spotlight` holds one `<line>` + a triangular `<path>` arrowhead per pair of that relation, `stroke: var(--primary-strong)`, `stroke-width` 2.5. All nodes/links not part of a spotlighted pair drop to `opacity` 0.15. A `<text class="rel-caption">` near the first arrow reads `one step = <rel>`.
+
+- [ ] **Step 1: Write the failing test**
+
+```js
+QUnit.module('spotlight');
+
+QUnit.test('draws one arrow per relation pair, parallel and equal', (assert) => {
+	const el = mount();
+	el.setAttribute('spotlight', 'gender');
+	const lines = [...el.shadowRoot.querySelectorAll('g.spotlight line')];
+	const genderPairs = DATASET.relations.find((r) => r.rel === 'gender').pairs.length;
+	assert.strictEqual(lines.length, genderPairs, 'an arrow per pair');
+	const vecs = lines.map((l) => [
+		Number(l.getAttribute('x2')) - Number(l.getAttribute('x1')),
+		Number(l.getAttribute('y2')) - Number(l.getAttribute('y1')),
+	]);
+	const angs = vecs.map(([x, y]) => Math.atan2(y, x));
+	// Measure spread relative to angs[0], wrapped to (-pi, pi], so a family whose
+	// offset (e.g. gender's [-D, 0]) straddles the atan2 +/-pi seam is not read as
+	// a ~6.28 spread. A broken (non-parallel) sim still fails this.
+	const rel0 = angs.map((a) => Math.atan2(Math.sin(a - angs[0]), Math.cos(a - angs[0])));
+	assert.ok(Math.max(...rel0) - Math.min(...rel0) < 0.2, 'arrows near-parallel');
+	const lens = vecs.map(([x, y]) => Math.hypot(x, y));
+	assert.ok(Math.max(...lens) - Math.min(...lens) < 30, 'arrows near-equal length');
+});
+
+QUnit.test('non-involved nodes dim', (assert) => {
+	const el = mount();
+	el.setAttribute('spotlight', 'tense');
+	const involved = new Set(DATASET.relations.find((r) => r.rel === 'tense').pairs.flat());
+	const other = [...el.shadowRoot.querySelectorAll('g.nodes circle.node')]
+		.find((c) => !involved.has(c.dataset.id));
+	const op = other.getAttribute('opacity');
+	assert.ok(op != null && Number(op) >= 0.1 && Number(op) <= 0.2, 'uninvolved node dimmed to ~0.15');
+});
+```
+
+- [ ] **Step 2: Run to verify it fails**
+
+Run: `npm test`
+Expected: FAIL — `g.spotlight` empty; no dimming.
+
+- [ ] **Step 3: Implement in `render.js`** — after the links loop, before the nodes loop:
+
+```js
+const spotIds = new Set();
+if (state.spotlight) {
+	const gSpot = view.querySelector('g.spotlight');
+	const rel = state.relations.find((r) => r.rel === state.spotlight);
+	if (rel) {
+		rel.pairs.forEach(([aId, bId], i) => {
+			const a = byId.get(aId); const b = byId.get(bId);
+			if (!a || !b) return;
+			spotIds.add(aId); spotIds.add(bId);
+			gSpot.appendChild(make('line', {
+				x1: a.x, y1: a.y, x2: b.x, y2: b.y,
+				stroke: 'var(--primary-strong)', 'stroke-width': 2.5, 'stroke-linecap': 'round',
+			}));
+			const ang = Math.atan2(b.y - a.y, b.x - a.x);
+			const h = 12;
+			gSpot.appendChild(make('path', {
+				d: `M ${b.x} ${b.y} L ${b.x - h * Math.cos(ang - 0.4)} ${b.y - h * Math.sin(ang - 0.4)} `
+				 + `L ${b.x - h * Math.cos(ang + 0.4)} ${b.y - h * Math.sin(ang + 0.4)} Z`,
+				fill: 'var(--primary-strong)',
+			}));
+			if (i === 0) {
+				const cap = make('text', { class: 'rel-caption', x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 - 12, 'text-anchor': 'middle', 'font-size': 12, fill: 'var(--muted)' });
+				cap.textContent = `one step = ${state.spotlight}`;
+				gSpot.appendChild(cap);
+			}
+		});
+	}
+}
+```
+
+Then in the nodes loop, add to the dim logic:
+
+```js
+const dimBySpot = state.spotlight && !spotIds.has(n.id);
+if (scopedOut) attrs.opacity = 0.15;
+else if (dimBySpot) attrs.opacity = 0.15;
+else if (dimByTag) attrs.opacity = 0.35;
+```
+
+And in the links loop, when `state.spotlight` is set, force `stroke-opacity` to `0.12` unless both endpoints are in `spotIds` (they won't be for plain links, that's fine).
+
+- [ ] **Step 4: Run to verify it passes**
+
+Run: `npm test`
+Expected: PASS — `spotlight` green; earlier modules green.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/components/ideas-map/render.js test/ideas-map.html
+git commit -m "feat(ideas-map): spotlight draws parallel relation arrows"
+```
+
+---
+
+### Task 10: `activate` / `attention-from` / `constellation` + fixed attention budget
+
+**Files:**
+- Modify: `src/components/ideas-map/index.js`, `src/components/ideas-map/render.js`
+- Modify: `test/ideas-map.html` (append `QUnit.module('activate')`)
+
+**Interfaces:**
+- Consumes: `this._data.contexts`, `state.nodes`.
+- Produces:
+  - `index.js` parses `activate`: split on `,`; each token is a `contexts` key or a node id. Compose — union of node ids; per-node weight = sum of `contexts[*].weights[id]` (default 0.5 for a bare id or a context node with no weight). Then **renormalise** weights so they sum to 1. `from` = `attention-from` attr, else the first matching context's `from`, else `null`. Result on `state.activate = { ids:Set, from, weights:Map, constellation:boolean }` (null when `activate` absent).
+  - `render.js`: when `state.activate`:
+    - every non-activated node circle → `fill: var(--muted)`, `opacity` 0.12 (kept in DOM);
+    - each activated node gets a `circle.halo` (r = `NODE_R + 4 + weight * 60`, `fill` = node's topic colour, `fill-opacity` 0.18) in `g.attention`;
+    - attention edges in `g.attention`, `stroke: var(--primary-strong)`, `stroke-opacity` 0.8: if `from`, one line `from`→each other id with `stroke-width` = `1 + weight * 16` (weights already sum to 1 → **fixed ink budget**); if no `from`, a mesh (every activated pair) at `stroke-width` 1.4;
+    - if `constellation`, a `<polyline class="constellation">` through the activated ids in iteration order, `stroke: var(--primary-strong)`, `stroke-dasharray: 2 6`.
+
+- [ ] **Step 1: Write the failing test**
+
+```js
+QUnit.module('activate');
+
+QUnit.test('context lights a set, mutes the rest, draws halos + fan', (assert) => {
+	const el = mount();
+	el.setAttribute('activate', 'royalty');
+	const ctx = DATASET.contexts.royalty;
+	assert.strictEqual(el.shadowRoot.querySelectorAll('g.attention circle.halo').length, ctx.nodes.length, 'a halo per activated node');
+	const fan = el.shadowRoot.querySelectorAll('g.attention line');
+	assert.strictEqual(fan.length, ctx.nodes.length - 1, 'fan from `from` to each other node');
+	const outside = [...el.shadowRoot.querySelectorAll('g.nodes circle.node')]
+		.find((c) => !ctx.nodes.includes(c.dataset.id));
+	assert.ok(outside && Number(outside.getAttribute('opacity')) <= 0.15, 'non-activated kept but faint');
+});
+
+QUnit.test('fixed budget: total fan stroke-width is ~constant regardless of set size', (assert) => {
+	const total = (attr) => {
+		const el = mount();
+		el.setAttribute('attention-from', 'king');
+		el.setAttribute('activate', attr);
+		return [...el.shadowRoot.querySelectorAll('g.attention line')]
+			.reduce((s, l) => s + Number(l.getAttribute('stroke-width')), 0);
+	};
+	const small = total('king,queen,france');
+	const big = total('king,queen,france,paris,father,mother,son,daughter');
+	assert.ok(Math.abs(small - big) / small < 0.25, `fan ink budget stable (${small.toFixed(1)} vs ${big.toFixed(1)})`);
+});
+
+QUnit.test('constellation draws an outline', (assert) => {
+	const el = mount();
+	el.setAttribute('activate', 'royalty');
+	el.setAttribute('constellation', '');
+	assert.strictEqual(el.shadowRoot.querySelectorAll('g.attention polyline.constellation').length, 1, 'one outline');
+});
+```
+
+- [ ] **Step 2: Run to verify it fails**
+
+Run: `npm test`
+Expected: FAIL — `activate` unparsed; `g.attention` empty.
+
+- [ ] **Step 3: Parse `activate` in `index.js`** — in `_computeState`, after the other fields:
+
+```js
+this._state.activate = this._parseActivate();
+
+_parseActivate() {
+	const raw = this.getAttribute('activate');
+	if (!raw) return null;
+	const tokens = raw.split(',').map((s) => s.trim()).filter(Boolean);
+	const ctxs = this._data.contexts || {};
+	const ids = new Set();
+	const weight = new Map();
+	let from = this.getAttribute('attention-from') || null;
+	for (const tok of tokens) {
+		if (ctxs[tok]) {
+			const c = ctxs[tok];
+			if (!from && c.from) from = c.from;
+			for (const id of c.nodes) {
+				ids.add(id);
+				weight.set(id, (weight.get(id) || 0) + ((c.weights && c.weights[id]) ?? 0.5));
+			}
+		} else {
+			ids.add(tok);
+			weight.set(tok, (weight.get(tok) || 0) + 0.5);
+		}
+	}
+	// renormalise the fan weights (exclude `from`) so they sum to 1 — the fixed budget
+	const fanIds = [...ids].filter((id) => id !== from);
+	const sum = fanIds.reduce((s, id) => s + (weight.get(id) || 0), 0) || 1;
+	for (const id of fanIds) weight.set(id, (weight.get(id) || 0) / sum);
+	return { ids, from, weights: weight, constellation: this.hasAttribute('constellation') };
+}
+```
+
+- [ ] **Step 4: Render in `render.js`** — after the spotlight block, before the nodes loop:
+
+```js
+const gAtt = view.querySelector('g.attention');
+const act = state.activate;
+if (act) {
+	const list = [...act.ids].filter((id) => byId.has(id));
+	// halos
+	for (const id of list) {
+		const n = byId.get(id);
+		const w = id === act.from ? 1 : (act.weights.get(id) || 0);
+		const col = (state.colors.get(n.topics[0]) || {}).fill || 'var(--primary)';
+		gAtt.appendChild(make('circle', {
+			class: 'halo', cx: n.x, cy: n.y, r: NODE_R + 4 + w * 60,
+			fill: col, 'fill-opacity': 0.18,
+		}));
+	}
+	// edges
+	if (act.from && byId.has(act.from)) {
+		const f = byId.get(act.from);
+		for (const id of list) {
+			if (id === act.from) continue;
+			const n = byId.get(id);
+			gAtt.appendChild(make('line', {
+				x1: f.x, y1: f.y, x2: n.x, y2: n.y,
+				stroke: 'var(--primary-strong)', 'stroke-opacity': 0.8,
+				'stroke-width': 1 + (act.weights.get(id) || 0) * 16, 'stroke-linecap': 'round',
+			}));
+		}
+	} else {
+		for (let i = 0; i < list.length; i++) for (let j = i + 1; j < list.length; j++) {
+			const a = byId.get(list[i]); const b = byId.get(list[j]);
+			gAtt.appendChild(make('line', {
+				x1: a.x, y1: a.y, x2: b.x, y2: b.y,
+				stroke: 'var(--primary-strong)', 'stroke-opacity': 0.55, 'stroke-width': 1.4,
+			}));
+		}
+	}
+	if (act.constellation && list.length > 1) {
+		gAtt.appendChild(make('polyline', {
+			class: 'constellation',
+			points: list.map((id) => `${byId.get(id).x},${byId.get(id).y}`).join(' '),
+			fill: 'none', stroke: 'var(--primary-strong)', 'stroke-width': 1, 'stroke-dasharray': '2 6',
+		}));
+	}
+}
+```
+
+Then in the nodes loop dim logic add:
+
+```js
+const dimByAct = act && !act.ids.has(n.id);
+if (scopedOut) { attrs.opacity = 0.15; }
+else if (dimByAct) { attrs.fill = 'var(--muted)'; attrs.opacity = 0.12; }
+else if (dimBySpot) { attrs.opacity = 0.15; }
+else if (dimByTag) { attrs.opacity = 0.35; }
+```
+
+And `labelled()` `'auto'`: also `|| (state.activate && state.activate.ids.has(n.id))`.
+
+- [ ] **Step 5: Run to verify it passes**
+
+Run: `npm test`
+Expected: PASS — `activate` green; the budget test passes because fan weights are renormalised to sum 1, so `Σ width ≈ count + 16`.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add src/components/ideas-map/index.js src/components/ideas-map/render.js test/ideas-map.html
+git commit -m "feat(ideas-map): activate/attention overlay with fixed-budget fan"
+```
+
+---
+
+### Task 11: `labels` modes + live toggle button
+
+**Files:**
+- Modify: `src/components/ideas-map/index.js`, `src/components/ideas-map/render.js`
+- Modify: `test/ideas-map.html` (append `QUnit.module('labels')`)
+
+**Interfaces:**
+- Consumes: `state.labelsMode`.
+- Produces:
+  - `render()` appends `<button class="btn ghost" type="button">Aa</button>` to the shadow root. Click toggles `this._labelOverride` between `null` → `'all'` → `'none'` → `null`; on change it recomputes state and redraws. `connectedCallback` (via base `_upgraded` re-init is guarded) — on a fresh `render`, `this._labelOverride` starts `null` so the state resets to the `labels` attribute.
+  - `_computeState` sets `labelsMode = this._labelOverride || this.getAttribute('labels') || 'auto'`.
+  - `render.js` `labelled()`: `'none'` → false; `'topics'` → false for node labels (topic captions are out of v1 scope — leave a `// TODO topics captions` only as a comment is NOT allowed; instead: `'topics'` behaves as `'none'` for node labels in v1, documented here); `'all'` → true; `'auto'` → the scope/highlight/activate rule from Tasks 8/10, else true when `state.nodes.length <= 60`.
+
+- [ ] **Step 1: Write the failing test**
+
+```js
+QUnit.module('labels');
+
+QUnit.test('labels attribute controls node text', (assert) => {
+	const none = mount(); none.setAttribute('labels', 'none');
+	assert.strictEqual(none.shadowRoot.querySelectorAll('text.node-label').length, 0);
+	const all = mount(); all.setAttribute('labels', 'all');
+	assert.strictEqual(all.shadowRoot.querySelectorAll('text.node-label').length, DATASET.nodes.length);
+});
+
+QUnit.test('toggle button flips labels live', (assert) => {
+	const el = mount(); el.setAttribute('labels', 'none');
+	const btn = el.shadowRoot.querySelector('button.btn.ghost');
+	assert.ok(btn, 'toggle button present');
+	btn.click();
+	assert.strictEqual(el.shadowRoot.querySelectorAll('text.node-label').length, DATASET.nodes.length, 'labels on after click');
+	btn.click();
+	assert.strictEqual(el.shadowRoot.querySelectorAll('text.node-label').length, 0, 'labels off after second click');
+});
+```
+
+- [ ] **Step 2: Run to verify it fails**
+
+Run: `npm test`
+Expected: FAIL — no button; override not wired.
+
+- [ ] **Step 3: Implement in `index.js`**
+
+```js
+render() {
+	// ...svg + legend build...
+	this._labelOverride = null;
+	this._toggle = document.createElement('button');
+	this._toggle.className = 'btn ghost';
+	this._toggle.type = 'button';
+	this._toggle.textContent = 'Aa';
+	this._toggle.addEventListener('click', () => {
+		this._labelOverride = this._labelOverride === null ? 'all'
+			: this._labelOverride === 'all' ? 'none' : null;
+		this._computeState();
+		this._renderLegend();
+		drawGraph(this._svg, this._state);
+	});
+	this.shadowRoot.appendChild(this._toggle);
+	// ...camera, sim, state, drawGraph, zoomTo, applyScope...
+}
+```
+
+In `_computeState`: `labelsMode: this._labelOverride || this.getAttribute('labels') || 'auto',`
+
+- [ ] **Step 4: Update `labelled()` in `render.js`**
+
+```js
+function labelled(n, state) {
+	if (state.labelsMode === 'none' || state.labelsMode === 'topics') return false;
+	if (state.labelsMode === 'all') return true;
+	// auto
+	if (state.activate) return state.activate.ids.has(n.id);
+	if (state.spotlight) return true; // spotlight involves few; cheap
+	if (state.scope) return n.topics[0] === state.scope || state.highlight.has(n.id);
+	if (state.highlight.size) return state.highlight.has(n.id);
+	return state.nodes.length <= 60;
+}
+```
+
+- [ ] **Step 5: Run to verify it passes**
+
+Run: `npm test`
+Expected: PASS — `labels` green; earlier modules green.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add src/components/ideas-map/index.js src/components/ideas-map/render.js test/ideas-map.html
+git commit -m "feat(ideas-map): labels modes + live Aa toggle"
+```
+
+---
+
+### Task 12: Drag to trace
+
+**Files:**
+- Modify: `src/components/ideas-map/index.js`, `src/components/ideas-map/render.js`
+- Modify: `test/ideas-map.html` (append `QUnit.module('drag')`)
+
+**Interfaces:**
+- Consumes: `this._sim`, `g.nodes` circles.
+- Produces: `d3.drag()` bound to `g.nodes` `circle.node` selection. `start`: `sim.alphaTarget(0.3).restart()`, `d.fx = d.x; d.fy = d.y`, set `this._dragId = d.id`. `drag`: `d.fx = event.x; d.fy = event.y`, tick redraw. `end`: `sim.alphaTarget(0)`, `d.fx = d.fy = null`, `this._dragId = null`, redraw. While `this._dragId` is set, `drawGraph` marks the dragged node's link-neighbours' circles with `class="node lit"` and every other circle `class="node dim"` (0.3 opacity). A `tick` handler updates positions during drag/re-heat.
+
+- [ ] **Step 1: Write the failing test**
+
+```js
+QUnit.module('drag');
+
+QUnit.test('drag sets fx/fy then releases; neighbours light', (assert) => {
+	const el = mount();
+	el.setAttribute('show-links', '');
+	const sim = el._sim;
+	const king = sim.nodes().find((n) => n.id === 'king');
+
+	// simulate the drag lifecycle via the element's own handlers
+	el._onDragStart({ x: king.x, y: king.y }, king);
+	assert.strictEqual(king.fx, king.x, 'fx pinned on start');
+	el._onDrag({ x: king.x + 40, y: king.y + 10 }, king);
+	assert.strictEqual(king.fx, king.x + 40, 'fx follows pointer');
+
+	const franceCircle = [...el.shadowRoot.querySelectorAll('g.nodes circle.node')]
+		.find((c) => c.dataset.id === 'france'); // king–france is a link
+	assert.ok(franceCircle.classList.contains('lit'), 'linked neighbour lit while dragging');
+
+	el._onDragEnd({}, king);
+	assert.strictEqual(king.fx, null, 'released on drop');
+	assert.strictEqual(king.fy, null, 'released on drop');
+});
+```
+
+- [ ] **Step 2: Run to verify it fails**
+
+Run: `npm test`
+Expected: FAIL — `_onDragStart` etc. undefined; no `lit` class.
+
+- [ ] **Step 3: Implement drag handlers in `index.js`**
+
+```js
+render() {
+	// ...after drawGraph/zoomTo...
+	this._sim.on('tick', () => {
+		if (this._sim.alpha() < this._sim.alphaMin()) return;
+		this._syncPositions();
+	});
+	this._wireDrag();
+}
+
+_wireDrag() {
+	const self = this;
+	const drag = d3.drag()
+		.subject(function () { return d3.select(this).datum(); })
+		.on('start', function (event, d) { self._onDragStart(event, d); })
+		.on('drag', function (event, d) { self._onDrag(event, d); })
+		.on('end', function (event, d) { self._onDragEnd(event, d); });
+	d3.select(this._svg).selectAll('g.nodes circle.node')
+		.data(this._sim.nodes(), (d) => (d && d.id) || null)
+		.call(drag);
+}
+
+_onDragStart(event, d) {
+	this._sim.alphaTarget(0.3).restart();
+	d.fx = d.x; d.fy = d.y;
+	this._dragId = d.id;
+	drawGraph(this._svg, this._state);
+	this._wireDrag();
+}
+_onDrag(event, d) {
+	d.fx = event.x; d.fy = event.y;
+	this._syncPositions();
+}
+_onDragEnd(event, d) {
+	this._sim.alphaTarget(0);
+	d.fx = null; d.fy = null;
+	this._dragId = null;
+	drawGraph(this._svg, this._state);
+	this._wireDrag();
+}
+
+_syncPositions() {
+	const byId = new Map(this._sim.nodes().map((n) => [n.id, n]));
+	this._svg.querySelectorAll('g.nodes circle.node').forEach((c) => {
+		const n = byId.get(c.dataset.id); if (!n) return;
+		c.setAttribute('cx', n.x); c.setAttribute('cy', n.y);
+	});
+	this._svg.querySelectorAll('g.nodes circle.pulse, g.attention circle.halo').forEach(() => {});
+	// links follow
+	this._svg.querySelectorAll('g.links line').forEach((l) => {
+		// endpoints identified by data attributes set in render.js (add them there)
+	});
+}
+```
+
+To make `_syncPositions` able to move links, add `'data-s'` / `'data-t'` attributes to each `<line>` in `render.js`'s links loop (`'data-s': s.id, 'data-t': t.id`), then in `_syncPositions`:
+
+```js
+this._svg.querySelectorAll('g.links line').forEach((l) => {
+	const s = byId.get(l.dataset.s); const t = byId.get(l.dataset.t);
+	if (!s || !t) return;
+	l.setAttribute('x1', s.x); l.setAttribute('y1', s.y);
+	l.setAttribute('x2', t.x); l.setAttribute('y2', t.y);
+});
+```
+
+- [ ] **Step 4: `lit` / `dim` in `render.js`** — pass `state.dragId` (add it in `_computeState`: `dragId: this._dragId || null`). In the nodes loop:
+
+```js
+if (state.dragId) {
+	const nbr = new Set([state.dragId]);
+	for (const l of state.links) {
+		const sid = l.source.id ?? l.source; const tid = l.target.id ?? l.target;
+		if (sid === state.dragId) nbr.add(tid);
+		if (tid === state.dragId) nbr.add(sid);
+	}
+	attrs.class = 'node ' + (nbr.has(n.id) ? 'lit' : 'dim');
+	if (!nbr.has(n.id)) attrs.opacity = Math.min(attrs.opacity ?? 1, 0.3);
+}
+```
+
+- [ ] **Step 5: Run to verify it passes**
+
+Run: `npm test`
+Expected: PASS — `drag` green; earlier modules green.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add src/components/ideas-map/index.js src/components/ideas-map/render.js test/ideas-map.html
+git commit -m "feat(ideas-map): drag a node to trace its links; release on drop"
+```
+
+---
+
+### Task 13: Reduced motion, live theme re-colour, a11y desc
+
+**Files:**
+- Modify: `src/components/ideas-map/index.js`
+- Modify: `test/ideas-map.html` (append `QUnit.module('a11y + theming + motion')`)
+
+**Interfaces:**
+- Consumes: `this._state.reduced`, `readPalette`.
+- Produces:
+  - `render()` sets `<desc>` text and updates it in `_computeState` to describe the current overlay (`scope`, `tag`, `activate`).
+  - `attributeChangedCallback` already recomputes `colors` via `topicColors((v)=>this.cssVar(v))`, so a `[data-theme]` swap that changes `--primary` re-colours on the next attribute change; additionally, add a one-shot: after `render`, `this._themeObserver = new MutationObserver(() => { this._computeState(); this._renderLegend?.(); drawGraph(this._svg, this._state); })` observing `document.documentElement` `attributes` filtered to `['data-theme','class']`. Disconnect it in `disconnectedCallback`.
+  - `_dur()` already returns `0` when `this._state.reduced`; ensure `_applyScope` and any transition uses `_dur('hero')`.
+
+- [ ] **Step 1: Write the failing test**
+
+```js
+QUnit.module('a11y + theming + motion');
+
+QUnit.test('svg has title and desc', (assert) => {
+	const el = mount();
+	assert.ok(el.shadowRoot.querySelector('svg > title'), 'title');
+	assert.ok(el.shadowRoot.querySelector('svg > desc'), 'desc');
+});
+
+QUnit.test('reduced motion => camera duration 0', (assert) => {
+	const el = mount();
+	el._state.reduced = true;               // force it for the assert
+	assert.strictEqual(el._dur('hero'), 0, 'hero duration collapses');
+});
+
+QUnit.test('theme change re-colours nodes', (assert) => {
+	const done = assert.async();
+	const el = mount();
+	const before = el.shadowRoot.querySelector('g.nodes circle.node').getAttribute('fill');
+	document.documentElement.setAttribute('data-theme', 'dark');
+	requestAnimationFrame(() => {
+		const after = el.shadowRoot.querySelector('g.nodes circle.node').getAttribute('fill');
+		document.documentElement.removeAttribute('data-theme');
+		assert.notStrictEqual(before, after, 'fill tracked the theme');
+		done();
+	});
+});
+```
+
+Note: the theme test relies on `--primary` differing between light and `[data-theme="dark"]` in `semantic.css` — it does (`--color-brand-500` vs `--color-brand-400`).
+
+- [ ] **Step 2: Run to verify it fails**
+
+Run: `npm test`
+Expected: FAIL — no MutationObserver; theme change does nothing until an attribute changes.
+
+- [ ] **Step 3: Implement in `index.js`** — add to `render()`:
+
+```js
+this._themeObserver = new MutationObserver(() => {
+	this._computeState();
+	this._renderLegend();
+	drawGraph(this._svg, this._state);
+});
+this._themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class'] });
+```
+
+And `disconnectedCallback`:
+
+```js
+disconnectedCallback() {
+	this._sim && this._sim.stop();
+	this._themeObserver && this._themeObserver.disconnect();
+}
+```
+
+Because Reveal relocates the `<section>` (disconnect → reconnect) and the base
+`connectedCallback` early-returns after the first upgrade, re-attach the observer
+on every reconnect so live theme re-colour survives a DOM move:
+
+```js
+connectedCallback() {
+	super.connectedCallback();
+	if (this._themeObserver) {
+		this._themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class'] });
+	}
+}
+```
+(A MutationObserver ignores a duplicate `observe()` on the same target+options,
+so calling it again on the very first connect — before `render()` has created it
+— is guarded by the `if`.)
+
+Update `<desc>` in `_computeState`:
+
+```js
+const bits = [];
+if (this._state.scope) bits.push(`focused on ${this._state.scope}`);
+if (this._state.tag.size) bits.push(`tags: ${[...this._state.tag].join(', ')}`);
+if (this._state.activate) bits.push(`constellation of ${this._state.activate.ids.size} ideas`);
+this._svg.querySelector('desc').textContent = bits.length ? bits.join('; ') : 'a force-directed map of ideas';
+```
+
+- [ ] **Step 4: Run to verify it passes**
+
+Run: `npm test`
+Expected: PASS — `a11y + theming + motion` green; earlier modules green.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/components/ideas-map/index.js test/ideas-map.html
+git commit -m "feat(ideas-map): live theme re-colour, reduced-motion, a11y desc"
+```
+
+---
+
+### Task 14: Wire slide 3 + manual verification
+
+**Files:**
+- Modify: `slides/03-ideas-in-space.html`
+
+**Interfaces:**
+- Consumes: the finished `deck-ideas-map`.
+- Produces: slide 3 shows the star map.
+
+- [ ] **Step 1: Replace `slides/03-ideas-in-space.html`**
+
+```html
+<section id="ideas-in-space" data-slug="ideas-in-space">
+	<h2>"Ideas in Space" (The Map)</h2>
+	<deck-ideas-map label="Ideas in space" labels="none"></deck-ideas-map>
+	<aside class="notes">
+		Our brain keeps different ideas in different places — a map, with similar
+		topics near each other; you can draw a circle around similar ideas.
+		Ideas are described in sentences; sentences are made of words. Tokenisation:
+		break sentences into tokens (today, tokens = words); filler words fade.
+		Sets up the Token glossary card. Verb, noun, adjective — the meaning of all
+		of it is connected.
+	</aside>
+</section>
+```
+
+- [ ] **Step 2: Run the test suite**
+
+Run: `npm test`
+Expected: PASS — full suite green (no test targets the slide, but this confirms nothing regressed).
+
+- [ ] **Step 3: Manual check**
+
+Run: `npm start`, open the deck, go to the "ideas-in-space" slide.
+Expected: overlapping colour-coded clusters of unlabelled points; the `Aa` button bottom-right turns labels on/off; no arrows, no links.
+
+- [ ] **Step 4: Manual attribute sweep** (scratch slide or dev console)
+
+Add a temporary `slides/03.1-ideas-map-scratch.html` exercising:
+`show-links`; `spotlight="gender"` (parallel equal arrows); `tag="family,animals"` (legend + dim); `scope="family"` (camera fly, out-of-scope muted not gone); `reveal="2"`; `activate="royalty"` + `constellation` (halos, fan, faint rest); drag a node (neighbours light, springs back). Delete the scratch file when satisfied.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add slides/03-ideas-in-space.html
+git commit -m "feat(ideas-map): place the map on slide 3 as the star map"
+```
+
+---
+
+### Task 15: Tune the layout
+
+**Files:**
+- Modify: `src/components/ideas-map/dataset.js` (constants only)
+
+**Interfaces:**
+- Consumes: visual judgement against the storyboard.
+- Produces: final `SEED WARMUP LINK_DIST CHARGE CLUSTER COLLIDE D REL NODE_R` such that: topic clusters clearly group **but visibly overlap**; every relation family's arrows are parallel and equal (already asserted, but confirm at real scale); the graph fills the 1600×1000 frame without clipping labels; `show-links` settles without jitter.
+
+- [ ] **Step 1: Run the deck** (`npm start`), view slide 3 and the scratch sweep from Task 14.
+
+- [ ] **Step 2: Adjust constants** in `dataset.js`. Guidance:
+  - clusters too separate → lower `CLUSTER` (e.g. 0.03) or raise `CHARGE` magnitude.
+  - clusters not distinct → raise `CLUSTER` to ~0.08.
+  - parallelograms drifting → raise `REL` toward 0.5; too rigid/grid-like → lower toward 0.25.
+  - graph overflowing frame → raise `CHARGE` magnitude is wrong; instead lower `LINK_DIST` and `CLUSTER` radius (the `0.32` factor in `topicCentroids`) — if you change that factor, do it in `simulation.js` and note it here.
+  - nodes overlapping → raise `COLLIDE`.
+
+- [ ] **Step 3: Re-run tests**
+
+Run: `npm test`
+Expected: PASS — all modules still green with the new constants (the tolerance-based relation/cluster assertions must still hold; tighten or loosen only with a one-line justification in the commit message).
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add src/components/ideas-map/dataset.js src/components/ideas-map/simulation.js
+git commit -m "chore(ideas-map): tune force constants for overlap + rigid parallelograms"
+```
+
+---
+
+## Self-Review
+
+**Spec coverage:**
+
+| Spec section | Task(s) |
+|---|---|
+| §3.1 force sim (link/charge/cluster/collide/center), seeded + frozen | 3 |
+| §3.1a `forceRelations` | 4 |
+| §3.2 scope camera (`interpolateZoom`, out-of-scope muted-not-hidden) | 5, 8 |
+| §3.3 integration (DeckElement, lazy d3, viewBox, semantic vars, `role`/`title`/`desc`) | 1, 6, 13 |
+| §4.1 topics | 1 |
+| §4.2 nodes, colour-by-topic always | 1, 2, 6 |
+| §4.3 links | 1, 6, 7 |
+| §4.4 relations + `RELATION_OFFSETS` (any angle, topic-agnostic) | 1, 4, 9 |
+| §4.5 contexts + composition + renormalised budget | 1, 10 |
+| §5 API: `data` | 1, 6 |
+| §5 `show-links` | 7 |
+| §5 `reveal` | 7 |
+| §5 `tag` | 8 |
+| §5 `scope` | 8 |
+| §5 `highlight` | 8 |
+| §5 `spotlight` | 9 |
+| §5 `activate` / `attention-from` / `constellation` | 10 |
+| §5 `label` | 1 |
+| §5.1 drag (release on drop) | 12 |
+| §5.2 attributeChanged = overlay recompute, `data` = rebuild | 6, 7 |
+| §5.3 `labels` + live toggle | 11 |
+| §6 layers order (links, spotlight, attention, nodes, labels) | 6, 9, 10 |
+| §6 legend DOM (`.row`/`.chip`) | 8 |
+| §6.1 camera `zoomTo`/`easeTo` | 5 |
+| §6.2 `reveal` framing | 7, 8 |
+| §7 determinism (seeded, frozen; relations stable) | 3, 4 |
+| §7 theming (generated HCL scale, live `[data-theme]`) | 2, 13 |
+| §7 motion (`--motion-*`, reduced) | 8, 13 |
+| §7 a11y (`role`/`title`/`desc`) | 1, 13 |
+| §8 files (component, registry, slide 3, test) | 1, 14 |
+| §9 testing (all listed checks) | every task's QUnit module + Task 14 manual sweep |
+| §10 build path / artefact-builder conventions | followed inline (registry-edit, semantic vars, component-styles pieces) — noted in Global Constraints |
+| §11 open items | resolved in Global Constraints; Task 15 does the constant tuning |
+| §12 deferred overlays | explicitly out of scope (Global Constraints) |
+
+**Placeholder scan:** No "TBD"/"handle edge cases"/"similar to Task N". Every code step has real code. The one `'topics'` labels mode is explicitly defined as "behaves as none for node labels in v1" rather than left open. Force-constant *values* are concrete starting numbers with a dedicated tuning task (15) — not placeholders.
+
+**Type consistency:** `drawGraph(svg, state)` signature stable from Task 6 on; `state` fields are added additively (`activate`, `dragId`) and every consumer guards for absence. `buildSimulation(dataset, opts)` and `forceRelations(relations, offsets, strength)` signatures fixed at Tasks 3–4. `makeCamera(viewEl, width)` → `{zoomTo, easeTo, view}` stable. `topicColors(ids, resolve)` → `Map<id,{fill,stroke}>` stable. `_dur('hero'|'ui')` used consistently. Drag handlers `_onDragStart/_onDrag/_onDragEnd(event, d)` named identically in Task 12 impl and its test.
+
+---
+
+## Execution Handoff
+
+**Plan complete and saved to `./plan.md`. Two execution options:**
+
+**1. Subagent-Driven (recommended)** — I dispatch a fresh subagent per task, review between tasks, fast iteration.
+
+**2. Inline Execution** — Execute tasks in this session using executing-plans, batch execution with checkpoints for review.
+
+**Which approach?**
