@@ -73,3 +73,31 @@ selectors keyed under `#<slug>`; inline `<script>` has **no imports**, never use
 `document.currentScript` (null once bundled), and defers any `getComputedStyle`
 custom-property read to the `load` event. If it needs a library, it is not an
 inline artefact - make a `<deck-*>` with `artefact-builder`.
+
+---
+
+## 4. HTML slide as its own vertical stack, with fragments - `NN-<slug>.html`
+
+One file, nested `<section>`s - each is a sub-slide reached with the down
+arrow. Use this shape (instead of sibling `NN.M-<slug>` files) when the
+sub-slides are tightly coupled, e.g. one item per sub-slide under a shared
+question.
+
+```html
+<section id="<slug>" data-slug="<slug>">
+	<section>
+		<h2>Shared question</h2>
+		<img class="r-stretch" src="/<asset>.png" alt="">
+		<p class="fragment">revealed on the next arrow press</p>
+	</section>
+	<section>
+		<img class="r-stretch" src="/<asset-2>.png" alt="">
+		<p class="fragment">revealed on the next arrow press</p>
+	</section>
+</section>
+```
+
+Fragments on a sub-slide resolve before Reveal advances to the next sub-slide
+- no extra wiring needed. Images referenced from `public/` are root-relative
+(`public/pictures/x.png` -> `src="/pictures/x.png"`, never `/public/...`).
+See framework-conventions.md section 8 for the full fragment class list.
