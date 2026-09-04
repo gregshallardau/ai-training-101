@@ -689,6 +689,22 @@
 			});
 		});
 
+		QUnit.test('click jitter under the threshold still zooms to the topic', (assert) => {
+			withReducedMotion(() => {
+				const el = mount();
+				const wholeW = el._camera.view()[2];
+				const gene = el._sim.nodes().find((n) => n.id === 'gene');
+				el._onDragStart({ x: gene.x, y: gene.y }, gene);
+				el._onDrag({ x: gene.x + 3, y: gene.y - 2 }, gene);   // 3.6px — click jitter
+				el._onDragEnd({}, gene);
+				assert.strictEqual(el._dragMoved, false, 'tiny jitter is not counted as a move');
+				const gc = [...el.shadowRoot.querySelectorAll('g.nodes circle.node')].find((c) => c.dataset.id === 'gene');
+				gc.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+				assert.strictEqual(el._clickScope, 'sciences', 'the click still registered');
+				assert.ok(el._camera.view()[2] < wholeW, 'camera zoomed to the topic');
+			});
+		});
+
 		QUnit.test('a moved drag does not trigger a zoom click', (assert) => {
 			const el = mount();
 			const king = el._sim.nodes().find((n) => n.id === 'king');

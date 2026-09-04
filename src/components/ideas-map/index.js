@@ -280,10 +280,17 @@ class DeckIdeasMap extends DeckElement {
 	 *  pixel of pan is `1/k` world units, so divide by k to move content 1:1 with
 	 *  the pointer. Node drags are filtered out so they still move the node. */
 	_wirePan() {
+		let ox = 0; let oy = 0;
 		const drag = d3.drag()
+			.clickDistance(8)   // sub-8px jitter stays a click (background → zoom out)
 			.filter((event) => !(event.target && event.target.closest && event.target.closest('circle.node')))
-			.on('start', () => { this._panMoved = false; })
-			.on('drag', (event) => { this._panMoved = true; this._panBy(event.dx, event.dy); });
+			.on('start', (event) => { ox = event.x; oy = event.y; this._panMoved = false; })
+			.on('drag', (event) => {
+				// swallow the first few px so a jittery click isn't read as a pan
+				if (!this._panMoved && Math.hypot(event.x - ox, event.y - oy) < 8) return;
+				this._panMoved = true;
+				this._panBy(event.dx, event.dy);
+			});
 		d3.select(this._svg).call(drag);
 	}
 
@@ -350,6 +357,7 @@ class DeckIdeasMap extends DeckElement {
 	_wireDrag() {
 		const self = this;
 		const drag = d3.drag()
+			.clickDistance(8)   // sub-8px jitter is a click (zoom to topic), not a drag
 			.subject(function () { return d3.select(this).datum(); })
 			.on('start', function (event, d) { self._onDragStart(event, d); })
 			.on('drag', function (event, d) { self._onDrag(event, d); })
@@ -362,6 +370,7 @@ class DeckIdeasMap extends DeckElement {
 
 	_onDragStart(event, d) {
 		this._dragMoved = false;
+		this._dragOrigin = [event.x, event.y];
 		this._sim.alphaTarget(0.3).restart();
 		d.fx = d.x; d.fy = d.y;
 		this._dragId = d.id;
@@ -371,7 +380,9 @@ class DeckIdeasMap extends DeckElement {
 
 	_onDrag(event, d) {
 		d.fx = event.x; d.fy = event.y;
-		this._dragMoved = true;   // so the trailing `click` isn't read as a zoom
+		// only a real move (not click jitter) blocks the trailing zoom-to-topic click
+		const [ox, oy] = this._dragOrigin || [event.x, event.y];
+		if (Math.hypot(event.x - ox, event.y - oy) > 10) this._dragMoved = true;
 		this._paint();
 	}
 
