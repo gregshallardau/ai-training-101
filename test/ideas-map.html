@@ -656,6 +656,39 @@
 			});
 		});
 
+		QUnit.test('_panBy translates the camera, zoom unchanged', (assert) => {
+			const el = mount();
+			el.setAttribute('scope', 'family');
+			const [cx0, cy0, w0] = el._camera.view();
+			el._panBy(60, -30);           // drag right + up
+			const [cx1, cy1, w1] = el._camera.view();
+			assert.strictEqual(w1, w0, 'zoom (view width) not touched by a pan');
+			assert.ok(cx1 < cx0 && cy1 > cy0, 'camera centre moved opposite the drag delta');
+		});
+
+		QUnit.test('mouse wheel zooms about the pointer', (assert) => {
+			const el = mount();
+			el._state.reduced = true;   // _dur('ui') -> 0 so easeTo applies synchronously
+			const w0 = el._camera.view()[2];
+			el._svg.dispatchEvent(new WheelEvent('wheel', { deltaY: 120, bubbles: true, cancelable: true }));
+			const w1 = el._camera.view()[2];
+			assert.ok(w1 > w0, 'wheel down widens the view (zoom out)');
+			el._svg.dispatchEvent(new WheelEvent('wheel', { deltaY: -120, bubbles: true, cancelable: true }));
+			assert.ok(el._camera.view()[2] < w1, 'wheel up narrows the view (zoom in)');
+		});
+
+		QUnit.test('a real pan suppresses the trailing background zoom-out click', (assert) => {
+			withReducedMotion(() => {
+				const el = mount();
+				el.setAttribute('scope', 'family');
+				const scopedW = el._camera.view()[2];
+				el._panMoved = true;   // as set by the pan drag handler
+				el._svg.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+				assert.strictEqual(el._camera.view()[2], scopedW, 'camera stayed put — no zoom-out');
+				assert.strictEqual(el._panMoved, false, 'the guard was consumed');
+			});
+		});
+
 		QUnit.test('a moved drag does not trigger a zoom click', (assert) => {
 			const el = mount();
 			const king = el._sim.nodes().find((n) => n.id === 'king');

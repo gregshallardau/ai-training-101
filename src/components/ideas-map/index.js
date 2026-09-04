@@ -34,7 +34,9 @@ class DeckIdeasMap extends DeckElement {
 			width: 100%; height: auto;
 			max-width: 100%; max-height: var(--ideas-map-max-h, 72vh);
 			aspect-ratio: ${W} / ${H};
+			cursor: grab; touch-action: none; /* so a drag pans instead of scrolling */
 		}
+		svg:active { cursor: grabbing; }
 		text { fill: var(--fg); }
 		circle.node { cursor: grab; }
 		/* legend + controls share one top-right column; controls sit under the legend */
@@ -164,9 +166,10 @@ class DeckIdeasMap extends DeckElement {
 
 		// Click a node → zoom the camera to fit that node's topic; click empty
 		// space → zoom back out to the whole graph (spec §6.1). A click that ended
-		// a real drag is not a zoom click.
+		// a real drag (node move) or a real pan is not a zoom click.
 		d3.select(this._svg).on('click', (event) => {
 			if (this._dragMoved) { this._dragMoved = false; return; }
+			if (this._panMoved) { this._panMoved = false; return; }
 			const el = event.target && event.target.closest && event.target.closest('circle.node');
 			if (el) {
 				const n = this._sim.nodes().find((x) => x.id === el.dataset.id);
@@ -177,6 +180,13 @@ class DeckIdeasMap extends DeckElement {
 			this._redraw();
 			this._applyScope();
 		});
+
+		// Drag empty space → pan the camera (translate only, zoom unchanged). Lets
+		// you move around a topic you've zoomed into. Node drags are excluded via
+		// the filter so they still move the node.
+		this._wirePan();
+		// Mouse wheel → zoom, anchored on the pointer.
+		this._wireWheel();
 
 		this._computeState();
 		this._renderLegend();
@@ -263,6 +273,49 @@ class DeckIdeasMap extends DeckElement {
 	_zoomBy(factor) {
 		const [cx, cy, w] = this._camera.view();
 		this._camera.easeTo([cx, cy, w * factor], { duration: this._dur('ui') });
+	}
+
+	/** Drag on empty SVG space pans the camera. `event.dx/dy` are in viewBox units
+	 *  (the svg has a viewBox and getScreenCTM handles the scale); one screen
+	 *  pixel of pan is `1/k` world units, so divide by k to move content 1:1 with
+	 *  the pointer. Node drags are filtered out so they still move the node. */
+	_wirePan() {
+		const drag = d3.drag()
+			.filter((event) => !(event.target && event.target.closest && event.target.closest('circle.node')))
+			.on('start', () => { this._panMoved = false; })
+			.on('drag', (event) => { this._panMoved = true; this._panBy(event.dx, event.dy); });
+		d3.select(this._svg).call(drag);
+	}
+
+	/** Translate the camera by a pointer delta given in viewBox units. `k = W/w`
+	 *  is the current scale, so `delta/k` is the move in world units — content
+	 *  tracks the pointer 1:1. Zoom (`w`) is untouched. */
+	_panBy(dx, dy) {
+		const [cx, cy, w] = this._camera.view();
+		const k = W / w;
+		this._camera.zoomTo([cx - dx / k, cy - dy / k, w]);
+	}
+
+	/** Mouse wheel zooms about the pointer, eased (interpolateZoom) so it glides
+	 *  rather than jumping. Rapid ticks cancel and re-ease from the live view, so
+	 *  it stays smooth. `w` is clamped so you can't zoom to a speck or way past
+	 *  the whole graph. */
+	_wireWheel() {
+		const MIN_W = 120;
+		const MAX_W = W * 2.4;
+		this._svg.addEventListener('wheel', (event) => {
+			event.preventDefault();
+			const view = this.shadowRoot.querySelector('g.view');
+			const [px, py] = d3.pointer(event, view);
+			const [cx, cy, w] = this._camera.view();
+			let factor = event.deltaY > 0 ? 1.2 : 1 / 1.2;
+			const clamped = Math.max(MIN_W, Math.min(MAX_W, w * factor));
+			factor = clamped / w; // honour the clamp when re-anchoring
+			this._camera.easeTo(
+				[px + (cx - px) * factor, py + (cy - py) * factor, clamped],
+				{ duration: this._dur('ui') },
+			);
+		}, { passive: false });
 	}
 
 	_cycleMode() {
