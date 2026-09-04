@@ -332,17 +332,20 @@ class DeckIdeasMap extends DeckElement {
 	_wireWheel() {
 		const MIN_W = 120;
 		const MAX_W = W * 2.4;
+		const STEP = 1.35;   // zoom per wheel notch
 		this._svg.addEventListener('wheel', (event) => {
 			event.preventDefault();
 			const view = this.shadowRoot.querySelector('g.view');
 			const [px, py] = d3.pointer(event, view);
 			const [cx, cy, w] = this._camera.view();
-			let factor = event.deltaY > 0 ? 1.2 : 1 / 1.2;
+			let factor = event.deltaY > 0 ? STEP : 1 / STEP;
 			const clamped = Math.max(MIN_W, Math.min(MAX_W, w * factor));
 			factor = clamped / w; // honour the clamp when re-anchoring
+			// short ease so a fast scroll chains smoothly instead of lagging a
+			// full UI-duration behind each notch
 			this._camera.easeTo(
 				[px + (cx - px) * factor, py + (cy - py) * factor, clamped],
-				{ duration: this._dur('ui') },
+				{ duration: this._state.reduced ? 0 : 90 },
 			);
 		}, { passive: false });
 	}
@@ -443,7 +446,7 @@ class DeckIdeasMap extends DeckElement {
 			this._paint();
 		} else {
 			// re-energise so the released node springs back to its home spot
-			this._sim.alpha(0.6).restart();
+			this._sim.alpha(0.3).restart();
 		}
 	}
 
