@@ -10,7 +10,7 @@ import { drawGraph } from './render.js';
 // Named per-slide starting states. `mode="web"` on a slide == the map picks up
 // in this preset; explicit attributes (or a live control) override a dimension.
 const MODES = {
-	'star-map':      { labels: 'none', links: false, vectors: null,     scope: null,     activate: null,      starmap: false },
+	'star-map':      { labels: 'topics', links: false, vectors: null,   scope: null,     activate: null,      starmap: false },
 	'labels':        { labels: 'all',  links: false, vectors: null,     scope: null,     activate: null,      starmap: false },
 	'vectors':       { labels: 'all',  links: false, vectors: 'gender', scope: null,     activate: null,      starmap: false },
 	'web':           { labels: 'all',  links: true,  vectors: null,     scope: null,     activate: null,      starmap: false },
@@ -32,7 +32,7 @@ class DeckIdeasMap extends DeckElement {
 		svg {
 			display: block; margin-inline: auto; background: transparent;
 			width: 100%; height: auto;
-			max-width: 100%; max-height: 72vh;
+			max-width: 100%; max-height: var(--ideas-map-max-h, 72vh);
 			aspect-ratio: ${W} / ${H};
 		}
 		text { fill: var(--fg); }
@@ -58,15 +58,23 @@ class DeckIdeasMap extends DeckElement {
 		.controls button.on { color: var(--primary-fg); background: var(--primary); }
 		.controls button:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
 		.legend {
-			position: absolute; top: var(--space-gap); right: var(--space-gap);
-			background: var(--bg); border: 1px solid var(--line);
-			border-radius: var(--radius-card); padding: var(--space-gap);
-			display: flex; flex-direction: column; gap: var(--space-gap);
+			position: absolute; top: 0.6em; right: 0.6em;
+			background: color-mix(in srgb, var(--bg) 82%, transparent);
+			border: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
+			border-radius: var(--radius-card); padding: 0.4em 0.6em;
+			display: flex; flex-direction: column; gap: 0.28em;
 		}
 		.legend[hidden] { display: none; }
-		.row { display: flex; gap: var(--space-gap); align-items: center; font-size: 0.8em; }
+		.row {
+			display: flex; gap: 0.5em; align-items: center;
+			font-size: 0.56em; line-height: 1; color: var(--muted);
+			transition: opacity var(--motion-ui-duration) var(--motion-ui-ease);
+		}
+		.row.on { color: var(--fg); font-weight: 600; }
+		.legend:has(.row.on) .row:not(.on) { opacity: 0.4; }
 		.row .chip {
-			display: inline-block; width: 0.8em; height: 0.8em; border-radius: var(--radius-round);
+			display: inline-block; width: 0.72em; height: 0.72em; flex: none;
+			border-radius: var(--radius-round);
 		}
 		.btn.ghost {
 			font: inherit; position: absolute; bottom: var(--space-gap); right: var(--space-gap);
@@ -208,8 +216,8 @@ class DeckIdeasMap extends DeckElement {
 			mk(`mode·${this._liveMode || this.getAttribute('mode') || 'star-map'}`, false, () => this._cycleMode());
 		}
 		if (wanted.has('labels')) {
-			mk('labels', s.labelsMode !== 'none', () => {
-				this._ov.labels = ({ auto: 'all', all: 'none', none: 'auto' })[s.labelsMode] || 'all';
+			mk(s.labelsMode === 'none' ? 'labels' : `labels·${s.labelsMode}`, s.labelsMode !== 'none', () => {
+				this._ov.labels = ({ topics: 'all', all: 'auto', auto: 'none', none: 'topics' })[s.labelsMode] || 'topics';
 				this._redraw();
 			});
 		}
@@ -307,20 +315,22 @@ class DeckIdeasMap extends DeckElement {
 		return Number.isFinite(v) ? v : (kind === 'hero' ? 600 : 150);
 	}
 
+	/** Always-on colour key: one row per topic. `tag` / `scope` mark their rows
+	 *  `.on` (and the CSS fades the rest), so the legend doubles as the emphasis
+	 *  readout without disappearing when nothing is tagged. */
 	_renderLegend() {
-		const tags = this._state.scope
+		const emph = this._state.scope
 			? new Set([...this._state.tag, this._state.scope])
 			: this._state.tag;
 		this._legend.textContent = '';
-		this._legend.hidden = tags.size === 0;
-		for (const id of tags) {
-			const t = this._data.topics.find((x) => x.id === id);
+		this._legend.hidden = this._data.topics.length === 0;
+		for (const t of this._data.topics) {
 			const row = document.createElement('div');
-			row.className = 'row';
+			row.className = 'row' + (emph.size && emph.has(t.id) ? ' on' : '');
 			const chip = document.createElement('span');
 			chip.className = 'chip';
-			chip.style.background = (this._state.colors.get(id) || {}).fill || 'var(--primary)';
-			row.append(chip, document.createTextNode(t ? t.name : id));
+			chip.style.background = (this._state.colors.get(t.id) || {}).fill || 'var(--primary)';
+			row.append(chip, document.createTextNode(t.name));
 			this._legend.appendChild(row);
 		}
 	}
@@ -361,6 +371,7 @@ class DeckIdeasMap extends DeckElement {
 			relations: this._data.relations,
 			offsets: RELATION_OFFSETS,
 			topicOrder,
+			topicNames: new Map(this._data.topics.map((t) => [t.id, t.name])),
 			dragId: this._dragId || null,
 		};
 

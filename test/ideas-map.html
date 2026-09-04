@@ -251,11 +251,12 @@
 
 		QUnit.module('tag + scope + highlight');
 
-		QUnit.test('tag builds a legend and dims other topics', (assert) => {
+		QUnit.test('tag marks its legend rows and dims other topics', (assert) => {
 			const el = mount();
 			el.setAttribute('tag', 'family,places');
-			const rows = el.shadowRoot.querySelectorAll('.legend .row');
-			assert.strictEqual(rows.length, 2, 'one legend row per tagged topic');
+			const rows = [...el.shadowRoot.querySelectorAll('.legend .row')];
+			assert.strictEqual(rows.length, DATASET.topics.length, 'legend lists every topic');
+			assert.strictEqual(rows.filter((r) => r.classList.contains('on')).length, 2, 'the two tagged rows marked .on');
 			const other = [...el.shadowRoot.querySelectorAll('g.nodes circle.node')]
 				.find((c) => c.dataset.topic === 'sciences');
 			const op = other.getAttribute('opacity');
@@ -273,18 +274,20 @@
 			assert.strictEqual(outside.getAttribute('fill'), 'var(--muted)', 'muted fill');
 		});
 
-		QUnit.test('bare mount has a hidden, empty legend', (assert) => {
+		QUnit.test('legend is always on and lists every topic', (assert) => {
 			const el = mount();
-			const legend = el.shadowRoot.querySelector('.legend');
-			assert.ok(legend.hidden, 'legend div hidden with no tag/scope');
-			assert.strictEqual(legend.querySelectorAll('.row').length, 0, 'no rows');
+			const rows = [...el.shadowRoot.querySelectorAll('.legend .row')];
+			assert.notOk(el.shadowRoot.querySelector('.legend').hidden, 'legend shown even with no tag/scope');
+			assert.strictEqual(rows.length, DATASET.topics.length, 'a row per topic');
+			assert.strictEqual(rows.filter((r) => r.classList.contains('on')).length, 0, 'nothing marked without tag/scope');
 		});
 
-		QUnit.test('scope alone implies its own topic into the legend', (assert) => {
+		QUnit.test('scope marks its own topic row .on', (assert) => {
 			const el = mount();
 			el.setAttribute('scope', 'family');
-			const rows = el.shadowRoot.querySelectorAll('.legend .row');
-			assert.strictEqual(rows.length, 1, 'one row: the scoped topic');
+			const on = [...el.shadowRoot.querySelectorAll('.legend .row.on')];
+			assert.strictEqual(on.length, 1, 'one row marked');
+			assert.strictEqual(on[0].textContent.trim(), 'People & family', 'and it is the scoped topic');
 		});
 
 		QUnit.test('highlight rings the node', (assert) => {
@@ -369,17 +372,20 @@
 			assert.strictEqual(all.shadowRoot.querySelectorAll('text.node-label').length, DATASET.nodes.length);
 		});
 
-		QUnit.test('Labels control cycles node labels live', (assert) => {
+		QUnit.test('Labels control cycles topics -> all -> auto -> none', (assert) => {
 			const el = mount(); el.setAttribute('controls', 'labels');
 			const lblBtn = () => [...el.shadowRoot.querySelectorAll('.controls button')]
-				.find((b) => b.textContent === 'labels');
-			const count = () => el.shadowRoot.querySelectorAll('text.node-label').length;
-			assert.ok(lblBtn(), 'Labels button present with controls="labels"');
-			assert.strictEqual(count(), 0, 'star-map mode starts with no node labels');
-			lblBtn().click();  // none -> auto (32 nodes <= 60 -> all labelled)
-			assert.strictEqual(count(), DATASET.nodes.length, 'labels on after one click');
-			lblBtn().click(); lblBtn().click();  // auto -> all -> none
-			assert.strictEqual(count(), 0, 'back to none after cycling through');
+				.find((b) => b.textContent.startsWith('labels'));
+			const nodeLabels = () => el.shadowRoot.querySelectorAll('text.node-label').length;
+			const captions = () => el.shadowRoot.querySelectorAll('text.topic-caption').length;
+			assert.ok(lblBtn(), 'Labels button present');
+			assert.strictEqual(nodeLabels(), 0, 'star-map starts at "topics": no node labels');
+			assert.strictEqual(captions(), DATASET.topics.length, 'but a caption per topic');
+			lblBtn().click();  // topics -> all
+			assert.strictEqual(nodeLabels(), DATASET.nodes.length, 'all node labels after one click');
+			lblBtn().click(); lblBtn().click();  // all -> auto -> none
+			assert.strictEqual(nodeLabels(), 0, 'no node labels at "none"');
+			assert.strictEqual(captions(), 0, 'and no captions at "none"');
 		});
 
 		QUnit.test('controls absent -> no control row', (assert) => {
@@ -671,7 +677,7 @@
 
 		QUnit.test('mode absent defaults to star-map', (assert) => {
 			const el = mount();
-			assert.strictEqual(el._state.labelsMode, 'none', 'no labels');
+			assert.strictEqual(el._state.labelsMode, 'topics', 'star-map shows topic captions');
 			assert.strictEqual(el._state.showLinks, false, 'no web');
 			assert.strictEqual(el._state.spotlight, null, 'no vectors');
 		});
@@ -699,7 +705,7 @@
 			const el = mount();
 			el.setAttribute('mode', 'web');       // preset labels:all
 			el.setAttribute('labels', 'none');    // explicit wins
-			assert.strictEqual(el._state.labelsMode, 'none');
+			assert.strictEqual(el._state.labelsMode, 'none');  // explicit attr still wins
 			assert.strictEqual(el._state.showLinks, true, 'still gets the web from the mode');
 		});
 
@@ -709,7 +715,7 @@
 				.find((b) => b.textContent.startsWith('mode·'));
 			assert.ok(modeBtn().textContent.includes('star-map'), 'starts at star-map');
 			// flip a label override, then a mode step must clear it
-			[...el.shadowRoot.querySelectorAll('.controls button')].find((b) => b.textContent === 'labels').click();
+			[...el.shadowRoot.querySelectorAll('.controls button')].find((b) => b.textContent.startsWith('labels')).click();
 			assert.ok(el._ov.labels, 'label override set');
 			modeBtn().click();
 			assert.strictEqual(Object.keys(el._ov).length, 0, 'Mode step wiped the live overrides');

@@ -142,6 +142,25 @@ export function drawGraph(svgOrEl, state) {
 		}
 	}
 
+	// Topic captions — an uppercase label at each cluster's centroid so the bare
+	// map reads as groups, not a scatter. On for labels 'topics' and 'all'.
+	if (state.labelsMode === 'topics' || state.labelsMode === 'all') {
+		for (const id of state.topicOrder) {
+			if (revealHidden && revealHidden.has(id)) continue;
+			const pts = state.nodes.filter((n) => n.topics[0] === id);
+			if (!pts.length) continue;
+			const cx = pts.reduce((a, n) => a + n.x, 0) / pts.length;
+			const cy = Math.min(...pts.map((n) => n.y)) - NODE_R - 24;
+			const cap = make('text', {
+				class: 'topic-caption', x: cx, y: cy, 'text-anchor': 'middle',
+				'font-size': 20, 'letter-spacing': '2.5', 'font-weight': 600,
+				fill: 'var(--muted)', 'fill-opacity': 0.85,
+			});
+			cap.textContent = (state.topicNames.get(id) || id).toUpperCase();
+			gLabels.appendChild(cap);
+		}
+	}
+
 	for (const n of state.nodes) {
 		const c = nodeColor(n, state);
 		const scopedOut = state.scope && n.topics[0] !== state.scope;
