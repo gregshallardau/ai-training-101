@@ -161,14 +161,20 @@ Full text in `slides/README.md`. In short, a slide file is portable iff:
 ### Numbering
 
 ```
-NN-<slug>.<html|md>      NN = zero-padded major (>= 2 digits), step 1
-NN.M-<slug>.<html|md>    .M = vertical-stack minor; files sharing NN wrap in one <section> stack
+NN-<slug>.<html|md>      NN = zero-padded major (>= 3 digits), step 10
+NN.M-<slug>.<html|md>    .M = vertical-stack minor, step 1; files sharing NN wrap in one <section> stack
 ```
 
-`<slug>` (kebab) becomes the slide `id` / `data-slug`. `00-title.*` = title slide;
-`01-overview.*` = jump menu (deck-specific, NOT portable). `.html` body = exactly one
+`<slug>` (kebab) becomes the slide `id` / `data-slug`. `000-title.*` = title slide;
+`010-overview.*` = jump menu (deck-specific, NOT portable). `.html` body = exactly one
 `<section>` (may nest); `.md` body = raw Markdown (`--` fence = vertical sub-slide,
 `Note:` line = speaker note). The plugin does not recurse into subfolders.
+
+The step of 10 leaves gaps to insert into later without renumbering: a slide
+between `020` and `030` becomes `025` (or `021` to slot right after `020`).
+Only when a gap is fully used up (neighbours are consecutive integers) does it
+require rebalancing that local run back to round step-10 numbers. See
+`slides/README.md` for the full insertion rule.
 
 ---
 

@@ -15,7 +15,7 @@ you cannot put `var(--x)` in a presentation attribute, but you can in CSS).
 
 ## Worked example - `<deck-diagram kind="layers">`
 
-Matches the stub in `slides/02-architecture.html`.
+Matches the stub in `slides/020-architecture.html`.
 
 ```js
 // src/components/diagram/index.js

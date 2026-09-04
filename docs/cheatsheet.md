@@ -15,15 +15,18 @@ One file per slide position in `slides/`, stitched into `index.html` in filename
 order by `build/vite-plugin-slides.js`.
 
 ```
-NN-<slug>.md            NN = zero-padded major (>= 2 digits), step 1
+NN-<slug>.md            NN = zero-padded major (>= 3 digits), step 10
 NN-<slug>.html
-NN.M-<slug>.<md|html>    .M = vertical-stack minor; files sharing NN wrap in one stack
+NN.M-<slug>.<md|html>    .M = vertical-stack minor, step 1; files sharing NN wrap in one stack
 ```
 
 - `<slug>` (kebab-case) becomes the slide's `id` **and** `data-slug`. Link to it
   with `<a href="#/<slug>">`, or press `o` for the overview.
-- `00-title.*` is the title slide. `01-overview.*` is the jump menu - **deck
+- `000-title.*` is the title slide. `010-overview.*` is the jump menu - **deck
   specific, not portable** (it names other slides' slugs).
+- The step of 10 leaves room to insert later without renumbering - a slide
+  between `020` and `030` becomes `025` (or `021` right after `020`). See
+  `slides/README.md` for the full rule.
 - Pick `.md` for prose / bullets / headings. Pick `.html` for scoped layout, a
   `<deck-*>` component, or a fully-inlined artefact.
 

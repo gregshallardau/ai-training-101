@@ -23,7 +23,7 @@ description: >-
 - optional theme name (an existing `[data-theme]` in `src/styles/vars/semantic.css`;
   the plan's `theme:` key in plan mode)
 - may it overwrite a non-empty `slides/`? default **no** - the committed
-  `00-title.html` is expected and will be regenerated.
+  `000-title.html` is expected and will be regenerated.
 
 ## Read (detect state)
 
@@ -49,18 +49,18 @@ description: >-
    - *Plan mode* - read the frontmatter; each `## Section` = a horizontal section,
      `### ` under it = a vertical child. Per section, note its `intent:` line, its
      `- ` bullets, and any `artefact:` line (see `docs/plan-format.md`).
-2. **Allocate numbers:** `00-title`, `01-overview`, sections from `02`
-   (zero-padded, step 1), vertical children `NN.1`, `NN.2`, ...; in plan mode a
-   final `NN-key-takeaways` after the last section.
+2. **Allocate numbers:** `000-title`, `010-overview`, sections from `020`
+   (zero-padded, step 10 - see `slides/README.md`), vertical children `NN.1`,
+   `NN.2`, ...; in plan mode a final `NN-key-takeaways` after the last section.
 3. **Slug** = kebab-case of the section title.
 4. **Per section:** pick `.md` / `.html` with the `slide-builder` heuristic - or
    `.html` whenever a `artefact:` line is present. Render a stub: heading,
    `TODO:` bullets from the talking points, `id`/`data-slug` set. In plan mode,
    put the `intent:` text in as `<!-- intent: ... -->` at the top of the body.
-5. **Title slide** `slides/00-title.html` - title + optional subtitle. In plan
+5. **Title slide** `slides/000-title.html` - title + optional subtitle. In plan
    mode add `<!-- audience / goal / tone / duration -->` from the frontmatter as
    an HTML comment for the author's reference.
-6. **Overview** `slides/01-overview.html` - one `<a href="#/<slug>">` per
+6. **Overview** `slides/010-overview.html` - one `<a href="#/<slug>">` per
    top-level section, with a comment that it is deck-specific and not portable.
 7. **Takeaways (plan mode)** `slides/NN-key-takeaways.md` - `## Key takeaways`
    then one `- ` bullet per `takeaways` entry.
