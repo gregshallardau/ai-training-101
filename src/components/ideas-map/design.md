@@ -14,8 +14,9 @@ One recurring visual that threads the whole deck: a **map of meaning**, drawn as
 1. **Star map** (slide 3, "Ideas in Space") — loose clusters of dim, disconnected
    word-nodes grouped by topic. "Our brain keeps different ideas in different
    places; similar things sit together, and the groups overlap."
-2. **Association web** (slide 6, "Word Association Game") — the link force switches
-   on and related words wire together and pull closer.
+2. **Association web** (slide 6, "Word Association Game") — the edges between
+   related words fade in over the *same* frozen layout. Nothing moves: the web is
+   a pure draw overlay, so the relation vectors stay exactly where they settled.
 3. **Constellation** (the context slides) — as each layer of context is added, the
    ideas it touches **activate** (brighten, halo) and **attention** edges light up
    between them. A shape emerges from the star field: the lit subgraph *is* what
@@ -106,13 +107,17 @@ level with `daughter` and below `father`.
 fixed PRNG (`d3.randomLcg(SEED)` feeding `simulation.randomSource` and the initial
 `x`/`y`), runs `WARMUP` ticks synchronously, then `simulation.alpha(0).stop()`.
 Result: the same starting shape every time the component mounts, no animated
-settling on load. The sim **re-heats** briefly (`alphaTarget`) only on two
-events: `show-links` toggling (the web snapping into place is the point of slide
-6) and a drag.
+settling on load. The sim **re-heats** briefly (`alphaTarget`) only on a **drag**.
 
-`show-links` **absent** → the `forceLink` force is not added and no edges draw;
-the graph is just topic clusters. Present → link force added, edges drawn with a
-staggered fade, sim re-heats and settles.
+**There is no link force.** Position encodes meaning — the topic cluster plus the
+directional `forceRelations` offset — and a scalar link spring pulling associated
+words together would shear the authored relation parallelograms
+(`son→daughter` must equal `king→queen`). So `links` never enter the simulation.
+
+`show-links` **absent** → no edges draw; the graph is just topic clusters.
+Present → edges are painted between wherever the nodes already settled (optionally
+a staggered fade-in). Toggling `show-links` **never moves a node** and never
+re-heats — it only shows/hides `<line>`s.
 
 ### 3.2 The camera (scope)
 
@@ -194,8 +199,9 @@ Array order drives `reveal="N"` and the legend-colour assignment order.
 ]
 ```
 
-Plain associations — they drive `forceLink` and draw as edges on `show-links`.
-`distance` (optional) overrides `LINK_DIST` for that edge. ~30–50 links.
+Plain associations — drawn as edges on `show-links`, between wherever the two
+nodes settled. They do **not** enter the simulation (see §3.1). `distance` is
+accepted but currently unused. ~30–50 links.
 
 ### 4.4 `relations` + `RELATION_OFFSETS` — the consistent steps
 
@@ -277,7 +283,7 @@ scale the attention-edge width and the node halo.
 | Attribute | Type | Effect | Absent |
 |---|---|---|---|
 | `data` | JSON string | override built-in `DATASET` | built-in dataset |
-| `show-links` | boolean | add the link force, draw edges (staggered fade), re-heat + settle | link force off, no edges — just clusters (slide-3 state) |
+| `show-links` | boolean | draw the association edges (optional staggered fade) over the frozen layout — no node movement | no edges — just clusters (slide-3 state) |
 | `reveal` | integer N | only the first N topics' nodes participate/draw; rest withheld | all topics |
 | `tag` | csv of topic ids | show a legend for these topics and lift them — non-tagged topics dim to ~0.35, node labels for tagged topics come forward. (Colour is always on; this changes emphasis.) | no legend, all topics equal |
 | `scope` | one topic id | camera eases to fit that topic's nodes; out-of-scope nodes → `--muted` @ ~0.15 (kept, not hidden — the overlap stays visible); implies `tag` of that topic | camera fits whole graph |
@@ -311,9 +317,9 @@ This is "drag an idea around to see what it's linked to."
 
 ### 5.2 Attribute changes
 
-`attributeChangedCallback` (after `_upgraded`): the node/link **data and settled
-positions are not rebuilt** — only forces toggle (`show-links`), the camera tween
-runs (`scope`), and layer colours/opacities/overlays recompute (`tag` /
+`attributeChangedCallback` (after `_upgraded`): the node **data and settled
+positions are never touched** — `show-links` shows/hides edges, the camera tween
+runs (`scope`, `mode`), and layer colours/opacities/overlays recompute (`tag` /
 `highlight` / `spotlight` / `activate`). Cheap on every fragment step. `data`
 changing is the one case that tears down and rebuilds the simulation.
 
@@ -459,8 +465,8 @@ Slide file stays Shape 2 from `docs/cheatsheet.md` (section + `<h2>` + tag, no
   `from` node with widths tracking `weights`; `constellation` adds the
   connect-the-dots polyline. Node positions do **not** move. Growing the
   `activate` list adds nodes to the constellation without disturbing the rest.
-- **`show-links`:** link force added, edges fade in, related words visibly pull
-  together, then settle.
+- **`show-links`:** edges fade in over the frozen layout. Nodes do **not** move —
+  the web is a draw overlay only.
 - **Colour by topic always:** every node is its topic's colour in every frame,
   including bare slide 3. `tag="family,places"` adds a legend and dims the other
   topics to ~0.35; it does not *introduce* colour.

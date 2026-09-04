@@ -44,22 +44,9 @@ export function forceRelations(relations, offsets = RELATION_OFFSETS, strength =
 	return force;
 }
 
-/**
- * Build the `forceLink` used under `show-links` — the plain `links` plus every
- * relation pair, resolved by node id. Extracted so a live `show-links` toggle can
- * add/remove exactly this force on an existing simulation without re-seeding it.
- */
-export function makeLinkForce(dataset, { relations = true } = {}) {
-	const relPairs = relations
-		? dataset.relations.flatMap((r) => r.pairs.map(([a, b]) => ({ source: a, target: b })))
-		: [];
-	const links = dataset.links.map((l) => ({ ...l })).concat(relPairs);
-	return d3.forceLink(links).id((n) => n.id).distance((l) => l.distance ?? LINK_DIST);
-}
-
 export function buildSimulation(dataset, opts = {}) {
 	const {
-		seed = SEED, warmup = WARMUP, showLinks = false, relations = true,
+		seed = SEED, warmup = WARMUP, relations = true,
 	} = opts;
 	const rng = d3.randomLcg(seed);
 	const cents = topicCentroids(dataset.nodes, dataset.topics);
@@ -82,10 +69,12 @@ export function buildSimulation(dataset, opts = {}) {
 		.force('center', d3.forceCenter(W / 2, H / 2))
 		.stop();
 
-	if (showLinks) {
-		sim.force('link', makeLinkForce(dataset, { relations }));
-	}
-
+	// NB: there is deliberately NO link force. Position encodes meaning — topic
+	// cluster + the directional `forceRelations` offset — and a scalar link
+	// spring pulling associated words together shears the authored relation
+	// parallelograms (son→daughter must equal king→queen). The association web
+	// (`show-links`) is a pure DRAW overlay: edges are painted between wherever
+	// the nodes already settled, and toggling it never moves anything.
 	if (relations) {
 		sim.force('relations', forceRelations(dataset.relations));
 	}

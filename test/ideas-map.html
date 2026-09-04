@@ -121,11 +121,10 @@
 			assert.ok(closer / s.nodes().length > 0.7, 'most nodes sit toward their topic centroid');
 		});
 
-		QUnit.test('link force only present with showLinks', (assert) => {
-			const off = buildSimulation(clone(DATASET), { seed: 1, warmup: 5, showLinks: false });
-			const on = buildSimulation(clone(DATASET), { seed: 1, warmup: 5, showLinks: true });
-			assert.strictEqual(off.force('link'), undefined, 'no link force by default');
-			assert.ok(on.force('link'), 'link force added with showLinks');
+		QUnit.test('no link force in the sim — the web is a pure draw overlay', (assert) => {
+			const sim = buildSimulation(clone(DATASET), { seed: 1, warmup: 5 });
+			assert.strictEqual(sim.force('link'), undefined,
+				'a link spring would shear the relation parallelograms — there is none');
 		});
 
 		QUnit.module('forceRelations');
@@ -587,20 +586,36 @@
 			}
 		});
 
-		// --- I3: show-links re-heats, it does not re-seed --------------------
-		QUnit.test('I3: show-links toggle keeps the settled positions (no re-seed)', (assert) => {
+		// --- show-links is draw-only: the layout is frozen once, never re-flowed.
+		// Toggling the web must not move a single node — otherwise the authored
+		// relation vectors (son→daughter == king→queen) shear.
+		QUnit.test('show-links is draw-only — no node moves, vectors stay put', (assert) => {
 			const el = mount();
 			const before = new Map(el._sim.nodes().map((n) => [n.id, [n.x, n.y]]));
 			el.setAttribute('show-links', '');
-			assert.ok(el._sim.force('link'), 'link force added to the live sim');
+			assert.strictEqual(el._sim.force('link'), undefined, 'no link force is ever added');
 			const moved = el._sim.nodes().filter((n) => {
 				const [x, y] = before.get(n.id);
-				return Math.hypot(n.x - x, n.y - y) > 1;
+				return Math.hypot(n.x - x, n.y - y) > 0.001;
 			});
-			assert.ok(moved.length < el._sim.nodes().length,
-				'not every node jumped (positions were kept, not rebuilt)');
+			assert.strictEqual(moved.length, 0, 'not one node moved when the web came on');
 			el.removeAttribute('show-links');
-			assert.notOk(el._sim.force('link'), 'link force removed again');
+			const movedBack = el._sim.nodes().filter((n) => {
+				const [x, y] = before.get(n.id);
+				return Math.hypot(n.x - x, n.y - y) > 0.001;
+			});
+			assert.strictEqual(movedBack.length, 0, 'still no movement when the web goes off');
+		});
+
+		QUnit.test('a relation vector is identical with the web on and off', (assert) => {
+			const el = mount();
+			const byId = () => new Map(el._sim.nodes().map((n) => [n.id, n]));
+			const rel = DATASET.relations.find((r) => r.rel === 'gender');
+			const [a, b] = rel.pairs[0];
+			const v0 = [byId().get(b).x - byId().get(a).x, byId().get(b).y - byId().get(a).y];
+			el.setAttribute('show-links', '');
+			const v1 = [byId().get(b).x - byId().get(a).x, byId().get(b).y - byId().get(a).y];
+			assert.ok(Math.hypot(v1[0] - v0[0], v1[1] - v0[1]) < 0.001, 'gender offset unchanged by the web');
 		});
 
 		// camera moves are async unless `reduced`; stub matchMedia so _computeState
@@ -685,7 +700,9 @@
 		QUnit.test('mode="web" presets the association web on', (assert) => {
 			const el = mount(); el.setAttribute('mode', 'web');
 			assert.strictEqual(el._state.showLinks, true, 'web on');
-			assert.ok(el._sim.force('link'), 'link force actually added');
+			assert.ok(el.shadowRoot.querySelectorAll('g.links line').length > 0, 'edges drawn');
+			assert.ok([...el.shadowRoot.querySelectorAll('g.links line')]
+				.some((l) => Number(l.getAttribute('stroke-opacity')) > 0), 'edges visible');
 			assert.strictEqual(el._state.labelsMode, 'all', 'web mode shows labels');
 		});
 
