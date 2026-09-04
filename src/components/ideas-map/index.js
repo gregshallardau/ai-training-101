@@ -76,8 +76,10 @@ class DeckIdeasMap extends DeckElement {
 		.row {
 			display: flex; gap: 0.5em; align-items: center;
 			font-size: 0.56em; line-height: 1; color: var(--muted);
+			cursor: pointer;   /* a legend row zooms to its topic */
 			transition: opacity var(--motion-ui-duration) var(--motion-ui-ease);
 		}
+		.row:hover { color: var(--fg); }
 		.row.on { color: var(--fg); font-weight: 600; }
 		.legend:has(.row.on) .row:not(.on) { opacity: 0.4; }
 		.row .chip {
@@ -166,21 +168,15 @@ class DeckIdeasMap extends DeckElement {
 		this._controls.className = 'controls';
 		this._panel.appendChild(this._controls);
 
-		// Click a node → zoom the camera to fit that node's topic; click empty
-		// space → zoom back out to the whole graph (spec §6.1). A click that ended
-		// a real drag (node move) or a real pan is not a zoom click.
+		// Tap a node → zoom to fit its topic; tap empty space → zoom back out
+		// (spec §6.1). The *gesture* decides this, in the drag `end` handlers
+		// (`_zoomFromTap`) — d3-drag calls preventDefault on mouseup, so a
+		// bound element never gets a native `click`. This listener is only a
+		// fallback for taps on things with no drag bound (e.g. label text).
 		d3.select(this._svg).on('click', (event) => {
-			if (this._dragMoved) { this._dragMoved = false; return; }
-			if (this._panMoved) { this._panMoved = false; return; }
+			if (this._dragMoved || this._panMoved) return;
 			const el = event.target && event.target.closest && event.target.closest('circle.node');
-			if (el) {
-				const n = this._sim.nodes().find((x) => x.id === el.dataset.id);
-				this._clickScope = (n && n.topics[0]) ? n.topics[0] : undefined;
-			} else {
-				this._clickScope = null;
-			}
-			this._redraw();
-			this._applyScope();
+			this._zoomFromTap(el ? el.dataset.id : null);
 		});
 
 		// Drag empty space → pan the camera (translate only, zoom unchanged). Lets
@@ -294,12 +290,30 @@ class DeckIdeasMap extends DeckElement {
 			.on('drag', (event) => {
 				const se = event.sourceEvent;
 				const travel = (origin && se) ? Math.hypot(se.clientX - origin[0], se.clientY - origin[1]) : Infinity;
-				// under CLICK_SLOP it's still a click (background → zoom out), not a pan
+				// under CLICK_SLOP it's still a tap (background → zoom out), not a pan
 				if (!this._panMoved && travel <= DeckIdeasMap.CLICK_SLOP) return;
 				this._panMoved = true;
 				this._panBy(event.dx, event.dy);
+			})
+			.on('end', () => {
+				// a tap that never became a pan = "zoom back out to the whole graph"
+				if (!this._panMoved) this._zoomFromTap(null);
 			});
 		d3.select(this._svg).call(drag);
+	}
+
+	/** Zoom the camera from a tap: a node id → fit that node's topic; null →
+	 *  fit the whole graph. Called from the drag `end` handlers (the gesture,
+	 *  not a native click, which d3-drag eats). */
+	_zoomFromTap(nodeId) {
+		if (nodeId) {
+			const n = this._sim.nodes().find((x) => x.id === nodeId);
+			this._clickScope = (n && n.topics[0]) ? n.topics[0] : undefined;
+		} else {
+			this._clickScope = null;
+		}
+		this._redraw();
+		this._applyScope();
 	}
 
 	/** Translate the camera by a pointer delta given in viewBox units. `k = W/w`
@@ -412,12 +426,14 @@ class DeckIdeasMap extends DeckElement {
 		this._paint();
 	}
 
-	_onDragEnd(event, d) {
+	_onDragEnd(_event, d) {
 		this._sim.alphaTarget(0);
 		d.fx = null; d.fy = null;
 		this._dragId = null;
 		this._computeState();
 		this._paint();
+		// a press that never moved past CLICK_SLOP is a tap → zoom to the topic
+		if (!this._dragMoved) this._zoomFromTap(d.id);
 	}
 
 	_dur(kind) {
@@ -442,6 +458,12 @@ class DeckIdeasMap extends DeckElement {
 			chip.className = 'chip';
 			chip.style.background = (this._state.colors.get(t.id) || {}).fill || 'var(--primary)';
 			row.append(chip, document.createTextNode(t.name));
+			// click a legend row → zoom to that topic; click it again → zoom out
+			row.addEventListener('click', () => {
+				this._clickScope = this._state.scope === t.id ? null : t.id;
+				this._redraw();
+				this._applyScope();
+			});
 			this._legend.appendChild(row);
 		}
 	}

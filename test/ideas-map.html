@@ -743,15 +743,45 @@
 			assert.ok(el._camera.view()[2] < w1, 'wheel up narrows the view (zoom in)');
 		});
 
-		QUnit.test('a real pan suppresses the trailing background zoom-out click', (assert) => {
+		QUnit.test('a real pan does not zoom back out; the fallback click is guarded', (assert) => {
 			withReducedMotion(() => {
 				const el = mount();
 				el.setAttribute('scope', 'family');
 				const scopedW = el._camera.view()[2];
-				el._panMoved = true;   // as set by the pan drag handler
+				el._panMoved = true;   // as set by the pan drag handler after a real pan
 				el._svg.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 				assert.strictEqual(el._camera.view()[2], scopedW, 'camera stayed put — no zoom-out');
-				assert.strictEqual(el._panMoved, false, 'the guard was consumed');
+			});
+		});
+
+		QUnit.test('clicking a legend row zooms to that topic (and toggles back out)', (assert) => {
+			withReducedMotion(() => {
+				const el = mount();
+				const wholeW = el._camera.view()[2];
+				const rows = [...el.shadowRoot.querySelectorAll('.legend .row')];
+				const idx = el._data.topics.findIndex((t) => t.id === 'places');
+				rows[idx].dispatchEvent(new MouseEvent('click', { bubbles: true }));
+				assert.strictEqual(el._state.scope, 'places', 'row click set scope to its topic');
+				assert.ok(el._camera.view()[2] < wholeW, 'camera zoomed to the topic');
+				// second click on the same row zooms back out
+				[...el.shadowRoot.querySelectorAll('.legend .row')][idx]
+					.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+				assert.strictEqual(el._clickScope, null, 'second click cleared the scope');
+				assert.ok(el._camera.view()[2] > wholeW * 0.9, 'camera widened back out');
+			});
+		});
+
+		QUnit.test('a node tap zooms via the drag end (no native click needed)', (assert) => {
+			// d3-drag preventDefaults mouseup, so a tapped node never fires `click`.
+			// The zoom must come from `_onDragEnd` when the press never became a drag.
+			withReducedMotion(() => {
+				const el = mount();
+				const wholeW = el._camera.view()[2];
+				const gene = el._sim.nodes().find((n) => n.id === 'gene');
+				el._onDragStart({ x: gene.x, y: gene.y, sourceEvent: { clientX: 40, clientY: 40 } }, gene);
+				el._onDragEnd({ sourceEvent: { clientX: 41, clientY: 41 } }, gene);
+				assert.strictEqual(el._clickScope, 'sciences', 'gesture end set the topic scope');
+				assert.ok(el._camera.view()[2] < wholeW, 'camera zoomed to the topic');
 			});
 		});
 
