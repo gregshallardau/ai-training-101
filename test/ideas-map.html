@@ -658,8 +658,8 @@
 			const ds = clone(DATASET);
 			const s = buildSimulation(ds, { seed: 42, warmup: 320 });
 			const byId = new Map(s.nodes().map((n) => [n.id, n]));
-			const rel = ds.relations.find((r) => r.rel === 'capital');
-			const off = RELATION_OFFSETS.capital;
+			const rel = ds.relations.find((r) => r.rel === 'capital-of');
+			const off = RELATION_OFFSETS['capital-of'];
 			const angs = [];
 			for (const [a, b] of rel.pairs) {
 				const dx = byId.get(b).x - byId.get(a).x;

@@ -35,7 +35,7 @@ export const RELATION_OFFSETS = {
 	gender:  [-D, 0],           // one step left  = male -> female
 	parent:  [0, -D],           // one step up    = child -> parent
 	tense:   [D, 0],            // one step right
-	capital: [D * 0.7, -D * 0.55],
+	'capital-of': [D * 0.7, -D * 0.55],
 };
 
 export const DATASET = {
@@ -94,7 +94,7 @@ export const DATASET = {
 		{ rel: 'gender', pairs: [['man', 'woman'], ['king', 'queen'], ['son', 'daughter'], ['bull', 'cow'], ['lion', 'lioness']] },
 		{ rel: 'parent', pairs: [['son', 'father'], ['daughter', 'mother'], ['calf', 'cow']] },
 		{ rel: 'tense',  pairs: [['walk', 'walked'], ['run', 'ran'], ['go', 'went']] },
-		{ rel: 'capital', pairs: [['france', 'paris'], ['italy', 'rome'], ['japan', 'tokyo']] },
+		{ rel: 'capital-of', pairs: [['france', 'paris'], ['italy', 'rome'], ['japan', 'tokyo']] },
 	],
 	contexts: {
 		royalty: {
