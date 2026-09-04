@@ -48,6 +48,11 @@ src/
 slides/
   README.md                     slide portability contract + numbering
   NN[.M]-<slug>.{html,md}        one file per slide position
+
+public/
+  served at the site root by Vite (default `publicDir` behaviour) - a file at
+  `public/foo/bar.png` is fetched as `/foo/bar.png`, **never** `/public/foo/bar.png`.
+  Images, video, and other static assets referenced from a slide live here.
 ```
 
 Reveal.js 6.0.1 is the base (its `js/`, `css/`, `plugin/`, `dist/`, build scripts kept
@@ -187,7 +192,48 @@ chunk of text, and `deck-builder` may keep that word in stub content verbatim.
 
 ---
 
-## 8. Re-skin
+## 8. Vertical stacks, fragments & images
+
+Reveal.js mechanics that authoring skills rely on but don't reinvent - covered
+here once so no one has to re-derive them from `js/reveal.js` source.
+
+**Vertical stacks - two equivalent shapes:**
+
+- Sibling files sharing a major number: `08-x.html`, `08.1-y.html`, `08.2-z.html`
+  (see numbering in `slides/README.md`).
+- One `.html` file, nested `<section>`s:
+  ```html
+  <section id="<slug>" data-slug="<slug>">
+    <section><!-- first sub-slide --></section>
+    <section><!-- second sub-slide --></section>
+  </section>
+  ```
+  Prefer this shape when the sub-slides are tightly coupled (e.g. one picture
+  per sub-slide under a shared question) - it keeps them in one portable file.
+
+**Fragments (step-reveal on a single slide):** add `class="fragment"` to any
+element inside a `<section>`. Variant classes change the reveal effect - `grow`
+`shrink` `zoom-in` `fade-out` `semi-fade-out` `strike` `fade-up` `fade-down`
+`fade-right` `fade-left` `fade-in-then-out` `current-visible`
+`fade-in-then-semi-out` `highlight-red` `highlight-green` `highlight-blue`
+`highlight-current-red` `highlight-current-green` `highlight-current-blue`.
+`data-fragment-index="N"` (zero-based) reorders them; unindexed fragments
+follow document order.
+
+**Navigation order:** pressing down/right resolves every unrevealed fragment
+on the current (sub-)slide first, one at a time, and only advances to the next
+vertical/horizontal slide once none remain. A vertical stack of picture
+sub-slides, each with its own fragment(s), composes directly with this - no
+extra wiring needed.
+
+**Images:** put the file under `public/` (see repo layout, section 1) and
+reference it by the root-relative path Vite serves it at. Use `.r-stretch` on
+an `<img>`/`<video>`/`<iframe>` to fill the remaining slide height instead of
+hand-rolling a size.
+
+---
+
+## 9. Re-skin
 
 Runtime: `document.documentElement.dataset.theme = '<name>'` (or `<html
 data-theme="<name>">`). A skin is a `[data-theme="<name>"] { ... }` block appended
