@@ -164,6 +164,7 @@ export function drawGraph(svgOrEl, state) {
 		// `scopedOut` still mutes the *fill* of an out-of-scope node, but an
 		// emphasised one keeps full opacity — the opacity-dim cascade is skipped.
 		if (emphasised) { /* full opacity; fill may still be --muted if scopedOut */ }
+		else if (state.starmap) { attrs.fill = 'var(--muted)'; attrs.opacity = 0.22; }
 		else if (scopedOut) { attrs.opacity = 0.15; }
 		else if (dimByAct) { attrs.fill = 'var(--muted)'; attrs.opacity = 0.12; }
 		else if (dimBySpot) { attrs.opacity = 0.15; }

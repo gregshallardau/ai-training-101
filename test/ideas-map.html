@@ -369,14 +369,23 @@
 			assert.strictEqual(all.shadowRoot.querySelectorAll('text.node-label').length, DATASET.nodes.length);
 		});
 
-		QUnit.test('toggle button flips labels live', (assert) => {
-			const el = mount(); el.setAttribute('labels', 'none');
-			const btn = el.shadowRoot.querySelector('button.btn.ghost');
-			assert.ok(btn, 'toggle button present');
-			btn.click();
-			assert.strictEqual(el.shadowRoot.querySelectorAll('text.node-label').length, DATASET.nodes.length, 'labels on after click');
-			btn.click();
-			assert.strictEqual(el.shadowRoot.querySelectorAll('text.node-label').length, 0, 'labels off after second click');
+		QUnit.test('Labels control cycles node labels live', (assert) => {
+			const el = mount(); el.setAttribute('controls', 'labels');
+			const lblBtn = () => [...el.shadowRoot.querySelectorAll('.controls button')]
+				.find((b) => b.textContent === 'labels');
+			const count = () => el.shadowRoot.querySelectorAll('text.node-label').length;
+			assert.ok(lblBtn(), 'Labels button present with controls="labels"');
+			assert.strictEqual(count(), 0, 'star-map mode starts with no node labels');
+			lblBtn().click();  // none -> auto (32 nodes <= 60 -> all labelled)
+			assert.strictEqual(count(), DATASET.nodes.length, 'labels on after one click');
+			lblBtn().click(); lblBtn().click();  // auto -> all -> none
+			assert.strictEqual(count(), 0, 'back to none after cycling through');
+		});
+
+		QUnit.test('controls absent -> no control row', (assert) => {
+			const el = mount();
+			assert.strictEqual(el.shadowRoot.querySelectorAll('.controls button').length, 0, 'no buttons');
+			assert.ok(el.shadowRoot.querySelector('.controls').hidden, '.controls hidden');
 		});
 
 		QUnit.module('drag');
@@ -472,8 +481,9 @@
 			assert.ok(bound(), 'drag still bound after a highlight change');
 			el.setAttribute('tag', 'family');
 			assert.ok(bound(), 'drag still bound after a tag change');
-			el.shadowRoot.querySelector('button.btn.ghost').click();
-			assert.ok(bound(), 'drag still bound after the Aa toggle');
+			el.setAttribute('controls', 'labels');
+			el.shadowRoot.querySelector('.controls button').click();
+			assert.ok(bound(), 'drag still bound after a control-button redraw');
 		});
 
 		QUnit.test('C1/I7: neighbours still light after an attribute change', (assert) => {
@@ -587,31 +597,54 @@
 			assert.notOk(el._sim.force('link'), 'link force removed again');
 		});
 
-		// --- I6: background click clears scope framing ---------------------
-		QUnit.test('I6: background click clears the scope framing', (assert) => {
-			const el = mount();
-			el._state.reduced = true;            // make camera moves synchronous for the assert
-			el._applyScope();
-			const wholeW = el._camera.view()[2];
-			el.setAttribute('scope', 'family');
-			el._state.reduced = true;
-			el._applyScope();
-			const scopedW = el._camera.view()[2];
-			assert.ok(scopedW < wholeW, 'scope narrowed the camera');
-			el._state.reduced = true;
-			el._svg.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-			assert.ok(el._scopeCleared, 'background click set the cleared flag');
-			assert.ok(el._camera.view()[2] > scopedW, 'camera widened back toward the whole graph');
-			el.setAttribute('scope', 'places');
-			assert.notOk(el._scopeCleared, 'next attribute change re-asserts scope');
+		// camera moves are async unless `reduced`; stub matchMedia so _computeState
+		// reads reduced:true and _applyScope runs synchronously for these asserts.
+		const withReducedMotion = (fn) => {
+			const rm = window.matchMedia;
+			window.matchMedia = (q) => ({
+				matches: /reduce/.test(q),
+				addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {},
+			});
+			try { fn(); } finally { window.matchMedia = rm; }
+		};
+
+		// --- I6 / click-to-zoom: background click frames whole graph -------------
+		QUnit.test('I6: background click frames the whole graph', (assert) => {
+			withReducedMotion(() => {
+				const el = mount();
+				el.setAttribute('scope', 'family');
+				const scopedW = el._camera.view()[2];
+				el._svg.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+				assert.strictEqual(el._clickScope, null, 'background click cleared the click-scope to whole-graph');
+				assert.ok(el._camera.view()[2] > scopedW, 'camera widened back toward the whole graph');
+				el.setAttribute('scope', 'places');
+				assert.strictEqual(el._clickScope, undefined, 'next attribute change re-asserts the slide framing');
+			});
 		});
 
-		QUnit.test('I6: clicking a node does not clear scope', (assert) => {
+		QUnit.test('click a node zooms the camera to that node’s topic', (assert) => {
+			withReducedMotion(() => {
+				const el = mount();
+				const wholeW = el._camera.view()[2];
+				const gene = [...el.shadowRoot.querySelectorAll('g.nodes circle.node')]
+					.find((c) => c.dataset.id === 'gene');       // gene -> topic "sciences"
+				gene.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+				assert.strictEqual(el._clickScope, 'sciences', 'click set the scope to the node’s topic');
+				assert.strictEqual(el._state.scope, 'sciences', 'state.scope follows the click');
+				assert.ok(el._camera.view()[2] < wholeW, 'camera zoomed in to the topic');
+			});
+		});
+
+		QUnit.test('a moved drag does not trigger a zoom click', (assert) => {
 			const el = mount();
-			el.setAttribute('scope', 'family');
-			const circle = el.shadowRoot.querySelector('g.nodes circle.node');
-			circle.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-			assert.notOk(el._scopeCleared, 'a node click is a drag target, not a background click');
+			const king = el._sim.nodes().find((n) => n.id === 'king');
+			el._onDragStart({ x: king.x, y: king.y }, king);
+			el._onDrag({ x: king.x + 120, y: king.y + 40 }, king);
+			el._onDragEnd({}, king);
+			const kc = [...el.shadowRoot.querySelectorAll('g.nodes circle.node')].find((c) => c.dataset.id === 'king');
+			el._state.reduced = true;
+			kc.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			assert.strictEqual(el._clickScope, undefined, 'the click after a real drag is ignored');
 		});
 
 		// --- deferred #10: diagonal RELATION_OFFSETS entry ---------------
@@ -632,6 +665,69 @@
 			const wrapped = angs.map((x) => Math.atan2(Math.sin(x - angs[0]), Math.cos(x - angs[0])));
 			assert.ok(Math.max(...wrapped) - Math.min(...wrapped) < 0.25,
 				'capital arrows near-parallel (diagonal — catches a sign/transpose error)');
+		});
+
+		QUnit.module('mode + controls');
+
+		QUnit.test('mode absent defaults to star-map', (assert) => {
+			const el = mount();
+			assert.strictEqual(el._state.labelsMode, 'none', 'no labels');
+			assert.strictEqual(el._state.showLinks, false, 'no web');
+			assert.strictEqual(el._state.spotlight, null, 'no vectors');
+		});
+
+		QUnit.test('mode="web" presets the association web on', (assert) => {
+			const el = mount(); el.setAttribute('mode', 'web');
+			assert.strictEqual(el._state.showLinks, true, 'web on');
+			assert.ok(el._sim.force('link'), 'link force actually added');
+			assert.strictEqual(el._state.labelsMode, 'all', 'web mode shows labels');
+		});
+
+		QUnit.test('mode="vectors" presets the gender arrows', (assert) => {
+			const el = mount(); el.setAttribute('mode', 'vectors');
+			assert.strictEqual(el._state.spotlight, 'gender');
+			assert.ok(el.shadowRoot.querySelectorAll('g.spotlight line.vec').length > 0, 'arrows drawn');
+		});
+
+		QUnit.test('mode="constellation" activates a context + starfield', (assert) => {
+			const el = mount(); el.setAttribute('mode', 'constellation');
+			assert.ok(el._state.activate && el._state.activate.ids.size > 0, 'a context is active');
+			assert.strictEqual(el._state.starmap, true, 'starfield look on');
+		});
+
+		QUnit.test('an explicit attribute overrides the mode preset', (assert) => {
+			const el = mount();
+			el.setAttribute('mode', 'web');       // preset labels:all
+			el.setAttribute('labels', 'none');    // explicit wins
+			assert.strictEqual(el._state.labelsMode, 'none');
+			assert.strictEqual(el._state.showLinks, true, 'still gets the web from the mode');
+		});
+
+		QUnit.test('Mode button walks the sequence and resets overrides', (assert) => {
+			const el = mount(); el.setAttribute('controls', 'mode labels');
+			const modeBtn = () => [...el.shadowRoot.querySelectorAll('.controls button')]
+				.find((b) => b.textContent.startsWith('mode·'));
+			assert.ok(modeBtn().textContent.includes('star-map'), 'starts at star-map');
+			// flip a label override, then a mode step must clear it
+			[...el.shadowRoot.querySelectorAll('.controls button')].find((b) => b.textContent === 'labels').click();
+			assert.ok(el._ov.labels, 'label override set');
+			modeBtn().click();
+			assert.strictEqual(Object.keys(el._ov).length, 0, 'Mode step wiped the live overrides');
+			assert.ok(modeBtn().textContent === 'mode·labels', 'advanced to the next mode');
+		});
+
+		QUnit.test('controls="zoom" gives working +/- buttons', (assert) => {
+			const el = mount(); el.setAttribute('controls', 'zoom');
+			el._state.reduced = true;
+			const btns = [...el.shadowRoot.querySelectorAll('.controls button')];
+			const minus = btns.find((b) => b.textContent === '−');
+			const plus = btns.find((b) => b.textContent === '+');
+			assert.ok(minus && plus, 'both zoom buttons present');
+			const w0 = el._camera.view()[2];
+			minus.click();
+			assert.ok(el._camera.view()[2] > w0, 'minus zooms out (wider view)');
+			plus.click(); plus.click();
+			assert.ok(el._camera.view()[2] < w0, 'plus zooms in past the start');
 		});
 
 		QUnit.start();

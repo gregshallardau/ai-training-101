@@ -7,12 +7,24 @@ import { topicColors } from './palette.js';
 import { makeCamera, bboxOf } from './camera.js';
 import { drawGraph } from './render.js';
 
+// Named per-slide starting states. `mode="web"` on a slide == the map picks up
+// in this preset; explicit attributes (or a live control) override a dimension.
+const MODES = {
+	'star-map':      { labels: 'none', links: false, vectors: null,     scope: null,     activate: null,      starmap: false },
+	'labels':        { labels: 'all',  links: false, vectors: null,     scope: null,     activate: null,      starmap: false },
+	'vectors':       { labels: 'all',  links: false, vectors: 'gender', scope: null,     activate: null,      starmap: false },
+	'web':           { labels: 'all',  links: true,  vectors: null,     scope: null,     activate: null,      starmap: false },
+	'zoomed':        { labels: 'auto', links: true,  vectors: null,     scope: 'family', activate: null,      starmap: false },
+	'constellation': { labels: 'auto', links: true,  vectors: null,     scope: null,     activate: 'royalty', starmap: true  },
+};
+const MODE_ORDER = ['star-map', 'labels', 'vectors', 'web', 'zoomed', 'constellation'];
+
 class DeckIdeasMap extends DeckElement {
 	static tag = 'deck-ideas-map';
 	static observedAttributes = [
 		'data', 'show-links', 'reveal', 'tag', 'scope',
 		'highlight', 'spotlight', 'activate', 'attention-from',
-		'constellation', 'labels', 'label',
+		'constellation', 'labels', 'label', 'mode', 'controls',
 	];
 
 	static styles = `
@@ -25,6 +37,26 @@ class DeckIdeasMap extends DeckElement {
 		}
 		text { fill: var(--fg); }
 		circle.node { cursor: grab; }
+		.controls {
+			position: absolute; left: 50%; bottom: 0.6em; transform: translateX(-50%);
+			display: inline-flex; align-items: stretch; gap: 1px;
+			padding: 2px; border-radius: var(--radius-round);
+			background: color-mix(in srgb, var(--bg) 78%, transparent);
+			border: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
+			font: inherit;
+		}
+		.controls[hidden] { display: none; }
+		.controls button {
+			font: inherit; font-size: 0.58em; line-height: 1;
+			letter-spacing: 0.02em; white-space: nowrap;
+			padding: 0.42em 0.72em; border: 0; border-radius: var(--radius-round);
+			background: transparent; color: var(--muted); cursor: pointer;
+			transition: background var(--motion-ui-duration) var(--motion-ui-ease),
+			            color var(--motion-ui-duration) var(--motion-ui-ease);
+		}
+		.controls button:hover { color: var(--fg); background: color-mix(in srgb, var(--fg) 8%, transparent); }
+		.controls button.on { color: var(--primary-fg); background: var(--primary); }
+		.controls button:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
 		.legend {
 			position: absolute; top: var(--space-gap); right: var(--space-gap);
 			background: var(--bg); border: 1px solid var(--line);
@@ -98,36 +130,39 @@ class DeckIdeasMap extends DeckElement {
 
 		this._svg = svg.node();
 		this._camera = makeCamera(view, W);
-		this._scopeCleared = false;
+		this._ov = {};              // live-control overrides, per dimension
+		this._liveMode = null;      // set by the Mode button; else the `mode` attr
+		this._clickScope = undefined; // undefined = use attr/mode; null = whole graph; id = zoomed
 		this._data = this._readDataset();
-		this._sim = buildSimulation(this._data, { showLinks: this.hasAttribute('show-links') });
+		this._sim = buildSimulation(this._data, { showLinks: this._wantLinks() });
 		this._legend = document.createElement('div');
 		this._legend.className = 'legend';
 		this._legend.hidden = true;
 		this.shadowRoot.appendChild(this._legend);
 
-		this._labelOverride = null;
-		this._toggle = document.createElement('button');
-		this._toggle.className = 'btn ghost';
-		this._toggle.type = 'button';
-		this._toggle.textContent = 'Aa';
-		this._toggle.addEventListener('click', () => {
-			this._labelOverride = this._labelOverride === null ? 'all'
-				: this._labelOverride === 'all' ? 'none' : null;
-			this._redraw();
-		});
-		this.shadowRoot.appendChild(this._toggle);
+		this._controls = document.createElement('div');
+		this._controls.className = 'controls';
+		this.shadowRoot.appendChild(this._controls);
 
-		// Background click → clear scope framing (spec §6.1). A click that lands on
-		// a node is a drag target, not a background click.
+		// Click a node → zoom the camera to fit that node's topic; click empty
+		// space → zoom back out to the whole graph (spec §6.1). A click that ended
+		// a real drag is not a zoom click.
 		d3.select(this._svg).on('click', (event) => {
-			if (event.target && event.target.closest && event.target.closest('circle.node')) return;
-			this._scopeCleared = true;
+			if (this._dragMoved) { this._dragMoved = false; return; }
+			const el = event.target && event.target.closest && event.target.closest('circle.node');
+			if (el) {
+				const n = this._sim.nodes().find((x) => x.id === el.dataset.id);
+				this._clickScope = (n && n.topics[0]) ? n.topics[0] : undefined;
+			} else {
+				this._clickScope = null;
+			}
+			this._redraw();
 			this._applyScope();
 		});
 
 		this._computeState();
 		this._renderLegend();
+		this._renderControls();
 		drawGraph(this._svg, this._state);
 		this._applyScope(true);
 
@@ -148,7 +183,66 @@ class DeckIdeasMap extends DeckElement {
 	_redraw() {
 		this._computeState();
 		this._renderLegend();
+		this._renderControls();
 		this._paint();
+	}
+
+	/** Optional on-slide control row. `controls="labels links vectors starmap zoom
+	 *  mode"` — each listed name gets a button that flips a live override. Absent
+	 *  → no row; the slide's `mode` / attributes drive the map on their own. */
+	_renderControls() {
+		const wanted = new Set((this.getAttribute('controls') || '').split(/[\s,]+/).filter(Boolean));
+		this._controls.textContent = '';
+		this._controls.hidden = wanted.size === 0;
+		if (wanted.size === 0) return;
+		const s = this._state;
+		const mk = (text, on, onClick) => {
+			const b = document.createElement('button');
+			b.type = 'button';
+			b.textContent = text;
+			if (on) b.className = 'on';
+			b.addEventListener('click', onClick);
+			this._controls.appendChild(b);
+		};
+		if (wanted.has('mode')) {
+			mk(`mode·${this._liveMode || this.getAttribute('mode') || 'star-map'}`, false, () => this._cycleMode());
+		}
+		if (wanted.has('labels')) {
+			mk('labels', s.labelsMode !== 'none', () => {
+				this._ov.labels = ({ auto: 'all', all: 'none', none: 'auto' })[s.labelsMode] || 'all';
+				this._redraw();
+			});
+		}
+		if (wanted.has('links')) {
+			mk('web', s.showLinks, () => { this._ov.links = !s.showLinks; this._toggleLinks(); });
+		}
+		if (wanted.has('vectors')) {
+			mk(s.spotlight ? `vec·${s.spotlight}` : 'vectors', !!s.spotlight, () => {
+				const seq = [null, 'gender', 'parent', 'tense', 'capital'];
+				this._ov.vectors = seq[(seq.indexOf(s.spotlight) + 1) % seq.length];
+				this._redraw();
+			});
+		}
+		if (wanted.has('starmap')) {
+			mk('stars', s.starmap, () => { this._ov.starmap = !s.starmap; this._redraw(); });
+		}
+		if (wanted.has('zoom')) {
+			mk('−', false, () => this._zoomBy(1.3));
+			mk('+', false, () => this._zoomBy(1 / 1.3));
+		}
+	}
+
+	_zoomBy(factor) {
+		const [cx, cy, w] = this._camera.view();
+		this._camera.easeTo([cx, cy, w * factor], { duration: this._dur('ui') });
+	}
+
+	_cycleMode() {
+		const cur = this._liveMode || this.getAttribute('mode') || 'star-map';
+		this._liveMode = MODE_ORDER[(MODE_ORDER.indexOf(cur) + 1) % MODE_ORDER.length];
+		this._ov = {};              // a fresh mode starts from a clean slate
+		this._clickScope = undefined;
+		this._toggleLinks();        // the new mode may flip the web — sync + redraw + reframe
 	}
 
 	/** Cheap repaint: redraw the SVG from the current `this._state` and re-bind
@@ -185,6 +279,7 @@ class DeckIdeasMap extends DeckElement {
 	}
 
 	_onDragStart(event, d) {
+		this._dragMoved = false;
 		this._sim.alphaTarget(0.3).restart();
 		d.fx = d.x; d.fy = d.y;
 		this._dragId = d.id;
@@ -194,6 +289,7 @@ class DeckIdeasMap extends DeckElement {
 
 	_onDrag(event, d) {
 		d.fx = event.x; d.fy = event.y;
+		this._dragMoved = true;   // so the trailing `click` isn't read as a zoom
 		this._paint();
 	}
 
@@ -229,20 +325,38 @@ class DeckIdeasMap extends DeckElement {
 		}
 	}
 
+	/** Effective mode preset for this render (Mode button > `mode` attr > star-map). */
+	_mode() {
+		return MODES[this._liveMode || this.getAttribute('mode') || 'star-map'] || MODES['star-map'];
+	}
+
+	/** Effective association-web state: live override > `show-links` attr > mode. */
+	_wantLinks() {
+		if (this._ov.links !== undefined) return this._ov.links;
+		if (this.hasAttribute('show-links')) return true;
+		return !!this._mode().links;
+	}
+
 	_computeState() {
 		const topicOrder = this._data.topics.map((t) => t.id);
+		const m = this._mode();
+		const ov = this._ov;
+		const scope = this._clickScope !== undefined
+			? this._clickScope
+			: (ov.scope ?? this.getAttribute('scope') ?? m.scope ?? null);
 		this._state = {
 			nodes: this._sim.nodes(),
 			links: (this._sim.force('link') && this._sim.force('link').links()) || this._data.links,
 			colors: topicColors(topicOrder, (v) => this._resolve(v)),
-			showLinks: this.hasAttribute('show-links'),
-			labelsMode: this._labelOverride || this.getAttribute('labels') || 'auto',
+			showLinks: this._wantLinks(),
+			labelsMode: ov.labels ?? this.getAttribute('labels') ?? m.labels ?? 'auto',
 			reduced: matchMedia('(prefers-reduced-motion: reduce)').matches,
 			tag: new Set((this.getAttribute('tag') || '').split(',').map((s) => s.trim()).filter(Boolean)),
-			scope: this.getAttribute('scope') || null,
+			scope,
 			highlight: new Set((this.getAttribute('highlight') || '').split(',').map((s) => s.trim()).filter(Boolean)),
-			spotlight: this.getAttribute('spotlight') || null,
-			activate: this._parseActivate(),
+			spotlight: ov.vectors ?? this.getAttribute('spotlight') ?? m.vectors ?? null,
+			activate: this._parseActivate(ov.activate ?? this.getAttribute('activate') ?? m.activate ?? null),
+			starmap: ov.starmap ?? m.starmap ?? false,
 			reveal: this.hasAttribute('reveal') ? Number(this.getAttribute('reveal')) : null,
 			relations: this._data.relations,
 			offsets: RELATION_OFFSETS,
@@ -259,8 +373,7 @@ class DeckIdeasMap extends DeckElement {
 			bits.length ? bits.join('; ') : 'a force-directed map of ideas';
 	}
 
-	_parseActivate() {
-		const raw = this.getAttribute('activate');
+	_parseActivate(raw = this.getAttribute('activate')) {
 		if (!raw) return null;
 		const tokens = raw.split(',').map((s) => s.trim()).filter(Boolean);
 		const ctxs = this._data.contexts || {};
@@ -293,18 +406,22 @@ class DeckIdeasMap extends DeckElement {
 
 	attributeChangedCallback(name) {
 		if (!this._upgraded) return;
-		// any authored attribute change re-asserts scope framing after a
-		// background click cleared it (spec §6.1).
-		this._scopeCleared = false;
+		// an authored change re-asserts the slide's framing over a live click-zoom;
+		// a new `mode` wipes every live override back to that mode's clean state.
+		this._clickScope = undefined;
 		if (name === 'data') { this._data = this._readDataset(); this._rebuild(); return; }
+		if (name === 'mode') {
+			this._liveMode = null; this._ov = {};
+			this._toggleLinks();   // a mode can flip the web on/off — sync the link force
+			return;
+		}
 		if (name === 'show-links') { this._toggleLinks(); return; }
 		this._redraw();
 		this._applyScope();
 	}
 
 	_applyScope(instant = false) {
-		// a background click frames the whole graph until the next attribute change
-		const scope = this._scopeCleared ? null : this._state.scope;
+		const scope = this._state.scope;   // already folds in click-zoom / mode / attr
 		const shown = this._state.nodes.filter((n) =>
 			this._state.reveal == null
 			|| this._state.topicOrder.indexOf(n.topics[0]) < this._state.reveal);
@@ -324,7 +441,7 @@ class DeckIdeasMap extends DeckElement {
 	 *  cut. (review I3) */
 	_toggleLinks() {
 		this._computeState();
-		const on = this.hasAttribute('show-links');
+		const on = this._state.showLinks;
 		this._sim.force('link', on ? makeLinkForce(this._data) : null);
 		if (this._state.reduced) {
 			this._sim.alpha(0.3);
@@ -343,7 +460,7 @@ class DeckIdeasMap extends DeckElement {
 	 *  the one case where node/link identity genuinely changes (spec §5.2). */
 	_rebuild() {
 		this._sim && this._sim.stop();
-		this._sim = buildSimulation(this._data, { showLinks: this.hasAttribute('show-links') });
+		this._sim = buildSimulation(this._data, { showLinks: this._wantLinks() });
 		this._wireSim();
 		this._redraw();
 		this._applyScope();
