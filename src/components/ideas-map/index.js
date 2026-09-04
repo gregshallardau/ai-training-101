@@ -38,7 +38,7 @@ class DeckIdeasMap extends DeckElement {
 		}
 		svg:active { cursor: grabbing; }
 		text { fill: var(--fg); }
-		circle.node { cursor: grab; }
+		circle.node { cursor: default; }   /* a node is click-to-zoom, not a link — plain arrow */
 		/* legend + controls share one top-right column; controls sit under the legend */
 		.panel {
 			position: absolute; top: 0.6em; right: 0.6em;
@@ -280,14 +280,20 @@ class DeckIdeasMap extends DeckElement {
 	 *  pixel of pan is `1/k` world units, so divide by k to move content 1:1 with
 	 *  the pointer. Node drags are filtered out so they still move the node. */
 	_wirePan() {
-		let ox = 0; let oy = 0;
+		let origin = null;
 		const drag = d3.drag()
-			.clickDistance(8)   // sub-8px jitter stays a click (background → zoom out)
+			.clickDistance(DeckIdeasMap.CLICK_SLOP)
 			.filter((event) => !(event.target && event.target.closest && event.target.closest('circle.node')))
-			.on('start', (event) => { ox = event.x; oy = event.y; this._panMoved = false; })
+			.on('start', (event) => {
+				const se = event.sourceEvent;
+				origin = se ? [se.clientX, se.clientY] : null;
+				this._panMoved = false;
+			})
 			.on('drag', (event) => {
-				// swallow the first few px so a jittery click isn't read as a pan
-				if (!this._panMoved && Math.hypot(event.x - ox, event.y - oy) < 8) return;
+				const se = event.sourceEvent;
+				const travel = (origin && se) ? Math.hypot(se.clientX - origin[0], se.clientY - origin[1]) : Infinity;
+				// under CLICK_SLOP it's still a click (background → zoom out), not a pan
+				if (!this._panMoved && travel <= DeckIdeasMap.CLICK_SLOP) return;
 				this._panMoved = true;
 				this._panBy(event.dx, event.dy);
 			});
@@ -354,10 +360,16 @@ class DeckIdeasMap extends DeckElement {
 		this._wireDrag();
 	}
 
+	// A pointer move up to this many *screen* pixels between down and up is a
+	// click (→ zoom to the node's topic), not a drag. It must match the d3-drag
+	// `clickDistance` below, in the same units, so both gates agree: under it d3
+	// lets the click through AND we don't mark the gesture as moved.
+	static CLICK_SLOP = 12;
+
 	_wireDrag() {
 		const self = this;
 		const drag = d3.drag()
-			.clickDistance(8)   // sub-8px jitter is a click (zoom to topic), not a drag
+			.clickDistance(DeckIdeasMap.CLICK_SLOP)
 			.subject(function () { return d3.select(this).datum(); })
 			.on('start', function (event, d) { self._onDragStart(event, d); })
 			.on('drag', function (event, d) { self._onDrag(event, d); })
@@ -368,9 +380,20 @@ class DeckIdeasMap extends DeckElement {
 			.call(drag);
 	}
 
+	/** Distance the pointer has travelled since a drag's `start`. Prefers screen
+	 *  pixels (so it matches `clickDistance`); falls back to viewBox units when
+	 *  there's no `sourceEvent` (synthetic drives / tests). */
+	_pointerTravel(event) {
+		if (!this._dragOrigin) return 0;
+		const se = event.sourceEvent;
+		const [x, y] = se ? [se.clientX, se.clientY] : [event.x, event.y];
+		return Math.hypot(x - this._dragOrigin[0], y - this._dragOrigin[1]);
+	}
+
 	_onDragStart(event, d) {
 		this._dragMoved = false;
-		this._dragOrigin = [event.x, event.y];
+		const se = event.sourceEvent;
+		this._dragOrigin = se ? [se.clientX, se.clientY] : [event.x, event.y];
 		this._sim.alphaTarget(0.3).restart();
 		d.fx = d.x; d.fy = d.y;
 		this._dragId = d.id;
@@ -380,9 +403,10 @@ class DeckIdeasMap extends DeckElement {
 
 	_onDrag(event, d) {
 		d.fx = event.x; d.fy = event.y;
-		// only a real move (not click jitter) blocks the trailing zoom-to-topic click
-		const [ox, oy] = this._dragOrigin || [event.x, event.y];
-		if (Math.hypot(event.x - ox, event.y - oy) > 10) this._dragMoved = true;
+		// `_dragMoved` gates the trailing svg `click`: only a move past CLICK_SLOP
+		// (the same threshold d3-drag uses to suppress the click) counts, so a
+		// plain click still reaches the zoom-to-topic handler.
+		if (this._pointerTravel(event) > DeckIdeasMap.CLICK_SLOP) this._dragMoved = true;
 		this._paint();
 	}
 

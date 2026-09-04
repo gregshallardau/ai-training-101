@@ -705,6 +705,19 @@
 			});
 		});
 
+		QUnit.test('drag-vs-click is judged in screen px, not viewBox units', (assert) => {
+			const el = mount();
+			const king = el._sim.nodes().find((n) => n.id === 'king');
+			el._onDragStart({ x: king.x, y: king.y, sourceEvent: { clientX: 500, clientY: 500 } }, king);
+			// a large viewBox delta but the pointer only moved ~5 screen px
+			el._onDrag({ x: king.x + 60, y: king.y + 60, sourceEvent: { clientX: 503, clientY: 504 } }, king);
+			assert.strictEqual(el._dragMoved, false,
+				'small screen-px travel stays a click (so the zoom handler still runs)');
+			el._onDrag({ x: king.x + 90, y: king.y + 90, sourceEvent: { clientX: 540, clientY: 540 } }, king);
+			assert.strictEqual(el._dragMoved, true, 'past ~12 screen px it is a real drag');
+			el._onDragEnd({ sourceEvent: {} }, king);
+		});
+
 		QUnit.test('a moved drag does not trigger a zoom click', (assert) => {
 			const el = mount();
 			const king = el._sim.nodes().find((n) => n.id === 'king');
