@@ -35,4 +35,19 @@
 	   properties) - layered here, same as the rest of Reveal's own CSS, so a
 	   deck's `deck` layer can still override it if a re-skin ever needs to. */
 	@include meta.load-css('../../../vendor/reveal.js/dist/plugin/highlight/monokai');
+
+	/* theme.scss's generic ".reveal table td { border-bottom }" (styling a
+	   deck-author's own content tables) also matches the highlight plugin's
+	   internal line-numbers <table> - and because this reveal.theme layer is
+	   declared AFTER reveal.base (where reveal.css's own .hljs-ln-code /
+	   .hljs-ln-numbers { border: 0 } reset lives, see layers.css), the layer
+	   order wins over specificity and the generic table rule draws a line under
+	   every code line. Re-assert the reset here, in the same layer as the rule
+	   that broke it, so a `data-line-numbers` code block has no row borders -
+	   same behaviour as an unlayered reveal.js checkout, where the reset's
+	   higher specificity would win regardless of file order. */
+	.reveal .hljs-ln-code,
+	.reveal .hljs-ln-numbers {
+		border: 0;
+	}
 }
