@@ -30,8 +30,9 @@ src/
   styles/
     layers.css                  the @layer order declaration
     index.css                   ordered @imports of everything below, incl. ../../deck.css last
-    vendor/reveal-base.scss     wraps css/reset.css + css/layout.scss + css/reveal.scss
-                                + css/theme/template/theme.scss into cascade layers (Sass compile time)
+    vendor/reveal-base.scss     wraps vendor/reveal.js/css/{reset,layout,reveal}.scss
+                                + css/theme/template/theme.scss into cascade layers (Sass compile time) -
+                                this src/styles/vendor/ is unrelated to the repo-root vendor/ below
     vars/primitives.css         TIER 1 - raw values (@layer vars.primitive)
     vars/semantic.css           TIER 2 - role names + [data-theme] skins (@layer vars.semantic)
     theme/deck.css              maps semantic vars -> Reveal --r-* API (@layer theme). Plumbing only.
@@ -61,11 +62,33 @@ public/
   served at the site root by Vite (default `publicDir` behaviour) - a file at
   `public/foo/bar.png` is fetched as `/foo/bar.png`, **never** `/public/foo/bar.png`.
   Images, video, and other static assets referenced from a slide live here.
+
+vendor/reveal.js/               THE VENDORED LIBRARY - reveal.js 6.0.1 kept intact, isolated
+                                from both the framework layer (src/) and deck content
+  js/, css/, plugin/            library source (TS, Sass, official plugins)
+  dist/                          build output (`npm run build`); what package.json's
+                                main/module/types/exports/files all point into
+  test/, examples/               upstream's own QUnit suite + demo gallery - unused by
+                                this framework or any deck, kept for upstream-merge parity
+  scripts/                       release-packaging scripts (add-banner, build-es5, zip, test)
 ```
 
-Reveal.js 6.0.1 is the base (its `js/`, `css/`, `plugin/`, `dist/`, build scripts kept
-intact). Upstream is the git remote `upstream`; framework updates come via
-`git fetch upstream && git merge upstream/<tag>`.
+Reveal.js 6.0.1 is the base, vendored whole under `vendor/reveal.js/` so it stays
+one clearly-bounded unit separate from this framework's own layer and from deck
+content.
+
+**Upstream merges after this move:** the `upstream` remote is the real reveal.js
+repo, whose own layout still has `js/`, `css/`, `plugin/`, `dist/`, `test/`,
+`examples/`, `scripts/` at *its* root - `git fetch upstream && git merge
+upstream/<tag>` will therefore show every changed upstream file as an add/delete
+pair (upstream's `js/reveal.js` vs. this repo's `vendor/reveal.js/js/reveal.js`),
+not a clean merge, because git has no way to know the two paths are the same
+file. Resolve by taking upstream's incoming content and `git mv`-ing it under
+`vendor/reveal.js/` as part of conflict resolution (or merge upstream into a
+throwaway branch first and diff/copy the changed files across by hand). This is
+the accepted cost of the vendor/ isolation - the alternative (leaving reveal.js's
+source at the repo root) merges cleanly but re-mixes the vendored library with
+this framework's own files, which is the thing this section exists to prevent.
 
 ---
 

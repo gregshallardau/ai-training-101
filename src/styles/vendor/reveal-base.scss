@@ -10,23 +10,23 @@
  * meta.load-css() is used rather than @import (deprecated in Dart Sass, removed in
  * 3.0) because @use cannot be nested inside a @layer block and does not inline.
  *
- * Paths are relative to this file: src/styles/vendor/ -> repo root css/
+ * Paths are relative to this file: src/styles/vendor/ -> repo root vendor/reveal.js/css/
  */
 
 @use 'sass:meta';
 
 @layer reveal.reset {
-	@include meta.load-css('../../../css/reset');
+	@include meta.load-css('../../../vendor/reveal.js/css/reset');
 }
 
 @layer reveal.base {
-	@include meta.load-css('../../../css/layout');
-	@include meta.load-css('../../../css/reveal');
+	@include meta.load-css('../../../vendor/reveal.js/css/layout');
+	@include meta.load-css('../../../vendor/reveal.js/css/reveal');
 }
 
 @layer reveal.theme {
 	/* Reveal's theme-template element rules (headings, paragraphs, links, tables,
 	   blockquotes, code...). It only consumes var(--r-*) - which src/styles/theme/deck.css
 	   supplies - so no Reveal theme .scss under css/theme/ is compiled or linked. */
-	@include meta.load-css('../../../css/theme/template/theme');
+	@include meta.load-css('../../../vendor/reveal.js/css/theme/template/theme');
 }

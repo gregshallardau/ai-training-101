@@ -1,4 +1,4 @@
-//#region js/utils/util.ts
+//#region vendor/reveal.js/js/utils/util.ts
 var e = (e, t) => {
 	for (let n in t) e[n] = t[n];
 	return e;
@@ -223,7 +223,7 @@ function S(e, t, n) {
 	}) : e[t] = n, e;
 }
 //#endregion
-//#region js/controllers/slidecontent.js
+//#region vendor/reveal.js/js/controllers/slidecontent.js
 var ee = class {
 	constructor(e) {
 		S(this, "allowedToPlayAudio", null), this.Reveal = e, this.startEmbeddedMedia = this.startEmbeddedMedia.bind(this), this.startEmbeddedIframe = this.startEmbeddedIframe.bind(this), this.preventIframeAutoFocus = this.preventIframeAutoFocus.bind(this), this.ensureMobileMediaPlaying = this.ensureMobileMediaPlaying.bind(this), this.failedAudioPlaybackTargets = /* @__PURE__ */ new Set(), this.failedVideoPlaybackTargets = /* @__PURE__ */ new Set(), this.failedMutedVideoPlaybackTargets = /* @__PURE__ */ new Set(), this.renderMediaPlayButton();
@@ -1075,7 +1075,7 @@ function N(e) {
 	};
 }
 //#endregion
-//#region js/controllers/printview.js
+//#region vendor/reveal.js/js/controllers/printview.js
 var le = class {
 	constructor(e) {
 		this.Reveal = e;
@@ -1454,7 +1454,7 @@ function F(e) {
 	return e;
 }
 //#endregion
-//#region js/controllers/location.js
+//#region vendor/reveal.js/js/controllers/location.js
 var pe = class {
 	constructor(e) {
 		S(this, "MAX_REPLACE_STATE_FREQUENCY", 1e3), this.Reveal = e, this.writeURLTimeout = 0, this.replaceStateTimestamp = 0, this.onWindowHashChange = this.onWindowHashChange.bind(this);
@@ -2133,9 +2133,9 @@ var pe = class {
 	pdfPageHeightOffset: -1,
 	dependencies: [],
 	plugins: []
-}, Te = "6.0.1";
+}, Te = "0.1.0";
 //#endregion
-//#region js/reveal.js
+//#region vendor/reveal.js/js/reveal.js
 function z(a, s) {
 	arguments.length < 2 && (s = arguments[0], a = document.querySelector(".reveal"));
 	let l = {}, f = {}, p = !1, m = !1, h, _, v, y, b = {
@@ -2855,7 +2855,7 @@ function z(a, s) {
 	})), tn;
 }
 //#endregion
-//#region js/index.ts
+//#region vendor/reveal.js/js/index.ts
 var B = z, V = [];
 B.initialize = (e) => {
 	let t = document.querySelector(".reveal");

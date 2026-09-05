@@ -1,4 +1,4 @@
-//#region plugin/math/katex.js
+//#region vendor/reveal.js/plugin/math/katex.js
 var e = () => {
 	let e, t = {
 		version: "latest",

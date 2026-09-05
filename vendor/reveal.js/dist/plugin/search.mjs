@@ -1,5 +1,5 @@
 //#endregion
-//#region plugin/search/index.ts
+//#region vendor/reveal.js/plugin/search/index.ts
 var e = () => {
 	let e, t, n, r, i, a, o;
 	function s() {

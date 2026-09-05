@@ -11,7 +11,7 @@ node_modules/
 .sass-cache
 presentation
 presentation.zip
-dist/reveal.es5.js
+vendor/reveal.js/dist/reveal.es5.js
 dev.html
 
 # framework

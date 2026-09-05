@@ -1,6 +1,6 @@
 import { resolve } from 'path';
 import { defineConfig } from 'vite'
-import { appendExtension } from '../../vite.config.ts';
+import { appendExtension } from '../../../../vite.config.ts';
 import { createPluginDts } from '../vite-plugin-dts.ts';
 
 // Once Vite supports multiple entries for plugins, this build can
@@ -10,14 +10,15 @@ import { createPluginDts } from '../vite-plugin-dts.ts';
 export default defineConfig({
   build: {
     emptyOutDir: false,
+    outDir: 'vendor/reveal.js/dist',
     lib: {
       formats: ['es', 'umd'],
       entry: {
-        'plugin/notes': resolve(__dirname, 'index.ts'),
+        'plugin/zoom': resolve(__dirname, 'index.ts'),
       },
-      name: 'RevealNotes',
+      name: 'RevealZoom',
       fileName: appendExtension
     }
   },
-  plugins: [createPluginDts('notes')],
+  plugins: [createPluginDts('zoom')],
 })

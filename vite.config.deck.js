@@ -14,9 +14,9 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
-			'reveal.js/plugin': '/plugin',
-			'reveal.js': '/js',
-			'reveal.css': '/css/reveal.scss',
+			'reveal.js/plugin': '/vendor/reveal.js/plugin',
+			'reveal.js': '/vendor/reveal.js/js',
+			'reveal.css': '/vendor/reveal.js/css/reveal.scss',
 			'@': '/src',
 		},
 	},

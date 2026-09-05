@@ -27,7 +27,7 @@ import {
 	VERTICAL_SLIDES_SELECTOR,
 	POST_MESSAGE_METHOD_BLACKLIST
 } from './utils/constants'
-import { version as VERSION } from '../package.json';
+import { version as VERSION } from '../../../package.json';
 export { VERSION };
 
 /**

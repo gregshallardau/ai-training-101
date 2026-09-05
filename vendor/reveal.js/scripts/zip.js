@@ -32,7 +32,7 @@ function switchToStaticScripts(htmlContent) {
 	moduleCode = moduleCode.replace(
 		/^\s*import\s+(\w+)\s+from\s+['"]reveal\.js['"]\s*;?\s*$/gm,
 		(match, revealVar) => {
-			addScriptPath('dist/reveal.js');
+			addScriptPath('vendor/reveal.js/dist/reveal.js');
 			moduleAliasMap.set(revealVar, 'Reveal');
 			return '';
 		}
@@ -43,7 +43,7 @@ function switchToStaticScripts(htmlContent) {
 		/^\s*import\s+(\w+)\s+from\s+['"]reveal\.js\/plugin\/(\w+)['"]\s*;?\s*$/gm,
 		(match, pluginVar, pluginName) => {
 			const pluginGlobal = `Reveal${pluginName.charAt(0).toUpperCase()}${pluginName.slice(1)}`;
-			addScriptPath(`dist/plugin/${pluginName}.js`);
+			addScriptPath(`vendor/reveal.js/dist/plugin/${pluginName}.js`);
 			pluginAliasMap.set(pluginVar, pluginGlobal);
 			return '';
 		}
@@ -75,13 +75,13 @@ function switchToStaticStyles(htmlContent) {
 	// Replace /css/* links with /dist/*
 	htmlContent = htmlContent.replace(/href="css\/([^"]+\.(css|scss))"/g, (match, filePath) => {
 		const cssPath = filePath.replace(/\.scss$/, '.css');
-		return `href="dist/${cssPath}"`;
+		return `href="vendor/reveal.js/dist/${cssPath}"`;
 	});
 
 	// Replace /plugin/* links with /dist/plugin/*
 	htmlContent = htmlContent.replace(/href="plugin\/([^"]+\.(css|scss))"/g, (match, filePath) => {
 		const cssPath = filePath.replace(/\.scss$/, '.css');
-		return `href="dist/plugin/${cssPath}"`;
+		return `href="vendor/reveal.js/dist/plugin/${cssPath}"`;
 	});
 
 	return htmlContent;
@@ -111,7 +111,7 @@ async function main() {
 	htmlContent = switchToStaticStyles(htmlContent);
 
 	const zip = new JSZip();
-	const filesToInclude = ['./dist/**', './*/*.md'];
+	const filesToInclude = ['./vendor/reveal.js/dist/**', './*/*.md'];
 
 	if (fs.existsSync('./lib')) filesToInclude.push('./lib/**');
 	if (fs.existsSync('./images')) filesToInclude.push('./images/**');
@@ -125,7 +125,7 @@ async function main() {
 		const files = globSync(pattern, {
 			nodir: true,
 			dot: false,
-			ignore: ['./examples/**', './test/**'],
+			ignore: ['./vendor/reveal.js/examples/**', './vendor/reveal.js/test/**'],
 		});
 		for (const file of files) {
 			const filePath = path.resolve(file);
