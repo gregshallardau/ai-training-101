@@ -134,7 +134,8 @@ class DeckTokeniser extends DeckElement {
 customElements.define(DeckTokeniser.tag, DeckTokeniser);
 ```
 
-Register per `registry-edit.md`. On a slide: `<deck-tokeniser></deck-tokeniser>`.
+Auto-discovered once saved to `components/tokeniser/index.js` - no registry
+edit. On a slide: `<deck-tokeniser></deck-tokeniser>`.
 
 ## Adapting to other demos
 

@@ -38,7 +38,8 @@ src/
   components/                  FRAMEWORK MACHINERY (the contract) - NOT a deck's own components,
                                see components/ at repo root for those
     deck-element.js             DeckElement base class
-    registry.js                 THE manifest + barrel - the one list of what components exist
+    registry.js                 auto-discovers components/*/index.js (import.meta.glob) into
+                                COMPONENTS - the one list of what exists, nothing to hand-edit
     shared-styles.js            SHARED_STYLES - shared CSS vocabulary (.chip/.box/.btn/...),
                                 imported (never copied) into every component's static styles
     README.md                   the component contract
@@ -144,10 +145,12 @@ hacks. `deck` (the root `deck.css`) is highest. Nothing of ours is left unlayere
   builds each one from a kind recipe (`d3-chart`, `d3-circle-pack`, `svg-diagram`,
   `gsap-hero`, `alpine-interactive`); Alpine markup in a shadow root needs
   `Alpine.initTree(this.shadowRoot)` behind a ready-guard.
-- Register it: one `import '../../components/<kebab>/index.js';` line **and**
-  one `COMPONENTS` entry in `src/components/registry.js` (that file stays
-  machinery and does not move).
-- **"Does component X exist?" is answered by reading `registry.js` alone.**
+- **Registration is automatic.** `src/components/registry.js` (machinery,
+  does not move) discovers every `components/<kebab>/index.js` via Vite's
+  `import.meta.glob` and builds `COMPONENTS` from it - there is nothing to
+  hand-edit.
+- **"Does component X exist?" is answered by reading `registry.js`'s
+  `COMPONENTS` map alone** (equivalently: does `components/<name>/` exist).
 - Slides place a `<deck-*>` tag and pass data via attributes / slots - never
   markup, style, or behaviour.
 
