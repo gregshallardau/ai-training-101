@@ -1,4 +1,13 @@
 <section id="meaning-comes-from-before" data-slug="meaning-comes-from-before">
 	<h2 style="padding-bottom: 2em;">Meaning Comes From the Words Before</h2>
-	<deck-attention-flow></deck-attention-flow>
+	<deck-attention-flow data='{
+		"tokens": ["The", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog"],
+		"stages": [
+			{ "arcs": [[1, 3], [2, 3]], "caption": "We know the fox is quick and brown." },
+			{ "arcs": [[7, 8]], "caption": "We know the dog is lazy." },
+			{ "arcs": [[3, 8]], "caption": "We know the fox is jumping over the dog." },
+			{ "arcs": [], "caption": "There&#39;s a lot happening in just one sentence." }
+		],
+		"introCaption": "The quick brown fox jumps over the lazy dog."
+	}'></deck-attention-flow>
 </section>
