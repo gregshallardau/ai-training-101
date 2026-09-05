@@ -5,10 +5,12 @@ alphabetical-ish ordering already in the file.
 
 ### 1. Import line
 
-In the `// --- component imports ---` block:
+In the `// --- component imports ---` block. The path reaches up from
+`src/components/` to the repo-root `components/`, where the implementation
+actually lives:
 
 ```js
-import './<name>/index.js';
+import '../../components/<name>/index.js';
 ```
 
 ### 2. COMPONENTS entry
@@ -23,7 +25,7 @@ In the `COMPONENTS` object:
 
 ```diff
  // --- component imports (each self-registers) ---
-+import './hero-title/index.js';
++import '../../components/hero-title/index.js';
 
  export const COMPONENTS = {
 +	'hero-title': { tag: 'deck-hero-title', dir: 'hero-title' },

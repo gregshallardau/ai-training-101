@@ -60,7 +60,8 @@ vertical sub-slide. A `Note:` line becomes a speaker note. Add
 </section>
 ```
 
-`deck-<component>` MUST be listed in `src/components/registry.js`. The slide only
+`deck-<component>` MUST be listed in `src/components/registry.js` (its
+implementation lives in the root-level `components/<component>/`). The slide only
 places the tag - no `<style>`, no behaviour. Need a new one? run `artefact-builder`.
 
 ### Shape 3 - fully-inlined artefact (`NN-<slug>.html`)
@@ -302,8 +303,8 @@ Background colours accept semantic custom properties.
 ## Components
 
 `<deck-*>` custom elements - reusable widgets (diagram, chart, badge, animated
-hero). Defined once in `src/components/<name>/index.js`, listed in
-`src/components/registry.js`.
+hero). Defined once in `components/<name>/index.js` (repo root - deck content,
+not `src/`), listed in `src/components/registry.js` (framework machinery).
 
 - **"Does `deck-x` exist?"** -> read `src/components/registry.js` (the `COMPONENTS`
   map). Nothing else is authoritative.

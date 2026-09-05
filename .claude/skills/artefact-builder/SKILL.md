@@ -8,15 +8,20 @@ description: >-
   click-through). Use when the user says
   "build me a component/widget", "new reusable slide element", "make a
   <deck-...>", "a chart/diagram/interactive component", "an animated demo", or
-  "something reusable across slides". Creates src/components/<kebab>/index.js,
-  registers it in registry.js, optionally emits a slide. Refuses to redefine a
-  component that already exists.
+  "something reusable across slides". Creates components/<kebab>/index.js (repo
+  root - deck content, not src/), registers it in src/components/registry.js,
+  optionally emits a slide. Refuses to redefine a component that already exists.
 ---
 
 # artefact-builder
 
 **Before anything: read `docs/framework-conventions.md`,
 `src/components/README.md`, and `reference/component-styles.md`.**
+
+Component **implementations** live at the repo-root `components/` (deck
+content, same standing as `slides/`); the base class, registry, and shared
+style vocabulary they import are framework machinery in `src/components/` and
+never move.
 
 ## Inputs
 
@@ -33,7 +38,7 @@ description: >-
    `src/components/deck-element.js` (base-class API).
 2. **`src/components/registry.js`** - parse the import lines and the `COMPONENTS`
    map. **If `deck-<name>` (or the `<name>` key) already exists -> STOP.** Print
-   the existing `src/components/<name>/index.js` path and offer to help edit it
+   the existing `components/<name>/index.js` path and offer to help edit it
    instead. Never overwrite.
 3. **`src/styles/vars/semantic.css`** - parse `:root` and every `[data-theme]`
    block into the set of valid semantic names. For each custom property the
@@ -54,12 +59,13 @@ description: >-
 
 ## Write
 
-- `src/components/<name>/index.js` (new) - from the recipe picked in Read step 5,
-  layered on `reference/component-template.js`. Pull shared visual pieces (button,
-  chip, note, meter, card) from `reference/component-styles.md` verbatim - never
+- `components/<name>/index.js` (new, repo root) - from the recipe picked in
+  Read step 5, layered on `reference/component-template.js`. Import
+  `SHARED_STYLES` from `@/components/shared-styles.js` for any shared visual
+  piece (button, chip, note, meter, card) - never copy its rules, never
   re-declare a per-artefact class pile.
 - `src/components/registry.js` - add exactly:
-  - one `import './<name>/index.js';` line, beside the others,
+  - one `import '../../components/<name>/index.js';` line, beside the others,
   - one `COMPONENTS` entry `'<name>': { tag: 'deck-<name>', dir: '<name>' },`
     keeping the existing formatting / ordering. Minimal diff.
   - See `reference/registry-edit.md`.
@@ -67,7 +73,8 @@ description: >-
   `<section id="<slug>" data-slug="<slug>"><deck-<name> ...></deck-<name>></section>`
   using `slide-builder` numbering (read `slides/` for the next free number).
 
-Never touch other components, `src/styles/**`, or the root `deck.css`.
+Never touch other components, `src/components/*` (machinery), `src/styles/**`,
+or the root `deck.css`.
 
 ## Procedure
 
@@ -76,7 +83,7 @@ Never touch other components, `src/styles/**`, or the root `deck.css`.
    any that is not (with near-matches).
 3. Generate `index.js` per the chosen recipe: `class extends DeckElement`,
    `static tag`, `static observedAttributes` (if any), `static styles` (Shadow
-   DOM CSS - semantic vars only, shared pieces from `component-styles.md`),
+   DOM CSS - `${SHARED_STYLES}` plus semantic-var-only rules of its own),
    idempotent render, `customElements.define('deck-<name>', ...)`.
 4. Edit `registry.js` (import + `COMPONENTS` entry).
 5. Optional slide.
@@ -87,7 +94,8 @@ Never touch other components, `src/styles/**`, or the root `deck.css`.
 
 Enforce the existing-component check. Semantic custom properties only - never a
 primitive, never a raw literal, never per-slide CSS, never a bespoke class pile
-(reuse `component-styles.md`). A component may `import` from `@/lib/*` (GSAP / D3
+(import `SHARED_STYLES` from `@/components/shared-styles.js`, never copy its
+rules - see `component-styles.md`). A component may `import` from `@/lib/*` (GSAP / D3
 / Alpine); keep D3 imports lazy. Alpine markup in a shadow root needs
 `Alpine.initTree(this.shadowRoot)` behind a ready-guard - see
 `reference/alpine-interactive.md`. Say "CSS custom property" / "CSS variable",
