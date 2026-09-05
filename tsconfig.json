@@ -20,6 +20,6 @@
 		"noUnusedParameters": true,
 		"noFallthroughCasesInSwitch": true
 	},
-	"include": ["js", "plugin/**/index.ts"],
+	"include": ["vendor/reveal.js/js", "vendor/reveal.js/plugin/**/index.ts"],
 	"references": [{ "path": "./tsconfig.node.json" }]
 }

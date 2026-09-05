@@ -1,4 +1,4 @@
-//#region plugin/zoom/plugin.js
+//#region vendor/reveal.js/plugin/zoom/plugin.js
 var e = {
 	id: "zoom",
 	init: function(e) {

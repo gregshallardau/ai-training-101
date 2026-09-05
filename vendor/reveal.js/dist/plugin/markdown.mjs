@@ -1487,7 +1487,7 @@ function Ge({ config: e = 2 } = {}) {
 	};
 }
 //#endregion
-//#region plugin/markdown/plugin.js
+//#region vendor/reveal.js/plugin/markdown/plugin.js
 var Ke = "\r?\n---\r?\n", qe = null, Je = "^s*notes?:", Ye = "\\.element\\s*?(.+?)$", Xe = "\\.slide:\\s*?(\\S.+?)$", Q = "__SCRIPT_END__", $ = /\[\s*((\d*):)?\s*([\s\d,|-]*)\]/, Ze = {
 	"&": "&amp;",
 	"<": "&lt;",
