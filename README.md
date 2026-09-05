@@ -58,9 +58,10 @@ minifier can't reorder precedence.
 
 ### Canonical components
 
-One definition per component in `src/components/<name>/index.js`, listed once in
-`src/components/registry.js`. Slides place a `<deck-*>` tag - never restyle,
-never duplicate markup/style/behaviour. See `src/components/README.md`.
+One definition per component in `components/<name>/index.js` (repo root - deck
+content, not `src/`), listed once in `src/components/registry.js` (framework
+machinery). Slides place a `<deck-*>` tag - never restyle, never duplicate
+markup/style/behaviour. See `src/components/README.md` and `components/README.md`.
 
 ### Slides
 

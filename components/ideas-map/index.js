@@ -1,5 +1,5 @@
-// src/components/ideas-map/index.js
-import { DeckElement } from '../deck-element.js';
+// components/ideas-map/index.js
+import { DeckElement } from '@/components/deck-element.js';
 import { d3 } from '@/lib/d3.js';
 import { W, H, DATASET, RELATION_OFFSETS, expandDataset } from './dataset.js';
 import { buildSimulation } from './simulation.js';

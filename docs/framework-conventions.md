@@ -35,11 +35,13 @@ src/
     vars/primitives.css         TIER 1 - raw values (@layer vars.primitive)
     vars/semantic.css           TIER 2 - role names + [data-theme] skins (@layer vars.semantic)
     theme/deck.css              maps semantic vars -> Reveal --r-* API (@layer theme). Plumbing only.
-  components/
+  components/                  FRAMEWORK MACHINERY (the contract) - NOT a deck's own components,
+                               see components/ at repo root for those
     deck-element.js             DeckElement base class
     registry.js                 THE manifest + barrel - the one list of what components exist
+    shared-styles.js            SHARED_STYLES - shared CSS vocabulary (.chip/.box/.btn/...),
+                                imported (never copied) into every component's static styles
     README.md                   the component contract
-    <kebab>/index.js            one component; the only customElements.define() site for it
   lib/
     gsap.js                     initGsap() - hero / section-break motion
     d3.js                       d3 + topojson + readPalette(); imported lazily by components
@@ -48,6 +50,11 @@ src/
 slides/
   README.md                     slide portability contract + numbering
   NN[.M]-<slug>.{html,md}        one file per slide position
+
+components/                    THIS DECK'S <deck-*> implementations (deck-author content,
+                               same standing as slides/ and deck.css - not under src/)
+  README.md                     what goes here vs. src/components/
+  <kebab>/index.js              one component; the only customElements.define() site for it
 
 public/
   served at the site root by Vite (default `publicDir` behaviour) - a file at
@@ -121,20 +128,25 @@ hacks. `deck` (the root `deck.css`) is highest. Nothing of ours is left unlayere
 
 ## 4. Canonical component contract
 
-- **One definition per component.** `src/components/<kebab>/index.js` is the only
-  place `customElements.define('deck-<kebab>', ...)` runs for it.
-- The class `extends DeckElement` (`src/components/deck-element.js`): `attachShadow`,
-  idempotent `connectedCallback`, `static styles` (CSS string in Shadow DOM),
-  `static tag`, `cssVar(name)` helper.
+- **One definition per component.** `components/<kebab>/index.js` (repo root -
+  deck-author content, not under `src/`) is the only place
+  `customElements.define('deck-<kebab>', ...)` runs for it.
+- The class `extends DeckElement`, imported as `@/components/deck-element.js`
+  (framework machinery, `src/components/`): `attachShadow`, idempotent
+  `connectedCallback`, `static styles` (CSS string in Shadow DOM), `static tag`,
+  `cssVar(name)` helper.
 - **Consume tier-2 semantic custom properties only** (plus Reveal's `--r-*`), and
-  the shared style vocabulary in `artefact-builder/reference/component-styles.md` -
-  never a bespoke per-component class pile.
+  the shared style vocabulary in `src/components/shared-styles.js`
+  (`SHARED_STYLES`, documented in `artefact-builder/reference/component-styles.md`)
+  - **import it, never copy its rules** - and never a bespoke per-component
+  class pile.
 - A component may `import` from `@/lib/*`; a slide may not. `artefact-builder`
   builds each one from a kind recipe (`d3-chart`, `d3-circle-pack`, `svg-diagram`,
   `gsap-hero`, `alpine-interactive`); Alpine markup in a shadow root needs
   `Alpine.initTree(this.shadowRoot)` behind a ready-guard.
-- Register it: one `import './<kebab>/index.js';` line **and** one `COMPONENTS`
-  entry in `src/components/registry.js`.
+- Register it: one `import '../../components/<kebab>/index.js';` line **and**
+  one `COMPONENTS` entry in `src/components/registry.js` (that file stays
+  machinery and does not move).
 - **"Does component X exist?" is answered by reading `registry.js` alone.**
 - Slides place a `<deck-*>` tag and pass data via attributes / slots - never
   markup, style, or behaviour.
@@ -161,14 +173,20 @@ Full text in `slides/README.md`. In short, a slide file is portable iff:
 ### Numbering
 
 ```
-NN-<slug>.<html|md>      NN = zero-padded major (>= 2 digits), step 1
-NN.M-<slug>.<html|md>    .M = vertical-stack minor; files sharing NN wrap in one <section> stack
+NN-<slug>.<html|md>      NN = zero-padded major (>= 3 digits), step 10
+NN.M-<slug>.<html|md>    .M = vertical-stack minor, step 1; files sharing NN wrap in one <section> stack
 ```
 
-`<slug>` (kebab) becomes the slide `id` / `data-slug`. `00-title.*` = title slide;
-`01-overview.*` = jump menu (deck-specific, NOT portable). `.html` body = exactly one
+`<slug>` (kebab) becomes the slide `id` / `data-slug`. `000-title.*` = title slide;
+`010-overview.*` = jump menu (deck-specific, NOT portable). `.html` body = exactly one
 `<section>` (may nest); `.md` body = raw Markdown (`--` fence = vertical sub-slide,
 `Note:` line = speaker note). The plugin does not recurse into subfolders.
+
+The step of 10 leaves gaps to insert into later without renumbering: a slide
+between `020` and `030` becomes `025` (or `021` to slot right after `020`).
+Only when a gap is fully used up (neighbours are consecutive integers) does it
+require rebalancing that local run back to round step-10 numbers. See
+`slides/README.md` for the full insertion rule.
 
 ---
 

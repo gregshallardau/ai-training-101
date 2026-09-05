@@ -1,116 +1,56 @@
 # Shared component style vocabulary
 
-Every `<deck-*>` draws from **this** set. Do not invent a per-artefact class
-pile (`.w-btn`, `.tk`, `.ts-tab`, `.bar-fill` ...). Copy the pieces you need into
-the component's `static styles`, keep the class names, restyle only through the
-semantic custom properties.
+Every `<deck-*>` draws from **this** set - but the CSS text lives in exactly one
+place: **`src/components/shared-styles.js`** (`export const SHARED_STYLES`).
+**Import it. Never copy its rules into a component's own `static styles`** -
+a hand-pasted copy is the one thing guaranteed to drift the next time
+`shared-styles.js` (or the semantic custom properties it reads) changes, since
+nothing then tells you which components still hold the old text.
 
-All values are semantic custom properties - they inherit through the shadow
-boundary and follow a `[data-theme]` re-skin for free.
+```js
+import { DeckElement } from '@/components/deck-element.js';
+import { SHARED_STYLES } from '@/components/shared-styles.js';
 
-```css
-/* ---- host ------------------------------------------------------------- */
-:host {
-	display: block;
-	color: var(--fg);
-	font: inherit;
+class DeckThing extends DeckElement {
+	static tag = 'deck-thing';
+	static styles = `
+		${SHARED_STYLES}
+		/* component-specific rules only, below */
+		.root { gap: var(--space-gap); }
+	`;
+	// ...
 }
-
-/* ---- button --------------------------------------------------------- */
-.btn {
-	font: inherit;
-	padding: var(--space-gap) var(--space-inline);
-	border: 0;
-	border-radius: var(--radius-control);
-	background: var(--primary);
-	color: var(--primary-fg);
-	cursor: pointer;
-	transition: opacity var(--motion-ui-duration) var(--motion-ui-ease);
-}
-.btn:hover { opacity: 0.9; }
-.btn:disabled { opacity: 0.4; cursor: default; }
-.btn.ghost {
-	background: transparent;
-	color: var(--primary);
-	border: 1px solid var(--line);
-}
-
-/* ---- colour modifiers ------------------------------------------------- */
-/* Same as deck.css: a bare class picks a colour into --c / --c-fg, every
-   block below reads that pair. `class="chip primary"`, `class="chip danger"`. */
-.primary   { --c: var(--primary);   --c-fg: var(--primary-fg); }
-.secondary { --c: var(--secondary); --c-fg: var(--secondary-fg); }
-.success   { --c: var(--success);   --c-fg: var(--success-fg); }
-.danger    { --c: var(--danger);    --c-fg: var(--danger-fg); }
-.warning   { --c: var(--warning);   --c-fg: var(--warning-fg); }
-
-/* ---- chip / token pill -------------------------------------------------- */
-/* Same vocabulary as the slide-level .chip in deck.css. Neutral outline by
-   default; a colour modifier makes it a solid fill. .muted is the greyed
-   variant. A component may add a domain alias (.chip.ragged { } for a
-   "barely-seen token") on top. */
-.chip {
-	display: inline-block;
-	padding: 0.15em 0.5em;
-	margin: 0.12em 0.2em 0.12em 0; /* gap between chips + wrapped rows */
-	border-radius: var(--radius-control);
-	border: 1px solid var(--c, var(--line));
-	background: color-mix(in srgb, var(--c, var(--muted)) 12%, transparent);
-	color: var(--fg);
-}
-.chip:is(.primary, .secondary, .success, .danger, .warning) {
-	background: var(--c);
-	color: var(--c-fg);
-}
-.chip.muted {
-	border-color: var(--line);
-	background: color-mix(in srgb, var(--muted) 10%, transparent);
-	color: var(--muted);
-}
-
-/* ---- muted note / caption ------------------------------------------- */
-.note { color: var(--muted); }
-
-/* ---- meter (confidence / progress bar) ------------------------------- */
-.meter {
-	height: 0.5em;
-	border-radius: var(--radius-round);
-	background: var(--line);
-	overflow: hidden;
-}
-.meter > .fill {
-	height: 100%;
-	background: var(--primary);
-	transition: width var(--motion-ui-duration) var(--motion-ui-ease);
-}
-
-/* ---- box / panel (same as the deck.css .box utility) ---------------- */
-/* White & borderless by default; add .border, a colour modifier (tinted
-   fill), or .bar (thick left bar). */
-.box {
-	padding: var(--space-block);
-	border-radius: var(--radius-card);
-	background: var(--bg);
-	color: var(--fg);
-	margin-block: var(--space-block);
-}
-.box > :first-child { margin-top: 0; }
-.box > :last-child { margin-bottom: 0; }
-.box.border { border: 1px solid var(--c, var(--line)); }
-.box:is(.primary, .secondary, .success, .danger, .warning) {
-	background: color-mix(in srgb, var(--c) 8%, var(--bg));
-}
-.box.bar {
-	border: 0; border-radius: 0; background: none;
-	border-left: 4px solid var(--c, var(--line));
-	padding-left: var(--space-inline);
-}
-
-/* ---- row / column layout ------------------------------------------- */
-.row { display: flex; gap: var(--space-gap); flex-wrap: wrap; align-items: center; }
-.col { display: flex; gap: var(--space-gap); flex-direction: column; }
 ```
 
-If a genuinely new primitive is needed (a shape these can't express), add it
-here in the same semantic-var style so the next artefact reuses it - never as a
-one-off literal inside a component.
+Do not invent a per-artefact class pile (`.w-btn`, `.tk`, `.ts-tab`,
+`.bar-fill` ...) that duplicates one of these either - use the class already
+below, or add a domain-specific *modifier* on top of it (`.chip.ragged`, as
+`alpine-interactive.md`'s tokeniser does).
+
+## What's in it
+
+All rules read semantic custom properties only, so they follow a `[data-theme]`
+re-skin through the shadow boundary for free.
+
+| Class | Does |
+|---|---|
+| `:host` | block display, inherits `--fg` + the slide's font |
+| `.btn` / `.btn.ghost` | solid / outline button |
+| `.primary` `.secondary` `.success` `.danger` `.warning` | bare colour modifiers - set `--c` / `--c-fg`, read by the blocks below |
+| `.chip` / `.chip:is(colour)` / `.chip.muted` | token/tag pill - outline, solid fill, or greyed |
+| `.note` | muted caption text |
+| `.meter` / `.meter > .fill` | progress / confidence bar |
+| `.box` / `.box.border` / `.box:is(colour)` / `.box.bar` | panel - borderless, hairline, tinted fill, or left-bar callout |
+| `.row` / `.col` | flex row / column, `--space-gap` |
+
+Same class names as the slide-level utilities in `deck.css` (`.chip`, `.box`,
+colour modifiers) - so a component and a plain slide read as one visual
+language, even though the CSS text is necessarily separate (Shadow DOM does
+not inherit class-selector rules from the light DOM, only inherited
+properties and custom properties cross that boundary - that's the entire
+reason this file, and `shared-styles.js`, exist).
+
+If a component needs a genuinely new shared primitive (a shape none of these
+express), add it to `shared-styles.js` directly - in the same semantic-var
+style - and update the table above. Never as a one-off literal duplicated
+inside a component.

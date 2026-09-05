@@ -13,12 +13,12 @@
 	<script type="module">
 		import '/src/styles/vars/primitives.css';
 		import '/src/styles/vars/semantic.css';
-		import '/src/components/ideas-map/index.js';
-		import { DATASET, RELATION_OFFSETS, expandDataset, defaultTopicLabel } from '/src/components/ideas-map/dataset.js';
-		import authoredDataset from '/src/components/ideas-map/dataset.json';
-		import { topicColors } from '/src/components/ideas-map/palette.js';
-		import { buildSimulation, topicCentroids } from '/src/components/ideas-map/simulation.js';
-		import { bboxOf, makeCamera } from '/src/components/ideas-map/camera.js';
+		import '/components/ideas-map/index.js';
+		import { DATASET, RELATION_OFFSETS, expandDataset, defaultTopicLabel } from '/components/ideas-map/dataset.js';
+		import authoredDataset from '/components/ideas-map/dataset.json';
+		import { topicColors } from '/components/ideas-map/palette.js';
+		import { buildSimulation, topicCentroids } from '/components/ideas-map/simulation.js';
+		import { bboxOf, makeCamera } from '/components/ideas-map/camera.js';
 
 		const clone = (o) => JSON.parse(JSON.stringify(o));
 

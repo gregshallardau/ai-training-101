@@ -21,8 +21,8 @@ demos (`alpine-interactive.md`).
 ## Worked example - `<deck-hero-title>`
 
 ```js
-// src/components/hero-title/index.js
-import { DeckElement } from '../deck-element.js';
+// components/hero-title/index.js
+import { DeckElement } from '@/components/deck-element.js';
 import { gsap } from '@/lib/gsap.js';
 
 class DeckHeroTitle extends DeckElement {

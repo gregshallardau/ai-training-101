@@ -74,7 +74,7 @@ layout you need has no utility, it is one of:
    If the tag is not in `COMPONENTS`, stop and tell the user to run
    `artefact-builder` first.
 5. **Edit mode:** read the target slide file itself; if the deck has an
-   overview/menu slide (e.g. `slides/01-overview.html`), read that too.
+   overview/menu slide (e.g. `slides/010-overview.html`), read that too.
 
 ## Format heuristic
 
@@ -84,10 +84,19 @@ layout you need has no utility, it is one of:
 ## Procedure - new / structural
 
 1. Resolve the target position to a `major`(.`minor`).
-   - "insert between" / "before X": shift the prefix of X and every later sibling
-     by +1 (zero-padded, step 1). Produce an explicit **rename list**
-     (`git mv old new`), applied bottom-up so names never collide.
-   - "vertical child of N": assign `N.M` with the next free `M`.
+   - "insert between" / "before X" / "after X": majors are step-10 with gaps
+     left on purpose (see `slides/README.md`) - do **not** renumber the deck.
+     Pick a free integer between the neighbours: the midpoint (rounded to the
+     nearest free multiple of 10 if one is open), or the neighbour's value +1
+     to slot immediately after it.
+     - **Gap exhausted** (the neighbours are consecutive integers, e.g. `020`
+       and `021` - no integer fits between them): rebalance that local run (or
+       the whole deck if it's short) back to round step-10 numbers. Produce an
+       explicit **rename list** (`git mv old new`), applied bottom-up so names
+       never collide, then insert normally into the restored gaps. This is the
+       only case that touches sibling files.
+   - "vertical child of N": assign `N.M` with the next free `M` (minors stay
+     step 1 - they're appended, not inserted into the middle).
 2. Pick the format. Render the body from the slide-file templates in
    `docs/cheatsheet.md` ("Slide files").
    - `.html`: exactly one `<section id="<slug>" data-slug="<slug>">...`.

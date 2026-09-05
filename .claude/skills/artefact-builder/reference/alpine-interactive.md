@@ -35,8 +35,10 @@ inside the shadow tree. Add the store key in `src/lib/alpine.js`.
 
 ## Styling
 
-Pull `.btn` / `.btn.ghost` / `.chip` / `.chip.ragged` / `.note` / `.meter`
-from `component-styles.md` into `static styles`. Do not re-declare them. A
+Import `SHARED_STYLES` from `@/components/shared-styles.js` into `static
+styles` for `.btn` / `.btn.ghost` / `.chip` / `.note` / `.meter` - never
+copy their rules by hand. A domain-specific modifier like `.chip.ragged`
+still gets declared locally, on top of the imported vocabulary. A
 stagger-in effect is a keyframe with a per-index `animation-delay`, or
 `x-transition` on the `x-for` items.
 
@@ -47,8 +49,9 @@ tokenises into neat chips; a specialist name shatters into `ragged` chips; a
 note explains each stage; a button steps through.
 
 ```js
-// src/components/tokeniser/index.js
-import { DeckElement } from '../deck-element.js';
+// components/tokeniser/index.js
+import { DeckElement } from '@/components/deck-element.js';
+import { SHARED_STYLES } from '@/components/shared-styles.js';
 
 const STAGES = [
 	{
@@ -76,12 +79,9 @@ class DeckTokeniser extends DeckElement {
 	static tag = 'deck-tokeniser';
 
 	static styles = `
-		:host { display: block; color: var(--fg); font: inherit; }
+		${SHARED_STYLES}
 		.line { display: flex; flex-wrap: wrap; gap: var(--space-gap); margin-block: var(--space-block); min-height: 1.8em; }
 		.chip {
-			padding: 0.15em 0.5em; border-radius: var(--radius-control);
-			border: 1px solid var(--primary);
-			background: color-mix(in srgb, var(--primary) 14%, transparent);
 			animation: pop var(--motion-ui-duration) var(--motion-ui-ease) both;
 		}
 		.chip.ragged {
@@ -89,15 +89,7 @@ class DeckTokeniser extends DeckElement {
 			background: color-mix(in srgb, var(--muted) 12%, transparent);
 		}
 		@keyframes pop { from { opacity: 0; transform: translateY(0.3em); } }
-		.row { display: flex; gap: var(--space-gap); }
-		.btn {
-			font: inherit; padding: var(--space-gap) var(--space-inline); border: 0;
-			border-radius: var(--radius-control);
-			background: var(--primary); color: var(--primary-fg); cursor: pointer;
-		}
-		.btn:disabled { opacity: 0.4; cursor: default; }
-		.btn.ghost { background: transparent; color: var(--primary); border: 1px solid var(--line); }
-		.note { color: var(--muted); margin-top: var(--space-block); }
+		.note { margin-top: var(--space-block); }
 	`;
 
 	render() {
@@ -150,7 +142,7 @@ Register per `registry-edit.md`. On a slide: `<deck-tokeniser></deck-tokeniser>`
   item, `@click="i++"`.
 - **quiz / preference picker**: `x-data="{ picked: null }"`, `@click="picked = 'a'"`,
   `:class="{ correct: picked === answer }"`.
-- **confidence / progress meter**: the `.meter > .fill` block from
-  `component-styles.md`, `:style="'width:' + pct + '%'"`.
+- **confidence / progress meter**: `.meter > .fill` from `SHARED_STYLES`,
+  `:style="'width:' + pct + '%'"`.
 - **cross-slide result**: write to `Alpine.store('deck').pollAnswer` here, read it
   from another component later.

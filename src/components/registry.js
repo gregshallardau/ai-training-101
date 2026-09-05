@@ -6,20 +6,25 @@
  * (the artefact-builder skill) answers that question by reading this file alone,
  * and refuses to redefine anything already listed.
  *
+ * Component implementations live at the repo-root `components/` (deck-author
+ * content, alongside slides/ and deck.css) - NOT under src/ (framework
+ * machinery). This file, deck-element.js, and shared-styles.js are the
+ * machinery; they stay in src/components/.
+ *
  * Imported once from src/main.js. Each component's index.js self-registers via
  * customElements.define() on import.
  */
 import { DeckElement } from './deck-element.js';
 
 // --- component imports (each self-registers) ------------------------------------
-// import './hero-title/index.js';
-// import './choropleth-map/index.js';
-import './ideas-map/index.js';
-import './tokeniser/index.js';
+// import '../../components/hero-title/index.js';
+// import '../../components/choropleth-map/index.js';
+import '../../components/ideas-map/index.js';
+import '../../components/tokeniser/index.js';
 
 /**
  * @type {Record<string, { tag: string, dir: string }>}
- * key = kebab component name, dir = folder under src/components/
+ * key = kebab component name, dir = folder under the root-level components/
  */
 export const COMPONENTS = {
 	// 'hero-title':     { tag: 'deck-hero-title',     dir: 'hero-title' },

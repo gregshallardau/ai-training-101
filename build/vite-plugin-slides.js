@@ -9,7 +9,8 @@
  *   re-runs transformIndexHtml. Reveal restores position from `hash: true`.
  *
  * Conventions (see slides/README.md):
- *   NN[.M]-<slug>.<html|md>   NN = zero-padded major, .M = vertical-stack minor
+ *   NN[.M]-<slug>.<html|md>   NN = zero-padded major (step 10, gaps left for
+ *                             inserting later without renumbering), .M = vertical-stack minor
  *   one file  = one horizontal slide position
  *   shared NN = one vertical <section> stack, files ordered by .M
  *   .html body = exactly one <section>...</section> (may nest <section>s)

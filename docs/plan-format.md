@@ -36,8 +36,8 @@ artefact: none
 
 | Key | Required | Notes |
 |---|---|---|
-| `title` | yes | deck title -> `00-title.html` |
-| `audience` | yes | free text; carried into `00-title.html` as an HTML comment |
+| `title` | yes | deck title -> `000-title.html` |
+| `audience` | yes | free text; carried into `000-title.html` as an HTML comment |
 | `goal` | yes | the shift you want in the audience; HTML comment on the title slide |
 | `duration` | yes | e.g. `45 min`; informational |
 | `slides` | no | estimate like `~28`; informational - `deck-builder` still makes one slide per `##` (plus nesting and the takeaways slide) |

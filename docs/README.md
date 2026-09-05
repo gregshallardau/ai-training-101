@@ -16,7 +16,10 @@ Also worth knowing:
   transition, `slideNumber`, `hash`, and `chrome` (a logo + footer drawn on
   every slide). The `src/` tree stays untouched.
 - **`slides/README.md`** - the slide numbering + portability contract in full.
-- **`src/components/README.md`** - the `<deck-*>` component contract.
+- **`src/components/README.md`** - the `<deck-*>` component contract (framework
+  machinery: base class, registry, shared styles).
+- **`components/README.md`** (repo root) - where this deck's own `<deck-*>`
+  implementations live, and how that differs from `src/components/`.
 
 Authoring skills (in `.claude/skills/`), in workflow order: `presentation-planner`
 (interview -> `presentation-plan.md`) -> `deck-builder` (plan/outline ->
@@ -25,8 +28,9 @@ Authoring skills (in `.claude/skills/`), in workflow order: `presentation-planne
 
 `artefact-builder` builds each `<deck-*>` from a kind recipe in its `reference/`
 folder (`d3-chart`, `d3-circle-pack`, `svg-diagram`, `gsap-hero`,
-`alpine-interactive`), all drawing from one shared style vocabulary
-(`component-styles.md`).
+`alpine-interactive`), all importing the one shared style vocabulary -
+`SHARED_STYLES` from `src/components/shared-styles.js`, documented in
+`component-styles.md`.
 
 ## Credits
 
