@@ -21,8 +21,8 @@ export const SHARED_STYLES = `
 		padding: var(--space-gap) var(--space-inline);
 		border: 0;
 		border-radius: var(--radius-control);
-		background: var(--primary);
-		color: var(--primary-fg);
+		background: var(--c, var(--primary));
+		color: var(--c-fg, var(--primary-fg));
 		cursor: pointer;
 		transition: opacity var(--motion-ui-duration) var(--motion-ui-ease);
 	}
@@ -30,7 +30,7 @@ export const SHARED_STYLES = `
 	.btn:disabled { opacity: 0.4; cursor: default; }
 	.btn.ghost {
 		background: transparent;
-		color: var(--primary);
+		color: var(--c, var(--primary));
 		border: 1px solid var(--line);
 	}
 
