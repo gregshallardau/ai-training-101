@@ -98,4 +98,19 @@ export const SHARED_STYLES = `
 
 	.row { display: flex; gap: var(--space-gap); flex-wrap: wrap; align-items: center; }
 	.col { display: flex; gap: var(--space-gap); flex-direction: column; }
+
+	/* fixed N equal-width panels - different from .row (wraps, no forced
+	   equal width). Matches deck.css's .flex-cols / .flex-rows exactly. */
+	.flex-cols, .flex-rows { display: flex; gap: var(--space-block); max-width: none; }
+	.flex-cols { flex-direction: row; }
+	.flex-rows { flex-direction: column; }
+	.flex-cols > * { flex: 1; }
+
+	.list-compact li + li { margin-top: 0; }
+
+	.columns, .columns-3 { max-width: none; column-gap: var(--space-block); }
+	.columns { columns: 2; column-gap: calc(var(--space-block) * 1.5); }
+	.columns-3 { columns: 3; }
+	:is(.columns, .columns-3) > * { break-inside: avoid; }
+	:is(.columns, .columns-3) dt { break-after: avoid; }
 `;
