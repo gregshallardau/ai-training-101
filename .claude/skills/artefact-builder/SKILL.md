@@ -9,8 +9,9 @@ description: >-
   "build me a component/widget", "new reusable slide element", "make a
   <deck-...>", "a chart/diagram/interactive component", "an animated demo", or
   "something reusable across slides". Creates components/<kebab>/index.js (repo
-  root - deck content, not src/), registers it in src/components/registry.js,
-  optionally emits a slide. Refuses to redefine a component that already exists.
+  root - deck content, not src/); src/components/registry.js auto-discovers it,
+  no manual registration. Optionally emits a slide. Refuses to redefine a
+  component that already exists.
 ---
 
 # artefact-builder
@@ -36,10 +37,11 @@ never move.
 
 1. `docs/framework-conventions.md`, `src/components/README.md`,
    `src/components/deck-element.js` (base-class API).
-2. **`src/components/registry.js`** - parse the import lines and the `COMPONENTS`
-   map. **If `deck-<name>` (or the `<name>` key) already exists -> STOP.** Print
-   the existing `components/<name>/index.js` path and offer to help edit it
-   instead. Never overwrite.
+2. **`components/`** (repo root) - list its folders (this **is** the manifest;
+   `src/components/registry.js` auto-discovers whatever is here, there is no
+   separate list to parse). **If a `components/<name>/` folder (or `deck-<name>`
+   tag) already exists -> STOP.** Print its `index.js` path and offer to help
+   edit it instead. Never overwrite.
 3. **`src/styles/vars/semantic.css`** - parse `:root` and every `[data-theme]`
    block into the set of valid semantic names. For each custom property the
    component wants: if there is no matching semantic, **warn**, list the nearest
@@ -64,11 +66,8 @@ never move.
   `SHARED_STYLES` from `@/components/shared-styles.js` for any shared visual
   piece (button, chip, note, meter, card) - never copy its rules, never
   re-declare a per-artefact class pile.
-- `src/components/registry.js` - add exactly:
-  - one `import '../../components/<name>/index.js';` line, beside the others,
-  - one `COMPONENTS` entry `'<name>': { tag: 'deck-<name>', dir: '<name>' },`
-    keeping the existing formatting / ordering. Minimal diff.
-  - See `reference/registry-edit.md`.
+- Nothing else to register - `src/components/registry.js` auto-discovers any
+  `components/<name>/index.js` at build time. Do not touch `registry.js`.
 - optional: `slides/NN-<slug>.html` -
   `<section id="<slug>" data-slug="<slug>"><deck-<name> ...></deck-<name>></section>`
   using `slide-builder` numbering (read `slides/` for the next free number).
@@ -85,10 +84,9 @@ or the root `deck.css`.
    `static tag`, `static observedAttributes` (if any), `static styles` (Shadow
    DOM CSS - `${SHARED_STYLES}` plus semantic-var-only rules of its own),
    idempotent render, `customElements.define('deck-<name>', ...)`.
-4. Edit `registry.js` (import + `COMPONENTS` entry).
-5. Optional slide.
-6. Report: new file path, the two-line `registry.js` diff, how to drop the tag on
-   a slide, and that `npm start` hot-loads it.
+4. Optional slide.
+5. Report: new file path, how to drop the tag on a slide, and that `npm start`
+   picks it up (auto-discovered, no registry edit needed).
 
 ## Consistency
 

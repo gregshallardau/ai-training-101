@@ -18,7 +18,8 @@ deck-author content, same as `slides/` - they live in the root-level
 ```
 src/components/              FRAMEWORK MACHINERY - the contract, not a deck's content
   deck-element.js            base class (DeckElement)
-  registry.js                the manifest + barrel - the one list of what exists
+  registry.js                auto-discovers components/*/index.js via import.meta.glob -
+                             builds COMPONENTS from what it finds, nothing to hand-edit
   shared-styles.js           SHARED_STYLES - the shared CSS vocabulary (.chip/.box/.btn/...)
   README.md                  this file
 
@@ -43,8 +44,8 @@ components/                  THIS DECK'S CONTENT (repo root, alongside slides/, 
   raw colour / length literal. (These are CSS custom properties, not "tokens".)
 - `connectedCallback` must be idempotent - Reveal relocates `<section>` nodes.
 - A component may import from `@/lib/*` (GSAP / D3 / Alpine); a slide may not.
-- Register it: add one `import '../../components/<kebab-name>/index.js';` line
-  in `registry.js` (from `src/components/`) **and** one `COMPONENTS` entry.
+- **Registration is automatic.** Save `index.js` under `components/<kebab-name>/`
+  and `registry.js` picks it up at build time - nothing to edit.
 
 ## Using one in a slide
 
@@ -80,5 +81,5 @@ class DeckHeroTitle extends DeckElement {
 customElements.define(DeckHeroTitle.tag, DeckHeroTitle);
 ```
 
-The `artefact-builder` skill generates and registers components against this
-contract - see `.claude/skills/artefact-builder/`.
+The `artefact-builder` skill generates components against this contract - see
+`.claude/skills/artefact-builder/`.

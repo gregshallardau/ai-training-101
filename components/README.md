@@ -16,7 +16,9 @@ components/
   is framework machinery and lives in `src/components/` - see
   `src/components/README.md`.
 - **`src/components/registry.js`** is still the one manifest of what exists -
-  it imports each `index.js` from here and lists it in `COMPONENTS`.
+  it auto-discovers every `index.js` under here and lists it in `COMPONENTS`.
+  Nothing to hand-edit; saving a new `<kebab>/index.js` here is the whole
+  registration step.
 - Built by the `artefact-builder` skill (`.claude/skills/artefact-builder/`).
   A slide places the `<deck-*>` tag; it never reaches into this folder
   directly.
