@@ -1,8 +1,106 @@
 <section id="precision-is-key" data-slug="precision-is-key">
+	<style>
+		/* One-slide-only table styling — scoped under this slide's id,
+		   tier-2 semantic properties only (framework convention, shape 3). */
+		#precision-is-key table {
+			max-width: none;
+			margin: 0 auto var(--space-block) auto;
+			font-size: 0.78em;
+			line-height: 1.35;
+		}
+		#precision-is-key :is(th, td) {
+			padding: 0.3em 0.9em 0.3em 0;
+			border-bottom: 1px solid var(--line);
+		}
+		#precision-is-key :is(th, td):last-child {
+			padding-right: 0;
+		}
+		#precision-is-key th {
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+			font-size: 0.85em;
+			color: var(--muted);
+		}
+	</style>
 	<h2>Precision Is Key</h2>
-	<ul>
-		<li>TODO: remember earlier — words have meaning</li>
-		<li>TODO: pick words and phrases that carry meaning</li>
-		<li>TODO: one output is another input</li>
-	</ul>
+	<p class="fragment">Words carry meaning — and the model never asks you to clarify. It takes every word you use, literally.</p>
+
+	<h3 class="fragment">Confusable pairs — very different outcomes</h3>
+	<table class="fragment">
+		<thead>
+			<tr>
+				<th>Your word</th>
+				<th>A confusable word</th>
+				<th>The outcome</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>“<strong>fix</strong>” the bug</td>
+				<td>“<strong>explain</strong>” the bug</td>
+				<td><strong>fix</strong> → the code changes. <strong>explain</strong> → nothing changes, it just talks about it.</td>
+			</tr>
+			<tr>
+				<td>“<strong>rewrite</strong>” the report</td>
+				<td>“<strong>proofread</strong>” the report</td>
+				<td><strong>rewrite</strong> → a new version, style may change. <strong>proofread</strong> → your words stay, errors get fixed.</td>
+			</tr>
+			<tr>
+				<td>“<strong>draft</strong>” the email</td>
+				<td>“<strong>send</strong>” the email</td>
+				<td><strong>draft</strong> → a copy for you to check. <strong>send</strong> → it leaves the building with your name on it.</td>
+			</tr>
+			<tr>
+				<td>“<strong>delete</strong>” that paragraph</td>
+				<td>“<strong>hide</strong>” it</td>
+				<td><strong>delete</strong> → it's gone. <strong>hide</strong> → it's still there, just out of sight.</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<h3 class="fragment">Good, better, best — sharper words, sharper outcome</h3>
+	<table class="fragment">
+		<thead>
+			<tr>
+				<th>Word choice</th>
+				<th>Your words</th>
+				<th>The outcome</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td><span class="chip muted">good</span></td>
+				<td>“Make it shorter.”</td>
+				<td>Shorter — by how much? The model gets to guess.</td>
+			</tr>
+			<tr>
+				<td><span class="chip primary">better</span></td>
+				<td>“Shorten it to fit in one email.”</td>
+				<td>One email is a range, not a number — it can still drift.</td>
+			</tr>
+			<tr>
+				<td><span class="chip success">best</span></td>
+				<td>“Cut it to under 90 words.”</td>
+				<td>A sharp number, no room to guess — ready to send as is.</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<p class="fragment text-muted">And one output is another's input — your output is the next prompt, the next email, the next model's context. If your words are vague, the vagueness travels.</p>
+
+	<aside class="notes">
+		Bridge from the "words have meaning" section: precision is how that meaning
+		gets across.
+
+		Table 1 — these four pairs are words the audience actually types. Emphasise
+		that the model never asks which member of the pair you meant; it picks the
+		most likely one and commits to it.
+
+		Table 2 — the good / better / best ladder shows the fix: words with sharp,
+		defined meanings (a number, a boundary) leave nothing to guess, so the
+		outcome is usable.
+
+		Close on "one output is another's input": your words also seed everything
+		that happens after you. Vague words don't die — they propagate.
+	</aside>
 </section>

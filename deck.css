@@ -58,6 +58,8 @@
 		/* --danger:  #b91c1c;  --danger-fg:  #ffffff; */
 		/* --warning: #d97706;  --warning-fg: #0b0c0e; */
 
+		--warning-fg: #ffffff;
+
 		/* --bg  ─────  slide background / PDF page colour. Default #ffffff. */
 		/* --bg: #ffffff; */
 
@@ -242,6 +244,39 @@
 	}
 	.reveal .slides section .flex-cols > * {
 		flex: 1;
+		/* override the automatic min-width: a <pre>/<code> child (or any
+		   unbroken run of text) otherwise reports its min-content as the
+		   width of its longest unwrappable line, which beats flex:1 and
+		   breaks the "equal width" contract above. */
+		min-width: 0;
+	}
+	/* a <pre> squeezed into a flex-cols column can still hold a line longer
+	   than the column - scroll it horizontally instead of overflowing into
+	   the sibling column. */
+	.reveal .slides section .flex-cols > pre {
+		overflow-x: auto;
+	}
+	/* Highlight's line-numbers plugin renders each line as a <table
+	   class="hljs-ln"> row (hljs-ln-numbers | hljs-ln-code); table-layout:
+	   auto sizes columns to fit content and ignores container width, so a
+	   flex-cols code column never wraps on its own. Force the table to
+	   respect the column width and let the code cell soft-wrap. Scoped to
+	   flex-cols so full-width code slides elsewhere keep their normal
+	   (unwrapped, gutter-aligned) behaviour. */
+	.reveal .slides section .flex-cols table.hljs-ln {
+		table-layout: fixed;
+		width: 100%;
+	}
+	.reveal .slides section .flex-cols .hljs-ln-numbers {
+		white-space: nowrap;
+		/* table-layout: fixed takes this literally (unlike auto, which
+		   treats a narrow width as a shrink-to-fit hint) - a % width clips
+		   two-digit line numbers, so size the column in characters instead. */
+		width: 2.5em;
+	}
+	.reveal .slides section .flex-cols .hljs-ln-code {
+		white-space: pre-wrap;
+		word-break: break-word;
 	}
 
 	/* .list-compact  drop the gap between items of a list inside it */
