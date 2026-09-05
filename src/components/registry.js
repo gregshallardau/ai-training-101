@@ -15,6 +15,7 @@ import { DeckElement } from './deck-element.js';
 // import './hero-title/index.js';
 // import './choropleth-map/index.js';
 import './ideas-map/index.js';
+import './tokeniser/index.js';
 
 /**
  * @type {Record<string, { tag: string, dir: string }>}
@@ -24,6 +25,7 @@ export const COMPONENTS = {
 	// 'hero-title':     { tag: 'deck-hero-title',     dir: 'hero-title' },
 	// 'choropleth-map': { tag: 'deck-choropleth-map', dir: 'choropleth-map' },
 	'ideas-map': { tag: 'deck-ideas-map', dir: 'ideas-map' },
+	'tokeniser': { tag: 'deck-tokeniser', dir: 'tokeniser' },
 };
 
 /** Dev sanity check: every listed component actually defined a custom element. */

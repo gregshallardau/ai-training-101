@@ -36,7 +36,17 @@ So we can see our sentences be broken up, but then fade away the filler words (t
 
 And we have the verb, noun, adjectives, and the meaning of these is all connected.
 
-## Slide 04 — The Meaning of Words — Context (introduces Context)
+## Slide 04 — What Is a Model
+
+Remember those tokens we spoke about earlier.
+
+Those tokens...
+
+Prompt: the question we ask or what we want to do.
+
+TODO: Put in the "What is a model" content.
+
+## Slide 05 — The Meaning of Words — Context (introduces Context)
 
 Show glossary slide: 🧩 Token — a chunk of text. A word.
 
@@ -51,11 +61,11 @@ And as we start thinking about words, we start realising — hey, words are simi
 
 Show the Glossary — add C.
 
-## Slide 05 — The Glossary: Token
+## Slide 06 — The Glossary: Token
 
 - 🧩 Token — a chunk of text. A word.
 
-## Slide 06 — Word Association Game — Vector (introduces Vector)
+## Slide 07 — Word Association Game — Vector (introduces Vector)
 
 Trying to give them the idea of vector directions without saying it. I say the first, then put up sister > ????. And as I go through, we have all these examples:
 
@@ -88,12 +98,12 @@ Directionality:
 
 🧭 Vector — a direction and a distance. Similar words (or ideas) point the same way.
 
-## Slide 07 — The Glossary: Vector
+## Slide 08 — The Glossary: Vector
 
 - 🧩 Token — a chunk of text. A word.
 - 🧭 Vector — a direction and a distance. Similar words (or ideas) point the same way.
 
-## Slide 08 — Context (With Pictures)
+## Slide 09 — Context (With Pictures)
 
 What animal would you find here?
 
@@ -103,7 +113,7 @@ Show them pictures and show how their brains get context from the picture:
 - A chicken coop (no chickens would be in the photo) = Chickens
 - Horse racing track = Horse
 
-## Slide 09 — Context (With Words)
+## Slide 10 — Context (With Words)
 
 We keep adding words to guess who the person is. We're trying to show that exactly the same prompt, but with different context, is going to get a totally different answer.
 
@@ -127,22 +137,12 @@ This is how AI is trained: give it a whole bunch of information, and its brain c
 
 🧠 Model — all the dial positions together. The complete knowledge.
 
-## Slide 10 — The Glossary: Weight & Model
+## Slide 11 — The Glossary: Weight & Model
 
 - 🧩 Token — a chunk of text. A word.
 - 🧭 Vector — a direction and a distance. Similar words (or ideas) point the same way.
 - 🎛️ Weight — a dial. How strongly two tokens are connected.
 - 🧠 Model — all the dial positions together. The complete knowledge.
-
-## Slide 11 — What Is a Model
-
-Remember those tokens we spoke about earlier.
-
-Those tokens...
-
-Prompt: the question we ask or what we want to do.
-
-TODO: Put in the "What is a model" content.
 
 ## Slide 12 — Everything Is Linked — Don't Train It on Only One Topic
 
