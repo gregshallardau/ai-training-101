@@ -39,6 +39,7 @@ re-skin through the shadow boundary for free.
 | `.primary` `.secondary` `.success` `.danger` `.warning` | bare colour modifiers - set `--c` / `--c-fg`, read by the blocks below |
 | `.chip` / `.chip:is(colour)` / `.chip.muted` | token/tag pill - outline, solid fill, or greyed |
 | `.note` | muted caption text |
+| `.text-primary` / `.text-muted` / `.text-center` | brand-colour / muted text, centre-align |
 | `.meter` / `.meter > .fill` | progress / confidence bar |
 | `.box` / `.box.border` / `.box:is(colour)` / `.box.bar` | panel - borderless, hairline, tinted fill, or left-bar callout |
 | `.row` / `.col` | flex row / column, `--space-gap` |

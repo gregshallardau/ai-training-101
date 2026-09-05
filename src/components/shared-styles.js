@@ -61,6 +61,9 @@ export const SHARED_STYLES = `
 	}
 
 	.note { color: var(--muted); }
+	.text-primary { color: var(--primary); }
+	.text-muted { color: var(--muted); }
+	.text-center { text-align: center; }
 
 	.meter {
 		height: 0.5em;
