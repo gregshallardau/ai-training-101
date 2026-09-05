@@ -28,8 +28,9 @@ Authoring skills (in `.claude/skills/`), in workflow order: `presentation-planne
 
 `artefact-builder` builds each `<deck-*>` from a kind recipe in its `reference/`
 folder (`d3-chart`, `d3-circle-pack`, `svg-diagram`, `gsap-hero`,
-`alpine-interactive`), all importing the one shared style vocabulary -
-`SHARED_STYLES` from `src/components/shared-styles.js`, documented in
+`alpine-interactive`, `radial-meter`, `animated-counter`, `stat-tiles`,
+`timeline-stepper`, `confidence-bars`), all importing the one shared style
+vocabulary - `SHARED_STYLES` from `src/components/shared-styles.js`, documented in
 `component-styles.md`.
 
 ## Credits
