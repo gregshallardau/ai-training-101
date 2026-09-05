@@ -48,6 +48,7 @@ export const SHARED_STYLES = `
 		border-radius: var(--radius-control);
 		border: 1px solid var(--c, var(--line));
 		background: color-mix(in srgb, var(--c, var(--muted)) 12%, transparent);
+		background-clip: padding-box;
 		color: var(--fg);
 	}
 	.chip:is(.primary, .secondary, .success, .danger, .warning) {
