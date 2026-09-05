@@ -39,9 +39,13 @@ re-skin through the shadow boundary for free.
 | `.primary` `.secondary` `.success` `.danger` `.warning` | bare colour modifiers - set `--c` / `--c-fg`, read by the blocks below |
 | `.chip` / `.chip:is(colour)` / `.chip.muted` | token/tag pill - outline, solid fill, or greyed |
 | `.note` | muted caption text |
+| `.text-primary` / `.text-muted` / `.text-center` | brand-colour / muted text, centre-align |
 | `.meter` / `.meter > .fill` | progress / confidence bar |
 | `.box` / `.box.border` / `.box:is(colour)` / `.box.bar` | panel - borderless, hairline, tinted fill, or left-bar callout |
-| `.row` / `.col` | flex row / column, `--space-gap` |
+| `.row` / `.col` | flex row / column that wraps, `--space-gap` |
+| `.flex-cols` / `.flex-rows` | fixed N **equal-width** panels, no wrap, `--space-block` gap - different from `.row`, matches `deck.css` |
+| `.columns` / `.columns-3` | newspaper columns (a `<dl>`/`<ul>`/wall of `<p>`s) |
+| `.list-compact` | drop the gap between `<li>`s inside it |
 
 Same class names as the slide-level utilities in `deck.css` (`.chip`, `.box`,
 colour modifiers) - so a component and a plain slide read as one visual
@@ -54,3 +58,20 @@ If a component needs a genuinely new shared primitive (a shape none of these
 express), add it to `shared-styles.js` directly - in the same semantic-var
 style - and update the table above. Never as a one-off literal duplicated
 inside a component.
+
+## What does NOT cross the boundary, and can't be added here
+
+Reveal's own built-in classes - `class="fragment"` (and its variants),
+`r-stack`, `r-hstack`, `r-vstack`, `r-fit-text`, `r-stretch` - are styled by
+Reveal as `.reveal .fragment`, `.reveal .r-stack`, etc. in **Reveal's own
+stylesheet**, not `deck.css`. Same shadow boundary, but there is no
+`SHARED_STYLES` fix for it: copying those rules in means reimplementing
+Reveal's fragment-visibility and grid-stack logic yourself, not porting a
+utility class. Putting `class="fragment"` or `class="r-stack"` on an element
+inside a component's shadow-rendered markup will silently do nothing.
+
+This is why every existing recipe drives step-by-step reveals and stacking
+from inside the component instead: Alpine `x-show`/`x-transition`
+(`alpine-interactive.md`) or a JS listener on Reveal's own events
+(`gsap-hero.md`'s `slidechanged`). Do the same for a new component - never
+reach for a bare `fragment`/`r-stack` class inside `render()`'s markup.
