@@ -56,7 +56,12 @@ never move.
    | concept map, topics/ideas in space, circle packing, zoom-into-a-topic | `reference/d3-circle-pack.md` |
    | diagram, schematic, layers, flow, boxes-and-arrows, labelled picture | `reference/svg-diagram.md` |
    | hero title, section-break, one big entrance animation | `reference/gsap-hero.md` |
-   | interactive: stepper, quiz, game, meter, tokeniser-style click-through | `reference/alpine-interactive.md` |
+   | interactive with its own internal state: quiz, game, tokeniser-style click-through | `reference/alpine-interactive.md` |
+   | 0-100 circular fill, confidence/completion dial | `reference/radial-meter.md` |
+   | a number ticking up to a target on slide arrival | `reference/animated-counter.md` |
+   | row of big numbers with labels (KPI strip) | `reference/stat-tiles.md` |
+   | horizontal pipeline/process walkthrough, "you are here" indicator | `reference/timeline-stepper.md` |
+   | horizontal bars comparing a few labelled values | `reference/confidence-bars.md` |
    | anything else (badge, card, static widget) | inline from `reference/component-template.js` |
 
 ## Write

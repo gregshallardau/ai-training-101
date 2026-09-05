@@ -29,4 +29,10 @@
 	   blockquotes, code...). It only consumes var(--r-*) - which src/styles/theme/deck.css
 	   supplies - so no Reveal theme .scss under css/theme/ is compiled or linked. */
 	@include meta.load-css('../../../vendor/reveal.js/css/theme/template/theme');
+
+	/* highlight.js token colours for the Highlight plugin's <code> markup. These
+	   are a vendored third-party theme (fixed hex values, not semantic custom
+	   properties) - layered here, same as the rest of Reveal's own CSS, so a
+	   deck's `deck` layer can still override it if a re-skin ever needs to. */
+	@include meta.load-css('../../../vendor/reveal.js/dist/plugin/highlight/monokai');
 }
