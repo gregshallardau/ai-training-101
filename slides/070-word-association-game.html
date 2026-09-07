@@ -1,13 +1,53 @@
 <section id="word-association-game" data-slug="word-association-game">
-	<h2>Word Association Game — Vector</h2>
-	<!-- TODO: run artefact-builder for deck-word-association -->
-	<ul>
-		<li>TODO: say the first word, then reveal "sister > ????" and the pairs one by one</li>
-		<li>TODO: girl &gt; boy · sister &gt; brother · Japan &gt; sushi · Australia &gt; Bunnings sausage · France &gt; Paris · Italy &gt; Rome · copper &gt; Cu · zinc &gt; Zn · Victoria &gt; Melbourne · NSW &gt; Sydney</li>
-		<li>TODO: jump back to the "map of ideas" — arrows between each pair, all pointing the same direction</li>
-		<li>TODO: go backwards — ? &lt; Rome</li>
-		<li>TODO: a maths equation x + 5 = 7 — ideas go in both directions</li>
-		<li>TODO: it's just maths — a direction and a distance (vector); girl &gt; boy, girl ^ mother, boy ^ father</li>
-		<li>TODO: next: the Glossary — Vector joins Token</li>
-	</ul>
+	<h2>Word Association Game</h2>
+	<p class="fragment">I'll say the first word. You shout the second.</p>
+	<p class="fragment"><strong>sister</strong> &gt; ????</p>
+
+	<div class="flex-cols">
+		<ul>
+			<li class="fragment">girl &gt; boy</li>
+			<li class="fragment">sister &gt; brother</li>
+			<li class="fragment">Japan &gt; sushi</li>
+			<li class="fragment">Australia &gt; Bunnings sausage</li>
+			<li class="fragment">France &gt; Paris</li>
+		</ul>
+		<ul>
+			<li class="fragment">Italy &gt; Rome</li>
+			<li class="fragment">copper &gt; Cu</li>
+			<li class="fragment">zinc &gt; Zn</li>
+			<li class="fragment">Victoria &gt; Melbourne</li>
+			<li class="fragment">New South Wales &gt; Sydney</li>
+		</ul>
+	</div>
+
+	<p class="fragment text-muted">Now let's go backwards.</p>
+	<p class="fragment">? &lt; Rome</p>
+
+	<p class="fragment"><code>x + 5 = 7</code> — ideas go in both directions.</p>
+
+	<div class="box bar primary fragment">
+		<h3>It's just maths — a direction, and a distance.</h3>
+	</div>
+
+	<p class="fragment"><span class="chip">girl</span> &gt; <span class="chip">boy</span> · <span class="chip">girl</span> ^ <span class="chip">mother</span> · <span class="chip">boy</span> ^ <span class="chip">father</span></p>
+
+	<aside class="notes">
+		Live game — say the first word of each pair, let the room shout the
+		second, then press on to reveal it and move to the next pair.
+
+		After the list, jump back to the "Ideas in Space" map (slide
+		ideas-in-space, deck-ideas-map) and draw an arrow between each pair
+		live — they're all already sitting in the map, pointing the same
+		direction from the first word to the second.
+
+		The backwards round (? &lt; Rome) shows the arrow works both ways —
+		same idea as x + 5 = 7 solving for x. That's the whole concept: a
+		vector is just a direction and a distance.
+
+		Next: the Glossary — Vector joins Token.
+
+		A dedicated deck-word-association component could replace this plain
+		version later if it needs its own reveal animation — run
+		artefact-builder if so.
+	</aside>
 </section>

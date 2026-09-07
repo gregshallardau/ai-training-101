@@ -1,9 +1,12 @@
 <section id="transformers-robots-in-disguise" data-slug="transformers-robots-in-disguise">
 	<h2>Transformers: Robots in Disguise</h2>
-	<ul>
-		<li>TODO: OCR — picture to words</li>
-		<li>TODO: voice to words</li>
-		<li>TODO: words to spreadsheet</li>
-		<li>TODO: spreadsheet to words</li>
-	</ul>
+	<div class="flex-cols">
+		<p class="fragment"><span class="chip type-image">picture</span> → <span class="chip type-words">words</span> <span class="text-muted">(OCR)</span></p>
+		<p class="fragment"><span class="chip type-voice">voice</span> → <span class="chip type-words">words</span></p>
+	</div>
+	<div class="flex-cols">
+		<p class="fragment"><span class="chip type-words">words</span> → <span class="chip type-data">spreadsheet</span></p>
+		<p class="fragment"><span class="chip type-data">spreadsheet</span> → <span class="chip type-words">words</span></p>
+	</div>
+	<p class="fragment text-muted">Same trick every time — whatever form it arrives in, it comes out the other side as tokens.</p>
 </section>
