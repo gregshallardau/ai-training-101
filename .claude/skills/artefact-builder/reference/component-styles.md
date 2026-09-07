@@ -37,11 +37,16 @@ re-skin through the shadow boundary for free.
 | `:host` | block display, inherits `--fg` + the slide's font |
 | `.btn` / `.btn.ghost` | solid / outline button |
 | `.primary` `.secondary` `.success` `.danger` `.warning` | bare colour modifiers - set `--c` / `--c-fg`, read by the blocks below |
-| `.chip` / `.chip:is(colour)` / `.chip.muted` | token/tag pill - outline, solid fill, or greyed |
+| `data-topic="<name>"` | identity/category tint (commented out by default) - mirrors whatever `--topic-<name>` pairs the deck's own `deck.css` defines; uncomment the matching line here to match |
+| `.chip` / `.chip:is(colour)` / `.chip.muted` | token/tag pill - outline, solid fill, or greyed. Ambient hover lift, no modifier needed |
+| `.token-row` | a wrapping row of `.chip` pills (tokeniser, attention-flow, any per-item chip stream) - component-only, no `deck.css` counterpart |
 | `.note` | muted caption text |
 | `.text-primary` / `.text-muted` / `.text-center` | brand-colour / muted text, centre-align |
 | `.meter` / `.meter > .fill` | progress / confidence bar |
-| `.box` / `.box.border` / `.box:is(colour)` / `.box.bar` | panel - borderless, hairline, tinted fill, or left-bar callout |
+| `.box` / `.box.border` / `.box:is(colour)` / `.box.bar` | panel - borderless, hairline, tinted fill, or left-bar callout. Ambient hover lift, no modifier needed |
+| `.box.interactive` | this box is clickable - cursor: pointer + a stronger hover |
+| `.box.selected` | a persistent "picked" state, set by JS, distinct from hover |
+| `.box.compact` | tighter padding/margin - dense rows (list items, doc cards) |
 | `.row` / `.col` | flex row / column that wraps, `--space-gap` |
 | `.flex-cols` / `.flex-rows` | fixed N **equal-width** panels, no wrap, `--space-block` gap - different from `.row`, matches `deck.css` |
 | `.columns` / `.columns-3` | newspaper columns (a `<dl>`/`<ul>`/wall of `<p>`s) |
@@ -52,7 +57,11 @@ colour modifiers) - so a component and a plain slide read as one visual
 language, even though the CSS text is necessarily separate (Shadow DOM does
 not inherit class-selector rules from the light DOM, only inherited
 properties and custom properties cross that boundary - that's the entire
-reason this file, and `shared-styles.js`, exist).
+reason this file, and `shared-styles.js`, exist). `deck.css` and
+`shared-styles.js` are kept in sync by matching `/* SHARED-VOCAB:start <name>
+*/` / `/* SHARED-VOCAB:end */` sentinel comments around the `colour-modifiers`,
+`box`, and `chip` blocks in both files - `npm run check:vocab` diffs them; see
+Read step 5 in `SKILL.md`.
 
 If a component needs a genuinely new shared primitive (a shape none of these
 express), add it to `shared-styles.js` directly - in the same semantic-var

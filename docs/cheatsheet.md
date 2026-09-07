@@ -281,6 +281,61 @@ Variants: `fade-in-then-out`, `fade-in-then-semi-out`, `fade-up` / `-down` /
 `-left` / `-right`, `fade-out`, `semi-fade-out`, `grow`, `shrink`, `strike`,
 `highlight-red` / `-green` / `-blue`, `highlight-current-red` / `-green` / `-blue`.
 
+For a build-up **across separate slides** (not within one slide), see "Step-through
+across slides" below - never copy the whole slide per step.
+
+---
+
+## Step-through across slides (auto-animate rungs)
+
+`.fragment` reveals incrementally *within one slide*. For a block that grows or
+rearranges *across the deck's flow* - a glossary filling in, a diagram gaining a
+layer per press - use `data-auto-animate` instead. Put it on two or more
+consecutive `<section>`s; any element sharing a `data-id` between them tweens in
+place, and anything unmatched fades in fresh. Pair it with the existing `.M`
+vertical-stack minor convention (`slides/README.md`) so a rung sequence is just
+consecutive minors of one major - no new numbering scheme needed.
+
+**Don't do this** (four full slide copies, each adding one more line - the
+"glossary wall" anti-pattern):
+
+```
+999-glossary-token.html         <dl>…Token…</dl>
+999-glossary-vector.html        <dl>…Token…Vector…</dl>          (copy of the above + 1 line)
+999-glossary-weight-model.html  <dl>…Token…Vector…Weight…</dl>   (copy of the above + 1 line)
+999-glossary-prompt.html        <dl>…Token…Vector…Weight…Prompt…</dl>
+```
+
+**Do this instead** - one rung per minor, each just the previous file plus one
+new `data-id`'d entry:
+
+```html
+<!-- slides/07.1-glossary.html -->
+<section id="glossary" data-slug="glossary" data-auto-animate>
+	<h2>Glossary</h2>
+	<dl class="columns">
+		<dt data-id="term-token">Token</dt>
+		<dd data-id="def-token">a chunk of text - a word or word-piece.</dd>
+	</dl>
+</section>
+```
+
+```html
+<!-- slides/07.2-glossary.html -->
+<section id="glossary-2" data-slug="glossary-2" data-auto-animate>
+	<h2>Glossary</h2>
+	<dl class="columns">
+		<dt data-id="term-token">Token</dt>
+		<dd data-id="def-token">a chunk of text - a word or word-piece.</dd>
+		<dt data-id="term-vector">Vector</dt>
+		<dd data-id="def-vector">a direction and a distance; similar ideas point the same way.</dd>
+	</dl>
+</section>
+```
+
+Rule of thumb: single-slide, a few small reveals → `.fragment`. A whole block
+growing or rearranging across the deck's flow → auto-animate rungs.
+
 ---
 
 ## Slide backgrounds & transitions

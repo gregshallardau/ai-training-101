@@ -18,33 +18,12 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { SLIDE_RE, natSort, parseSlideFilename as parse } from '../scripts/lib/slide-files.js';
 
 const DIR = 'slides';
 const MARKER = '<!-- @slides -->';
-const SLIDE_RE = /\.(html|md)$/i;
 const VSEP = '\\r?\\n--\\r?\\n'; // "--" fence => vertical sub-slide within one .md file
 const NSEP = '^Note:';
-
-const natSort = (a, b) => a.localeCompare(b, undefined, { numeric: true });
-
-// "03.1-architecture.html" -> { major: 3, minor: 1, slug: "architecture", ext: "html" }
-function parse(file) {
-	const m = /^(\d+)(?:\.(\d+))?[-_.]?(.*?)\.(html|md)$/i.exec(file);
-	if (!m) {
-		return {
-			major: Infinity,
-			minor: null,
-			slug: file.replace(SLIDE_RE, '').toLowerCase(),
-			ext: file.split('.').pop().toLowerCase(),
-		};
-	}
-	return {
-		major: Number(m[1]),
-		minor: m[2] != null ? Number(m[2]) : null,
-		slug: (m[3] || `slide-${m[1]}`).toLowerCase(),
-		ext: m[4].toLowerCase(),
-	};
-}
 
 function renderMd(raw, slug) {
 	const safe = raw.replace(/<\/script>/gi, '<\\/script>');

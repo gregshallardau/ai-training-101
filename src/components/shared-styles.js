@@ -34,6 +34,7 @@ export const SHARED_STYLES = `
 		border: 1px solid var(--line);
 	}
 
+	/* SHARED-VOCAB:start colour-modifiers */
 	/* bare colour modifiers - class="chip primary", class="box bar danger" */
 	.primary   { --c: var(--primary);   --c-fg: var(--primary-fg); }
 	.secondary { --c: var(--secondary); --c-fg: var(--secondary-fg); }
@@ -41,15 +42,39 @@ export const SHARED_STYLES = `
 	.danger    { --c: var(--danger);    --c-fg: var(--danger-fg); }
 	.warning   { --c: var(--warning);   --c-fg: var(--warning-fg); }
 
+	/* Topic legend - mirrors whatever --topic-<name> pairs the deck's own
+	   deck.css has defined (see its TOPIC COLOURS section). Uncomment the
+	   matching lines here so a component can render a topic-tinted
+	   chip/box too - the values pierce the shadow boundary on their own,
+	   only the selector shape needs mirroring. */
+	/* [data-topic="inference"] { --c: var(--topic-inference); --c-fg: var(--topic-inference-fg); } */
+	/* [data-topic="training"]  { --c: var(--topic-training);  --c-fg: var(--topic-training-fg); } */
+	/* [data-topic="safety"]    { --c: var(--topic-safety);    --c-fg: var(--topic-safety-fg); } */
+	/* SHARED-VOCAB:end */
+
+	/* SHARED-VOCAB:start chip */
 	.chip {
 		display: inline-block;
-		padding: 0.15em 0.5em;
+		padding: 0.1em 0.5em;
 		margin: 0.12em 0.2em 0.12em 0;
 		border-radius: var(--radius-control);
 		border: 1px solid var(--c, var(--line));
 		background: color-mix(in srgb, var(--c, var(--muted)) 12%, transparent);
 		background-clip: padding-box;
 		color: var(--fg);
+		transition: box-shadow var(--motion-ui-duration) var(--motion-ui-ease);
+	}
+	.chip:hover {
+		box-shadow: 0 0.2em 0.5em -0.2em color-mix(in srgb, var(--c, var(--fg)) 45%, transparent);
+	}
+	@media (prefers-reduced-motion: no-preference) {
+		.chip {
+			transition: transform var(--motion-ui-duration) var(--motion-ui-ease),
+				box-shadow var(--motion-ui-duration) var(--motion-ui-ease);
+		}
+		.chip:hover {
+			transform: translateY(-0.1em);
+		}
 	}
 	.chip:is(.primary, .secondary, .success, .danger, .warning) {
 		background: var(--c);
@@ -59,6 +84,19 @@ export const SHARED_STYLES = `
 		border-color: var(--line);
 		background: color-mix(in srgb, var(--muted) 10%, transparent);
 		color: var(--muted);
+	}
+	/* SHARED-VOCAB:end */
+
+	/* a wrapping row of .chip pills - tokeniser, attention flow, any
+	   per-item chip stream. Component-only, no deck.css counterpart. Do not
+	   re-declare this per component. */
+	.token-row {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-gap);
+		margin-block: var(--space-block);
+		min-height: 1.8em;
 	}
 
 	.note { color: var(--muted); }
@@ -78,15 +116,34 @@ export const SHARED_STYLES = `
 		transition: width var(--motion-ui-duration) var(--motion-ui-ease);
 	}
 
+	/* SHARED-VOCAB:start box */
 	.box {
 		padding: var(--space-block);
 		border-radius: var(--radius-card);
 		background: var(--bg);
 		color: var(--fg);
 		margin-block: var(--space-block);
+		max-width: none;
+		transition: box-shadow var(--motion-ui-duration) var(--motion-ui-ease);
+	}
+	.box:hover {
+		box-shadow: 0 0.5em 1.2em -0.5em color-mix(in srgb, var(--fg) 35%, transparent);
+	}
+	@media (prefers-reduced-motion: no-preference) {
+		.box {
+			transition: transform var(--motion-ui-duration) var(--motion-ui-ease),
+				box-shadow var(--motion-ui-duration) var(--motion-ui-ease);
+		}
+		.box:hover {
+			transform: translateY(-0.15em);
+		}
 	}
 	.box > :first-child { margin-top: 0; }
 	.box > :last-child { margin-bottom: 0; }
+	.box > .box,
+	.box > .token-row {
+		margin-block: var(--space-gap);
+	}
 	.box.border { border: 1px solid var(--c, var(--line)); }
 	.box:is(.primary, .secondary, .success, .danger, .warning) {
 		background: color-mix(in srgb, var(--c) 8%, var(--bg));
@@ -96,6 +153,19 @@ export const SHARED_STYLES = `
 		border-left: 4px solid var(--c, var(--line));
 		padding-left: var(--space-inline);
 	}
+	.box.compact {
+		padding: var(--space-gap);
+		margin-block: var(--space-gap);
+	}
+	.box.interactive { cursor: pointer; }
+	.box.interactive:hover {
+		box-shadow: 0 0.6em 1.4em -0.4em color-mix(in srgb, var(--c, var(--fg)) 45%, transparent);
+	}
+	.box.selected {
+		border: 2px solid var(--c, var(--primary));
+		background: color-mix(in srgb, var(--c, var(--primary)) 14%, var(--bg));
+	}
+	/* SHARED-VOCAB:end */
 
 	.row { display: flex; gap: var(--space-gap); flex-wrap: wrap; align-items: center; }
 	.col { display: flex; gap: var(--space-gap); flex-direction: column; }

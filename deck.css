@@ -75,6 +75,20 @@
 		               outlines. Default #9aa0ac (light grey). */
 		/* --line: #9aa0ac; */
 
+		/* TOPIC COLOURS  ────────────────────────────────────────────────
+		   A named legend distinct from the status colours above - for
+		   IDENTITY (which speaker / theme / category), not severity.
+		   success/danger/warning stay for severity; this is separate and
+		   additive. Define one --topic-<name> / --topic-<name>-fg pair per
+		   topic (any count, any names - this deck owns them), then match it
+		   with one [data-topic="<name>"] line in the COLOUR MODIFIERS
+		   section below. No new class per topic: put data-topic="<name>" on
+		   any .chip or .box and it picks up the tint automatically.
+		   Example - uncomment and rename for your deck: */
+		/* --topic-inference: #6366f1; --topic-inference-fg: #ffffff; */
+		/* --topic-training:  #f59e0b; --topic-training-fg:  #0b0c0e; */
+		/* --topic-safety:    #0ea5e9; --topic-safety-fg:    #ffffff; */
+
 		/* --font-heading  ────────────────────────────────────────────────
 		   Font stack for <h1>-<h4>. Always end with a real fallback chain.
 		   If it's a webfont, <link> or @import it in index.html <head> first.
@@ -278,6 +292,10 @@
 		white-space: pre-wrap;
 		word-break: break-word;
 	}
+	/* inside a flex layout the container gap spaces children - drop the margin */
+	.reveal .slides section :is(.flex-cols, .flex-rows) > * {
+		margin: 0;
+	}
 
 	/* .list-compact  drop the gap between items of a list inside it */
 	.reveal .slides section .list-compact li + li {
@@ -313,17 +331,32 @@
 	   that every building block below reads, so `class="chip primary"`,
 	   `class="box danger"`, `class="box bar success"` all just work - one
 	   word, nothing redefined per block. */
+	/* SHARED-VOCAB:start colour-modifiers */
 	.reveal .slides section .primary   { --c: var(--primary);   --c-fg: var(--primary-fg); }
 	.reveal .slides section .secondary { --c: var(--secondary); --c-fg: var(--secondary-fg); }
 	.reveal .slides section .success   { --c: var(--success);   --c-fg: var(--success-fg); }
 	.reveal .slides section .danger    { --c: var(--danger);    --c-fg: var(--danger-fg); }
 	.reveal .slides section .warning   { --c: var(--warning);   --c-fg: var(--warning-fg); }
 
+	/* Topic legend: uncomment one line per topic defined above. Same shape
+	   as the colour modifiers - sets --c / --c-fg, so [data-topic="…"] on
+	   a .chip / .box / .box.border / .box.bar reuses them unmodified. */
+	/* .reveal .slides section [data-topic="inference"] { --c: var(--topic-inference); --c-fg: var(--topic-inference-fg); } */
+	/* .reveal .slides section [data-topic="training"]  { --c: var(--topic-training);  --c-fg: var(--topic-training-fg); } */
+	/* .reveal .slides section [data-topic="safety"]    { --c: var(--topic-safety);    --c-fg: var(--topic-safety-fg); } */
+	/* SHARED-VOCAB:end */
+
 	/* ─── .box ───────────────────────────────────────────────────────────
-	   White, borderless panel by default. Opt in:
-	     .border   hairline border (uses the colour modifier if present)
+	   White, borderless panel by default. Every .box (and .chip below) gets
+	   a subtle hover lift with no modifier needed - a live-presenting cue,
+	   point at one while talking and it responds. Opt in:
+	     .border      hairline border (uses the colour modifier if present)
 	     .primary | .secondary | .success | .danger | .warning   tinted fill
-	     .bar      no border/fill, thick left bar (coloured if a modifier set) */
+	     .bar         no border/fill, thick left bar (coloured if a modifier set)
+	     .interactive this box is clickable - cursor: pointer + a stronger hover
+	     .selected    a persistent "picked" state, set by JS, distinct from hover
+	     .compact     tighter padding/margin - dense rows (list items, doc cards) */
+	/* SHARED-VOCAB:start box */
 	.reveal .slides section .box {
 		padding: var(--space-block);
 		border-radius: var(--radius-card);
@@ -331,12 +364,28 @@
 		color: var(--fg);
 		margin-block: var(--space-block); /* space from neighbouring blocks */
 		max-width: none; /* a .box is a panel, not body copy - no 32em cap */
+		transition: box-shadow var(--motion-ui-duration) var(--motion-ui-ease);
+	}
+	.reveal .slides section .box:hover {
+		box-shadow: 0 0.5em 1.2em -0.5em color-mix(in srgb, var(--fg) 35%, transparent);
+	}
+	@media (prefers-reduced-motion: no-preference) {
+		.reveal .slides section .box {
+			transition: transform var(--motion-ui-duration) var(--motion-ui-ease),
+				box-shadow var(--motion-ui-duration) var(--motion-ui-ease);
+		}
+		.reveal .slides section .box:hover {
+			transform: translateY(-0.15em);
+		}
 	}
 	.reveal .slides section .box > :first-child { margin-top: 0; }
 	.reveal .slides section .box > :last-child { margin-bottom: 0; }
-	/* inside a flex layout the container gap spaces children - drop the margin */
-	.reveal .slides section :is(.flex-cols, .flex-rows) > * {
-		margin: 0;
+	/* a .box containing another .box or a .token-row uses the tighter
+	   --space-gap rhythm instead of the full --space-block one, so
+	   panels-in-panels don't double up on vertical space */
+	.reveal .slides section .box > .box,
+	.reveal .slides section .box > .token-row {
+		margin-block: var(--space-gap);
 	}
 	.reveal .slides section .box.border {
 		border: 1px solid var(--c, var(--line));
@@ -351,11 +400,28 @@
 		border-left: 4px solid var(--c, var(--line));
 		padding-left: var(--space-inline);
 	}
+	.reveal .slides section .box.compact {
+		padding: var(--space-gap);
+		margin-block: var(--space-gap);
+	}
+	.reveal .slides section .box.interactive {
+		cursor: pointer;
+	}
+	.reveal .slides section .box.interactive:hover {
+		box-shadow: 0 0.6em 1.4em -0.4em color-mix(in srgb, var(--c, var(--fg)) 45%, transparent);
+	}
+	.reveal .slides section .box.selected {
+		border: 2px solid var(--c, var(--primary));
+		background: color-mix(in srgb, var(--c, var(--primary)) 14%, var(--bg));
+	}
+	/* SHARED-VOCAB:end */
 
 	/* ─── .chip ──────────────────────────────────────────────────────────
 	   Inline text in a small rounded box - a token, tag, keyword. Neutral
 	   outline by default; a colour modifier makes it a solid fill (the
-	   picked / emphasised one). .muted is a greyed, de-emphasised variant. */
+	   picked / emphasised one). .muted is a greyed, de-emphasised variant.
+	   Gets the same ambient hover lift as .box - no modifier needed. */
+	/* SHARED-VOCAB:start chip */
 	.reveal .slides section .chip {
 		display: inline-block;
 		padding: 0.1em 0.15em;
@@ -365,6 +431,19 @@
 		background: color-mix(in srgb, var(--c, var(--muted)) 12%, transparent);
 		background-clip: padding-box;
 		color: var(--fg);
+		transition: box-shadow var(--motion-ui-duration) var(--motion-ui-ease);
+	}
+	.reveal .slides section .chip:hover {
+		box-shadow: 0 0.2em 0.5em -0.2em color-mix(in srgb, var(--c, var(--fg)) 45%, transparent);
+	}
+	@media (prefers-reduced-motion: no-preference) {
+		.reveal .slides section .chip {
+			transition: transform var(--motion-ui-duration) var(--motion-ui-ease),
+				box-shadow var(--motion-ui-duration) var(--motion-ui-ease);
+		}
+		.reveal .slides section .chip:hover {
+			transform: translateY(-0.1em);
+		}
 	}
 	.reveal .slides section .chip:is(.primary, .secondary, .success, .danger, .warning) {
 		background: var(--c);
@@ -455,11 +534,136 @@
 	.reveal .slides section .chip.context-why   { border-style: groove; } /* WHY  - the drivers behind it */
 	.reveal .slides section .chip.context-how   { border-style: ridge; }  /* HOW  - the tone / register */
 
+	/* SHARED-VOCAB:end */
+
 	/* ══════════════════════════════════════════════════════════════════════
-	   DECK CHROME — footer
-	   The theme styles the footer with var(--font-body) and a small size
-	   (src/styles/theme/deck.css). This deck's font stack is set here via
-	   --font-body above (uncommented to Helvetica), so the footer follows it
-	   with no footer-specific override needed.
+	   MOLECULES  (active)
+	   Whole slide-shapes built from the utilities above, so an agent never
+	   hand-rolls a title slide / section break / staged reveal / pull-quote
+	   from scratch. Put the class on the <section> (or the element named).
 	   ══════════════════════════════════════════════════════════════════════ */
+
+	/* ─── .title-slide ──────────────────────────────────────────────────
+	   A hero title: optional .eyebrow (small-caps label) above <h1>,
+	   optional .dek (muted sub-headline) below it. Centred, full height.
+	     <section class="title-slide">
+	       <p class="eyebrow">Q3 planning</p>
+	       <h1>Deck Title</h1>
+	       <p class="dek">A one-line dek under the headline.</p>
+	     </section>
+	   Reveal itself sets an inline `style="display: block"` on the current
+	   section (js/controllers/slidecontent.js) - normal-importance author CSS,
+	   including this whole layered file, can never win against inline style,
+	   so `display` here is the one property in this file that needs
+	   `!important` to have any effect. Everything else here is unaffected. */
+	.reveal .slides section.title-slide {
+		display: flex !important;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+		height: 100%;
+	}
+	.reveal .slides section.title-slide .eyebrow {
+		margin: 0 0 var(--space-gap) 0;
+		font-size: 0.6em;
+		font-weight: 600;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--muted);
+	}
+	.reveal .slides section.title-slide h1 {
+		margin: 0;
+	}
+	.reveal .slides section.title-slide .dek {
+		margin: var(--space-block) 0 0 0;
+		max-width: 28em;
+		font-size: 1.1em;
+		color: var(--muted);
+	}
+
+	/* ─── .divider ───────────────────────────────────────────────────────
+	   A full-bleed section break: inverts --fg/--bg so it follows any
+	   [data-theme] automatically. For an image/gradient divider, layer
+	   Reveal's own data-background-image / data-background-gradient on the
+	   <section> instead - no separate mechanism needed.
+	     <section class="divider"><h2>Part Two</h2></section>
+	   Same `!important` note as .title-slide above - Reveal's own inline
+	   `display: block` on the current section otherwise wins. */
+	.reveal .slides section.divider {
+		padding: 0;
+		display: flex !important;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+		height: 100%;
+		background: var(--fg);
+		color: var(--bg);
+	}
+	.reveal .slides section.divider :is(h1, h2, h3) {
+		color: var(--bg);
+	}
+
+	/* ─── .stage (+ .stage-vertical) ────────────────────────────────────
+	   A staged reveal: fixed-height row (or, with .stage-vertical, column)
+	   of .stage-item children, with an optional .stage-arrow connector
+	   between them. Override the height with style="--stage-height: 70vh"
+	   on the element. One primitive for "picture / arrow / answer",
+	   "before / arrow / after", etc. - not a bespoke grid per shape.
+	     <div class="stage">
+	       <div class="stage-item"><img src="…"></div>
+	       <div class="stage-arrow" aria-hidden="true">→</div>
+	       <p class="stage-item fragment">The model predicts the next token.</p>
+	     </div> */
+	.reveal .slides section .stage {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: var(--space-block);
+		height: var(--stage-height, 60vh);
+		max-width: none;
+	}
+	.reveal .slides section .stage.stage-vertical {
+		flex-direction: column;
+	}
+	.reveal .slides section .stage-item {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.reveal .slides section .stage-item img {
+		max-height: 100%;
+		max-width: 100%;
+		object-fit: contain;
+	}
+	.reveal .slides section .stage-arrow {
+		flex: 0 0 auto;
+		font-size: 2em;
+		line-height: 1;
+		color: var(--muted);
+	}
+
+	/* ─── blockquote.quote ──────────────────────────────────────────────
+	   A pull-quote, overriding Reveal's default <blockquote> styling.
+	     <blockquote class="quote">The thing that was said.<cite>Who said it</cite></blockquote> */
+	.reveal .slides section blockquote.quote {
+		max-width: 28em;
+		margin: var(--space-block) auto;
+		padding: 0;
+		font-size: 1.4em;
+		line-height: 1.3;
+		text-align: center;
+		font-style: normal;
+		background: none;
+		box-shadow: none;
+	}
+	.reveal .slides section blockquote.quote cite {
+		display: block;
+		margin-top: var(--space-block);
+		font-size: 0.6em;
+		font-style: normal;
+		color: var(--muted);
+	}
 }
