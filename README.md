@@ -12,14 +12,19 @@ npm start          # Reveal's Vite dev server on http://localhost:8000  (the onl
 npm run build:deck # static export of the current deck -> deck-dist/  (for publishing)
 ```
 
-`npm run build` (Reveal's own full build, regenerates `dist/`) still works - run it
-after merging an upstream update.
+`npm run build` (Reveal's own full build, regenerates `vendor/reveal.js/dist/`)
+still works - run it after merging an upstream update.
 
 ## Architecture
 
-- **Base:** reveal.js 6.0.1, kept intact (`js/`, `css/`, `plugin/`, `dist/`, build
-  scripts). Upstream is the git remote `upstream`; pull updates with
-  `git fetch upstream && git merge upstream/<tag>`.
+- **Base:** reveal.js 6.0.1, kept intact and isolated under `vendor/reveal.js/`
+  (`js/`, `css/`, `plugin/`, `dist/`, `test/`, `examples/`, build `scripts/`) -
+  the vendored library, separate from this framework's own layer (`src/`) and
+  from deck content (`slides/`, `components/`, `deck.css`). Upstream is the git
+  remote `upstream`; `git fetch upstream && git merge upstream/<tag>` won't merge
+  cleanly any more (upstream's own layout still has `js/`/`css/`/`plugin/`/... at
+  its root) - see `docs/framework-conventions.md` section 1 for the resolution
+  procedure.
 - **Entry:** `src/main.js` - the single module (styles -> component registry ->
   Reveal + Notes + Markdown -> GSAP / Alpine). `index.html` carries no `<link>`s;
   all CSS flows through `main.js` so it is cascade-layered.
@@ -58,9 +63,10 @@ minifier can't reorder precedence.
 
 ### Canonical components
 
-One definition per component in `src/components/<name>/index.js`, listed once in
-`src/components/registry.js`. Slides place a `<deck-*>` tag - never restyle,
-never duplicate markup/style/behaviour. See `src/components/README.md`.
+One definition per component in `components/<name>/index.js` (repo root - deck
+content, not `src/`), listed once in `src/components/registry.js` (framework
+machinery). Slides place a `<deck-*>` tag - never restyle, never duplicate
+markup/style/behaviour. See `src/components/README.md` and `components/README.md`.
 
 ### Slides
 
@@ -113,10 +119,14 @@ Each reads `docs/framework-conventions.md` first.
 
 - `package.json`: `name` kept as `reveal.js` (so `plugin/*/index.ts` self-reference
   imports still resolve under `tsc`); identity, `dependencies`, and a `build:deck`
-  script added; `react:*` scripts removed.
-- `vite.config.ts`: `@ -> /src` alias + the `slides()` plugin (two lines).
+  script added; `react:*` scripts removed. All library paths (`main`/`module`/
+  `types`/`files`/`exports`, and every script) point into `vendor/reveal.js/`.
+- `vite.config.ts`: `@ -> /src` alias + the `slides()` plugin (two lines), plus
+  the `reveal.js`/`reveal.js/plugin`/`reveal.css` aliases and the library's
+  `outDir` retargeted at `vendor/reveal.js/`.
 - Removed: `react/`, `.github/`, `demo.html`. Kept `css/theme/` (its sources feed
-  `npm run build`; nothing links the compiled output) and `test/` / `examples/`.
+  `npm run build`; nothing links the compiled output) and `test/` / `examples/` -
+  all now under `vendor/reveal.js/`, isolated from this framework's own `src/`.
 - `src/styles/vendor/reveal-base.scss` uses Sass `@import` (deprecation warnings,
   not errors) to inline Reveal's CSS inside `@layer` blocks.
 

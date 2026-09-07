@@ -1,12 +1,13 @@
 /**
- * Template for src/components/<name>/index.js
+ * Template for components/<name>/index.js (repo root - deck content, not src/)
  *
  * Replace <Name> (PascalCase), <name> (kebab). Keep it to ONE component per file.
  * Consume SEMANTIC custom properties only - var(--bg/fg/muted/line), var(--primary*), var(--secondary*),
  * var(--space-*), var(--radius-*), var(--motion-*), var(--font-*) - plus Reveal's
  * var(--r-*). Never a tier-1 primitive, never a raw colour / length literal.
  */
-import { DeckElement } from '../deck-element.js';
+import { DeckElement } from '@/components/deck-element.js';
+import { SHARED_STYLES } from '@/components/shared-styles.js';
 // import { d3 } from '@/lib/d3.js';   // lazy libs only when actually needed
 // import { gsap } from '@/lib/gsap.js';
 
@@ -17,10 +18,7 @@ class Deck<Name> extends DeckElement {
 	static observedAttributes = [/* 'kind', 'label' */];
 
 	static styles = `
-		:host {
-			display: block;
-			color: var(--fg);
-		}
+		${SHARED_STYLES}
 		.root {
 			gap: var(--space-gap);
 			border-radius: var(--radius-card);

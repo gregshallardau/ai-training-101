@@ -4,7 +4,10 @@ const normalizePath = (filePath: string): string => filePath.replace(/\\/g, '/')
 
 export const rewriteLegacyCoreDtsPath = (filePath: string): string => {
 	const normalizedPath = normalizePath(filePath);
-	const legacyPathMarker = '/dist/js/';
+	// vite-plugin-dts mirrors the tsconfig `include` path under dist/, which is
+	// now vendor/reveal.js/js (the vendored library moved out of the repo root) -
+	// flatten that back to dist/*.d.ts same as before the move.
+	const legacyPathMarker = '/dist/vendor/reveal.js/js/';
 	const markerIndex = normalizedPath.indexOf(legacyPathMarker);
 
 	if (markerIndex === -1) {

@@ -78,15 +78,16 @@ layout you need has no utility, it is one of:
 1. `docs/framework-conventions.md` and `slides/README.md`.
 2. `slides/` listing -> parse every `NN(.M)-<slug>.<ext>` into an ordered model.
 3. `index.html` - confirm `<!-- @slides -->` is present.
-4. `src/components/registry.js` - **only if** the slide will use a `<deck-*>` tag.
-   If the tag is not in `COMPONENTS`, stop and tell the user to run
-   `artefact-builder` first.
+4. **`components/`** (repo root) - **only if** the slide will use a `<deck-*>`
+   tag. List its folders (this is the manifest; `registry.js` auto-discovers
+   whatever is here). If `components/<name>/` doesn't exist, stop and tell the
+   user to run `artefact-builder` first.
 5. **If the slide will use `data-topic`**, also parse `deck.css`'s
    `TOPIC COLOURS` section for the set of names this deck has actually
    uncommented/defined. Warn (don't invent) if the requested name isn't there -
    tell the user it needs adding to `deck.css` first.
 6. **Edit mode:** read the target slide file itself; if the deck has an
-   overview/menu slide (e.g. `slides/01-overview.html`), read that too.
+   overview/menu slide (e.g. `slides/010-overview.html`), read that too.
 
 ## Format heuristic
 
@@ -95,8 +96,8 @@ layout you need has no utility, it is one of:
 
 ## Procedure - new / structural
 
-1. Run `scripts/make-slide.js` to do the position math, zero-padded renumbering,
-   rename list, and stub file - do not hand-derive this arithmetic:
+1. Run `scripts/make-slide.js` to do the position math - do not hand-derive
+   this arithmetic:
 
    ```
    node scripts/make-slide.js --title "<title>" --format md|html \
@@ -104,10 +105,15 @@ layout you need has no utility, it is one of:
    ```
 
    ("insert between X and Y" = `--after X` or `--before Y`, either works;
-   "vertical child of N" = `--vertical-of N`.) Run with `--dry-run` first if the
-   position is at all ambiguous, to show the user the plan before touching disk.
-   It handles the rename list (via `git mv`, bottom-up, never colliding) and
-   writes a `TODO:`-stub file itself - you do not write the initial file by hand.
+   "vertical child of N" = `--vertical-of N`.) It implements `slides/README.md`'s
+   gap-based numbering itself: majors are step-10 with gaps left on purpose, so
+   most inserts land in the existing gap and touch no other file; only an
+   **exhausted gap** (neighbours are consecutive integers, e.g. `020` and `021`)
+   triggers a whole-deck rebalance back to round step-10 numbers, applied via
+   `git mv`, bottom-up, before writing the new file. Run with `--dry-run` first
+   if the position is at all ambiguous, to show the user the plan before
+   touching disk. It writes a `TODO:`-stub file itself - you do not write the
+   initial file by hand.
 2. Replace the script's `TODO:` stub with the real body, from the slide-file
    shapes in `docs/cheatsheet.md` ("Slide files").
    - `.html`: the script already wrote `<section id="<slug>" data-slug="<slug>">`
@@ -153,7 +159,7 @@ or stop per "The one hard rule". Do not suppress or ignore a failure.
 - any **class not in the toolkit above** and not defined in this slide's own
   scoped `<style>` (shape 3) - a `class="glossary-entry"` / `class="feature-card"`
   invented for this slide,
-- any `<deck-*>` tag not present in `registry.js`'s `COMPONENTS` map,
+- any `<deck-*>` tag with no matching `components/<name>/` folder,
 - any `var(--...)` that is a tier-1 primitive (semantic custom properties only).
 
 The lint is a static class/tag/var check - it doesn't know about the following,

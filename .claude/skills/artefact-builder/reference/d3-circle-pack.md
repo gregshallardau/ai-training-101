@@ -29,8 +29,8 @@ A tree. Leaves carry `value` (their size); parents are sized by their subtree.
 ## Worked example - `<deck-concept-map>`
 
 ```js
-// src/components/concept-map/index.js
-import { DeckElement } from '../deck-element.js';
+// components/concept-map/index.js
+import { DeckElement } from '@/components/deck-element.js';
 import { d3, readPalette } from '@/lib/d3.js';
 
 const SIZE = 900; // viewBox is centred: -SIZE/2 .. SIZE/2

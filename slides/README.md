@@ -8,8 +8,8 @@ One file per slide. Each file is **either** Markdown (`.md`) **or** HTML (`.html
 ## Naming & numbering
 
 ```
-NN-<slug>.<html|md>          NN = zero-padded major (>= 2 digits), step 1
-NN.M-<slug>.<html|md>        .M = vertical-stack minor
+NN-<slug>.<html|md>          NN = zero-padded major (>= 3 digits), step 10
+NN.M-<slug>.<html|md>        .M = vertical-stack minor, step 1
 ```
 
 - `<slug>` (kebab-case) becomes the slide's `id` and `data-slug`. Link with
@@ -18,9 +18,27 @@ NN.M-<slug>.<html|md>        .M = vertical-stack minor
 - Files that share a major `NN` are wrapped in **one vertical `<section>` stack**,
   ordered by `.M`. A single `.html` file may instead be its own stack via nested
   `<section>`s.
-- `00-title.html` is the title slide. `01-overview.html`, by convention, is the
+- `000-title.html` is the title slide. `010-overview.html`, by convention, is the
   jump menu - **deck-specific, not portable** (it names other slides' slugs).
+  Content sections continue `020`, `030`, `040`, ... in steps of 10.
 - The plugin does not recurse into subfolders.
+
+### Inserting a slide (no renumbering)
+
+Numbers are stepped by 10 specifically so a later insertion never has to
+renumber the deck - pick a free number in the gap between its neighbours:
+
+- **gap of 2 or more** - use the midpoint (round to the nearest multiple of 10
+  if one is free). Between `020` and `030`, insert `025`; to slot right after
+  `020`, insert `021`.
+- **gap of exactly 1** (neighbours are consecutive integers, e.g. `020` and
+  `021` - the gap is used up) - no integer fits between them. Rebalance: renumber
+  that local run of slides (or the whole deck) back to round step-10 numbers,
+  bottom-up so filenames never collide, then insert normally.
+
+Vertical-stack minors (`.M`) keep the plain step-1 scheme - they're appended at
+the end of a stack, not inserted into the middle, so there's nothing to save
+gaps for.
 
 ## File body
 

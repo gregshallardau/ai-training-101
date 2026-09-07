@@ -15,11 +15,11 @@ you cannot put `var(--x)` in a presentation attribute, but you can in CSS).
 
 ## Worked example - `<deck-diagram kind="layers">`
 
-Matches the stub in `slides/02-architecture.html`.
+Matches the stub in `slides/020-architecture.html`.
 
 ```js
-// src/components/diagram/index.js
-import { DeckElement } from '../deck-element.js';
+// components/diagram/index.js
+import { DeckElement } from '@/components/deck-element.js';
 
 class DeckDiagram extends DeckElement {
 	static tag = 'deck-diagram';
@@ -81,4 +81,5 @@ Slide: `<deck-diagram kind="layers"></deck-diagram>`
   not a presentation attribute holding `var(...)` (that does not resolve).
 - `<text>` fill = `var(--fg)` / `var(--muted)` via a class.
 - Keep one `render_<kind>()` per diagram; add kinds, do not fork the component.
-- Genuinely reusable box/arrow CSS -> add it to `component-styles.md`.
+- Genuinely reusable box/arrow CSS -> add it to `src/components/shared-styles.js`
+  (documented in `component-styles.md`), not a one-off copy here.

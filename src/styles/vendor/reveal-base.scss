@@ -10,23 +10,44 @@
  * meta.load-css() is used rather than @import (deprecated in Dart Sass, removed in
  * 3.0) because @use cannot be nested inside a @layer block and does not inline.
  *
- * Paths are relative to this file: src/styles/vendor/ -> repo root css/
+ * Paths are relative to this file: src/styles/vendor/ -> repo root vendor/reveal.js/css/
  */
 
 @use 'sass:meta';
 
 @layer reveal.reset {
-	@include meta.load-css('../../../css/reset');
+	@include meta.load-css('../../../vendor/reveal.js/css/reset');
 }
 
 @layer reveal.base {
-	@include meta.load-css('../../../css/layout');
-	@include meta.load-css('../../../css/reveal');
+	@include meta.load-css('../../../vendor/reveal.js/css/layout');
+	@include meta.load-css('../../../vendor/reveal.js/css/reveal');
 }
 
 @layer reveal.theme {
 	/* Reveal's theme-template element rules (headings, paragraphs, links, tables,
 	   blockquotes, code...). It only consumes var(--r-*) - which src/styles/theme/deck.css
 	   supplies - so no Reveal theme .scss under css/theme/ is compiled or linked. */
-	@include meta.load-css('../../../css/theme/template/theme');
+	@include meta.load-css('../../../vendor/reveal.js/css/theme/template/theme');
+
+	/* highlight.js token colours for the Highlight plugin's <code> markup. These
+	   are a vendored third-party theme (fixed hex values, not semantic custom
+	   properties) - layered here, same as the rest of Reveal's own CSS, so a
+	   deck's `deck` layer can still override it if a re-skin ever needs to. */
+	@include meta.load-css('../../../vendor/reveal.js/dist/plugin/highlight/monokai');
+
+	/* theme.scss's generic ".reveal table td { border-bottom }" (styling a
+	   deck-author's own content tables) also matches the highlight plugin's
+	   internal line-numbers <table> - and because this reveal.theme layer is
+	   declared AFTER reveal.base (where reveal.css's own .hljs-ln-code /
+	   .hljs-ln-numbers { border: 0 } reset lives, see layers.css), the layer
+	   order wins over specificity and the generic table rule draws a line under
+	   every code line. Re-assert the reset here, in the same layer as the rule
+	   that broke it, so a `data-line-numbers` code block has no row borders -
+	   same behaviour as an unlayered reveal.js checkout, where the reset's
+	   higher specificity would win regardless of file order. */
+	.reveal .hljs-ln-code,
+	.reveal .hljs-ln-numbers {
+		border: 0;
+	}
 }

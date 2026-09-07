@@ -76,5 +76,5 @@ What we'd do differently
 Lessons
 ```
 
-`deck-builder` adds `00-title`, `01-overview`, and a closing `key-takeaways`
+`deck-builder` adds `000-title`, `010-overview`, and a closing `key-takeaways`
 slide automatically - don't put those in the arc.

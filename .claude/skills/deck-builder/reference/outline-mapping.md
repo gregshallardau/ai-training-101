@@ -8,7 +8,7 @@ below; everything else is shared.
 
 | Outline / plan                            | Becomes                                   |
 |-------------------------------------------|-------------------------------------------|
-| First `#` / given title / `title:` *(plan)* | deck title (`00-title.html`)            |
+| First `#` / given title / `title:` *(plan)* | deck title (`000-title.html`)           |
 | `##` heading                              | horizontal section slide `NN-<slug>`      |
 | Lone numbered line, e.g. `5. Context`     | horizontal section slide                  |
 | `###` under a `##`                        | vertical child `NN.M-<slug>` (if nested)  |
@@ -17,20 +17,22 @@ below; everything else is shared.
 | `intent: <text>` line *(plan)*            | `<!-- intent: <text> -->` atop the slide body |
 | `artefact: <kind> — <desc>` line *(plan)* | slide is `.html` + `<!-- TODO: run artefact-builder for deck-<slug> — <desc> -->` |
 | `takeaways:` list *(plan)*                | closing `NN-key-takeaways.md` (`## Key takeaways` + one bullet each) |
-| `audience` / `goal` / `tone` / `duration` *(plan)* | HTML comment block on `00-title.html` |
+| `audience` / `goal` / `tone` / `duration` *(plan)* | HTML comment block on `000-title.html` |
 
 ## Numbering
 
 ```
-00-title.html
-01-overview.html          jump menu - <a href="#/<slug>"> per section; NOT portable
-02-<first-section>.md|html
-03-<next-section>...
-03.1-<child>...           vertical children share the parent major
+000-title.html
+010-overview.html         jump menu - <a href="#/<slug>"> per section; NOT portable
+020-<first-section>.md|html
+030-<next-section>...
+030.1-<child>...           vertical children share the parent major
 NN-key-takeaways.md       plan mode only - last slide
 ```
 
-Zero-padded, step 1. Recompute widths if there are >= 100 slides.
+Zero-padded (>= 3 digits), step 10 - gaps are left on purpose so a later
+insertion (`slide-builder`) can slot in without renumbering the deck; see
+`slides/README.md`. Recompute widths if there are >= 100 sections.
 
 ## Format choice (per node)
 

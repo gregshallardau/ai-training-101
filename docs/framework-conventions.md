@@ -30,16 +30,20 @@ src/
   styles/
     layers.css                  the @layer order declaration
     index.css                   ordered @imports of everything below, incl. ../../deck.css last
-    vendor/reveal-base.scss     wraps css/reset.css + css/layout.scss + css/reveal.scss
-                                + css/theme/template/theme.scss into cascade layers (Sass compile time)
+    vendor/reveal-base.scss     wraps vendor/reveal.js/css/{reset,layout,reveal}.scss
+                                + css/theme/template/theme.scss into cascade layers (Sass compile time) -
+                                this src/styles/vendor/ is unrelated to the repo-root vendor/ below
     vars/primitives.css         TIER 1 - raw values (@layer vars.primitive)
     vars/semantic.css           TIER 2 - role names + [data-theme] skins (@layer vars.semantic)
     theme/deck.css              maps semantic vars -> Reveal --r-* API (@layer theme). Plumbing only.
-  components/
+  components/                  FRAMEWORK MACHINERY (the contract) - NOT a deck's own components,
+                               see components/ at repo root for those
     deck-element.js             DeckElement base class
-    registry.js                 THE manifest + barrel - the one list of what components exist
+    registry.js                 auto-discovers components/*/index.js (import.meta.glob) into
+                                COMPONENTS - the one list of what exists, nothing to hand-edit
+    shared-styles.js            SHARED_STYLES - shared CSS vocabulary (.chip/.box/.btn/...),
+                                imported (never copied) into every component's static styles
     README.md                   the component contract
-    <kebab>/index.js            one component; the only customElements.define() site for it
   lib/
     gsap.js                     initGsap() - hero / section-break motion
     d3.js                       d3 + topojson + readPalette(); imported lazily by components
@@ -48,11 +52,43 @@ src/
 slides/
   README.md                     slide portability contract + numbering
   NN[.M]-<slug>.{html,md}        one file per slide position
+
+components/                    THIS DECK'S <deck-*> implementations (deck-author content,
+                               same standing as slides/ and deck.css - not under src/)
+  README.md                     what goes here vs. src/components/
+  <kebab>/index.js              one component; the only customElements.define() site for it
+
+public/
+  served at the site root by Vite (default `publicDir` behaviour) - a file at
+  `public/foo/bar.png` is fetched as `/foo/bar.png`, **never** `/public/foo/bar.png`.
+  Images, video, and other static assets referenced from a slide live here.
+
+vendor/reveal.js/               THE VENDORED LIBRARY - reveal.js 6.0.1 kept intact, isolated
+                                from both the framework layer (src/) and deck content
+  js/, css/, plugin/            library source (TS, Sass, official plugins)
+  dist/                          build output (`npm run build`); what package.json's
+                                main/module/types/exports/files all point into
+  test/, examples/               upstream's own QUnit suite + demo gallery - unused by
+                                this framework or any deck, kept for upstream-merge parity
+  scripts/                       release-packaging scripts (add-banner, build-es5, zip, test)
 ```
 
-Reveal.js 6.0.1 is the base (its `js/`, `css/`, `plugin/`, `dist/`, build scripts kept
-intact). Upstream is the git remote `upstream`; framework updates come via
-`git fetch upstream && git merge upstream/<tag>`.
+Reveal.js 6.0.1 is the base, vendored whole under `vendor/reveal.js/` so it stays
+one clearly-bounded unit separate from this framework's own layer and from deck
+content.
+
+**Upstream merges after this move:** the `upstream` remote is the real reveal.js
+repo, whose own layout still has `js/`, `css/`, `plugin/`, `dist/`, `test/`,
+`examples/`, `scripts/` at *its* root - `git fetch upstream && git merge
+upstream/<tag>` will therefore show every changed upstream file as an add/delete
+pair (upstream's `js/reveal.js` vs. this repo's `vendor/reveal.js/js/reveal.js`),
+not a clean merge, because git has no way to know the two paths are the same
+file. Resolve by taking upstream's incoming content and `git mv`-ing it under
+`vendor/reveal.js/` as part of conflict resolution (or merge upstream into a
+throwaway branch first and diff/copy the changed files across by hand). This is
+the accepted cost of the vendor/ isolation - the alternative (leaving reveal.js's
+source at the repo root) merges cleanly but re-mixes the vendored library with
+this framework's own files, which is the thing this section exists to prevent.
 
 ---
 
@@ -128,21 +164,28 @@ hacks. `deck` (the root `deck.css`) is highest. Nothing of ours is left unlayere
 
 ## 4. Canonical component contract
 
-- **One definition per component.** `src/components/<kebab>/index.js` is the only
-  place `customElements.define('deck-<kebab>', ...)` runs for it.
-- The class `extends DeckElement` (`src/components/deck-element.js`): `attachShadow`,
-  idempotent `connectedCallback`, `static styles` (CSS string in Shadow DOM),
-  `static tag`, `cssVar(name)` helper.
+- **One definition per component.** `components/<kebab>/index.js` (repo root -
+  deck-author content, not under `src/`) is the only place
+  `customElements.define('deck-<kebab>', ...)` runs for it.
+- The class `extends DeckElement`, imported as `@/components/deck-element.js`
+  (framework machinery, `src/components/`): `attachShadow`, idempotent
+  `connectedCallback`, `static styles` (CSS string in Shadow DOM), `static tag`,
+  `cssVar(name)` helper.
 - **Consume tier-2 semantic custom properties only** (plus Reveal's `--r-*`), and
-  the shared style vocabulary in `artefact-builder/reference/component-styles.md` -
-  never a bespoke per-component class pile.
+  the shared style vocabulary in `src/components/shared-styles.js`
+  (`SHARED_STYLES`, documented in `artefact-builder/reference/component-styles.md`)
+  - **import it, never copy its rules** - and never a bespoke per-component
+  class pile.
 - A component may `import` from `@/lib/*`; a slide may not. `artefact-builder`
   builds each one from a kind recipe (`d3-chart`, `d3-circle-pack`, `svg-diagram`,
   `gsap-hero`, `alpine-interactive`); Alpine markup in a shadow root needs
   `Alpine.initTree(this.shadowRoot)` behind a ready-guard.
-- Register it: one `import './<kebab>/index.js';` line **and** one `COMPONENTS`
-  entry in `src/components/registry.js`.
-- **"Does component X exist?" is answered by reading `registry.js` alone.**
+- **Registration is automatic.** `src/components/registry.js` (machinery,
+  does not move) discovers every `components/<kebab>/index.js` via Vite's
+  `import.meta.glob` and builds `COMPONENTS` from it - there is nothing to
+  hand-edit.
+- **"Does component X exist?" is answered by reading `registry.js`'s
+  `COMPONENTS` map alone** (equivalently: does `components/<name>/` exist).
 - Slides place a `<deck-*>` tag and pass data via attributes / slots - never
   markup, style, or behaviour.
 
@@ -168,14 +211,20 @@ Full text in `slides/README.md`. In short, a slide file is portable iff:
 ### Numbering
 
 ```
-NN-<slug>.<html|md>      NN = zero-padded major (>= 2 digits), step 1
-NN.M-<slug>.<html|md>    .M = vertical-stack minor; files sharing NN wrap in one <section> stack
+NN-<slug>.<html|md>      NN = zero-padded major (>= 3 digits), step 10
+NN.M-<slug>.<html|md>    .M = vertical-stack minor, step 1; files sharing NN wrap in one <section> stack
 ```
 
-`<slug>` (kebab) becomes the slide `id` / `data-slug`. `00-title.*` = title slide;
-`01-overview.*` = jump menu (deck-specific, NOT portable). `.html` body = exactly one
+`<slug>` (kebab) becomes the slide `id` / `data-slug`. `000-title.*` = title slide;
+`010-overview.*` = jump menu (deck-specific, NOT portable). `.html` body = exactly one
 `<section>` (may nest); `.md` body = raw Markdown (`--` fence = vertical sub-slide,
 `Note:` line = speaker note). The plugin does not recurse into subfolders.
+
+The step of 10 leaves gaps to insert into later without renumbering: a slide
+between `020` and `030` becomes `025` (or `021` to slot right after `020`).
+Only when a gap is fully used up (neighbours are consecutive integers) does it
+require rebalancing that local run back to round step-10 numbers. See
+`slides/README.md` for the full insertion rule.
 
 ---
 
@@ -199,7 +248,48 @@ chunk of text, and `deck-builder` may keep that word in stub content verbatim.
 
 ---
 
-## 8. Re-skin
+## 8. Vertical stacks, fragments & images
+
+Reveal.js mechanics that authoring skills rely on but don't reinvent - covered
+here once so no one has to re-derive them from `js/reveal.js` source.
+
+**Vertical stacks - two equivalent shapes:**
+
+- Sibling files sharing a major number: `08-x.html`, `08.1-y.html`, `08.2-z.html`
+  (see numbering in `slides/README.md`).
+- One `.html` file, nested `<section>`s:
+  ```html
+  <section id="<slug>" data-slug="<slug>">
+    <section><!-- first sub-slide --></section>
+    <section><!-- second sub-slide --></section>
+  </section>
+  ```
+  Prefer this shape when the sub-slides are tightly coupled (e.g. one picture
+  per sub-slide under a shared question) - it keeps them in one portable file.
+
+**Fragments (step-reveal on a single slide):** add `class="fragment"` to any
+element inside a `<section>`. Variant classes change the reveal effect - `grow`
+`shrink` `zoom-in` `fade-out` `semi-fade-out` `strike` `fade-up` `fade-down`
+`fade-right` `fade-left` `fade-in-then-out` `current-visible`
+`fade-in-then-semi-out` `highlight-red` `highlight-green` `highlight-blue`
+`highlight-current-red` `highlight-current-green` `highlight-current-blue`.
+`data-fragment-index="N"` (zero-based) reorders them; unindexed fragments
+follow document order.
+
+**Navigation order:** pressing down/right resolves every unrevealed fragment
+on the current (sub-)slide first, one at a time, and only advances to the next
+vertical/horizontal slide once none remain. A vertical stack of picture
+sub-slides, each with its own fragment(s), composes directly with this - no
+extra wiring needed.
+
+**Images:** put the file under `public/` (see repo layout, section 1) and
+reference it by the root-relative path Vite serves it at. Use `.r-stretch` on
+an `<img>`/`<video>`/`<iframe>` to fill the remaining slide height instead of
+hand-rolling a size.
+
+---
+
+## 9. Re-skin
 
 Runtime: `document.documentElement.dataset.theme = '<name>'` (or `<html
 data-theme="<name>">`). A skin is a `[data-theme="<name>"] { ... }` block appended

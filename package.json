@@ -5,64 +5,64 @@
 	"license": "MIT",
 	"private": true,
 	"_comment": "package name kept as 'reveal.js' so plugin/*/index.ts self-reference imports still resolve under tsc; the project/repo is 'presentation-framework'",
-	"main": "dist/reveal.js",
-	"module": "dist/reveal.mjs",
-	"types": "dist/reveal.d.ts",
+	"main": "vendor/reveal.js/dist/reveal.js",
+	"module": "vendor/reveal.js/dist/reveal.mjs",
+	"types": "vendor/reveal.js/dist/reveal.d.ts",
 	"type": "module",
 	"files": [
-		"dist",
-		"css",
-		"js",
+		"vendor/reveal.js/dist",
+		"vendor/reveal.js/css",
+		"vendor/reveal.js/js",
 		"LICENSE",
 		"README.md",
 		"index.html"
 	],
 	"exports": {
 		".": {
-			"types": "./dist/reveal.d.ts",
-			"import": "./dist/reveal.mjs",
-			"require": "./dist/reveal.js",
-			"default": "./dist/reveal.js"
+			"types": "./vendor/reveal.js/dist/reveal.d.ts",
+			"import": "./vendor/reveal.js/dist/reveal.mjs",
+			"require": "./vendor/reveal.js/dist/reveal.js",
+			"default": "./vendor/reveal.js/dist/reveal.js"
 		},
-		"./reveal.css": "./dist/reveal.css",
-		"./reset.css": "./dist/reset.css",
-		"./theme/*": "./dist/theme/*",
-		"./plugin/highlight/monokai.css": "./dist/plugin/highlight/monokai.css",
+		"./reveal.css": "./vendor/reveal.js/dist/reveal.css",
+		"./reset.css": "./vendor/reveal.js/dist/reset.css",
+		"./theme/*": "./vendor/reveal.js/dist/theme/*",
+		"./plugin/highlight/monokai.css": "./vendor/reveal.js/dist/plugin/highlight/monokai.css",
 		"./plugin/highlight": {
-			"types": "./dist/plugin/highlight.d.ts",
-			"import": "./dist/plugin/highlight.mjs",
-			"require": "./dist/plugin/highlight.js",
-			"default": "./dist/plugin/highlight.js"
+			"types": "./vendor/reveal.js/dist/plugin/highlight.d.ts",
+			"import": "./vendor/reveal.js/dist/plugin/highlight.mjs",
+			"require": "./vendor/reveal.js/dist/plugin/highlight.js",
+			"default": "./vendor/reveal.js/dist/plugin/highlight.js"
 		},
 		"./plugin/markdown": {
-			"types": "./dist/plugin/markdown.d.ts",
-			"import": "./dist/plugin/markdown.mjs",
-			"require": "./dist/plugin/markdown.js",
-			"default": "./dist/plugin/markdown.js"
+			"types": "./vendor/reveal.js/dist/plugin/markdown.d.ts",
+			"import": "./vendor/reveal.js/dist/plugin/markdown.mjs",
+			"require": "./vendor/reveal.js/dist/plugin/markdown.js",
+			"default": "./vendor/reveal.js/dist/plugin/markdown.js"
 		},
 		"./plugin/math": {
-			"types": "./dist/plugin/math.d.ts",
-			"import": "./dist/plugin/math.mjs",
-			"require": "./dist/plugin/math.js",
-			"default": "./dist/plugin/math.js"
+			"types": "./vendor/reveal.js/dist/plugin/math.d.ts",
+			"import": "./vendor/reveal.js/dist/plugin/math.mjs",
+			"require": "./vendor/reveal.js/dist/plugin/math.js",
+			"default": "./vendor/reveal.js/dist/plugin/math.js"
 		},
 		"./plugin/notes": {
-			"types": "./dist/plugin/notes.d.ts",
-			"import": "./dist/plugin/notes.mjs",
-			"require": "./dist/plugin/notes.js",
-			"default": "./dist/plugin/notes.js"
+			"types": "./vendor/reveal.js/dist/plugin/notes.d.ts",
+			"import": "./vendor/reveal.js/dist/plugin/notes.mjs",
+			"require": "./vendor/reveal.js/dist/plugin/notes.js",
+			"default": "./vendor/reveal.js/dist/plugin/notes.js"
 		},
 		"./plugin/search": {
-			"types": "./dist/plugin/search.d.ts",
-			"import": "./dist/plugin/search.mjs",
-			"require": "./dist/plugin/search.js",
-			"default": "./dist/plugin/search.js"
+			"types": "./vendor/reveal.js/dist/plugin/search.d.ts",
+			"import": "./vendor/reveal.js/dist/plugin/search.mjs",
+			"require": "./vendor/reveal.js/dist/plugin/search.js",
+			"default": "./vendor/reveal.js/dist/plugin/search.js"
 		},
 		"./plugin/zoom": {
-			"types": "./dist/plugin/zoom.d.ts",
-			"import": "./dist/plugin/zoom.mjs",
-			"require": "./dist/plugin/zoom.js",
-			"default": "./dist/plugin/zoom.js"
+			"types": "./vendor/reveal.js/dist/plugin/zoom.d.ts",
+			"import": "./vendor/reveal.js/dist/plugin/zoom.mjs",
+			"require": "./vendor/reveal.js/dist/plugin/zoom.js",
+			"default": "./vendor/reveal.js/dist/plugin/zoom.js"
 		}
 	},
 	"scripts": {
@@ -70,12 +70,12 @@
 		"start": "vite",
 		"build:deck": "vite build -c vite.config.deck.js",
 		"prepack": "npm run build",
-		"build:core": "tsc && vite build && vite build -c vite.config.styles.ts && node scripts/add-banner.js dist/reveal.js",
-		"build:es5": "npm run build && node scripts/build-es5.js",
+		"build:core": "tsc && vite build && vite build -c vite.config.styles.ts && node vendor/reveal.js/scripts/add-banner.js dist/reveal.js",
+		"build:es5": "npm run build && node vendor/reveal.js/scripts/build-es5.js",
 		"build:styles": "vite build -c vite.config.styles.ts",
-		"build": "tsc && vite build && vite build -c vite.config.styles.ts && vite build -c plugin/highlight/vite.config.ts && vite build -c plugin/markdown/vite.config.ts && vite build -c plugin/math/vite.config.ts && vite build -c plugin/notes/vite.config.ts && vite build -c plugin/search/vite.config.ts && vite build -c plugin/zoom/vite.config.ts && node scripts/add-banner.js dist/reveal.js",
-		"package": "node scripts/zip.js",
-		"test": "node scripts/test.js",
+		"build": "tsc && vite build && vite build -c vite.config.styles.ts && vite build -c vendor/reveal.js/plugin/highlight/vite.config.ts && vite build -c vendor/reveal.js/plugin/markdown/vite.config.ts && vite build -c vendor/reveal.js/plugin/math/vite.config.ts && vite build -c vendor/reveal.js/plugin/notes/vite.config.ts && vite build -c vendor/reveal.js/plugin/search/vite.config.ts && vite build -c vendor/reveal.js/plugin/zoom/vite.config.ts && node vendor/reveal.js/scripts/add-banner.js dist/reveal.js",
+		"package": "node vendor/reveal.js/scripts/zip.js",
+		"test": "node vendor/reveal.js/scripts/test.js",
 		"lint:slides": "node scripts/lint-slide-classes.js",
 		"check:vocab": "node scripts/check-shared-vocabulary.js",
 		"make:slide": "node scripts/make-slide.js",

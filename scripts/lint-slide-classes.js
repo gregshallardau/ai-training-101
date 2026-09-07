@@ -7,9 +7,13 @@
 //
 // The allowlist of "real" classes is auto-extracted from deck.css itself
 // (plus a small static list of Reveal-native fragment/layout classes), so
-// it can't go stale as deck.css grows. A slide's own scoped <style> block
-// (the "fully inlined artefact" shape) may define additional classes local
-// to that one file - those are allowed only in the file that defines them.
+// it can't go stale as deck.css grows. Registered <deck-*> tags are read from
+// the repo-root components/ folder listing - that IS the manifest under the
+// auto-discovery model (src/components/registry.js just globs it at build
+// time; there is no separate list to parse). A slide's own scoped <style>
+// block (the "fully inlined artefact" shape) may define additional classes
+// local to that one file - those are allowed only in the file that defines
+// them.
 
 import { readFile, readdir } from 'fs/promises';
 import { dirname, resolve, extname } from 'path';
@@ -20,7 +24,7 @@ const root = resolve(__dirname, '..');
 
 const DECK_CSS = resolve(root, 'deck.css');
 const PRIMITIVES_CSS = resolve(root, 'src/styles/vars/primitives.css');
-const REGISTRY_JS = resolve(root, 'src/components/registry.js');
+const COMPONENTS_DIR = resolve(root, 'components');
 const SLIDES_DIR = resolve(root, 'slides');
 
 // Reveal-native classes: not defined in deck.css, not invented by a slide author.
@@ -52,32 +56,27 @@ function extractDeclaredCustomProperties(cssText) {
 	return names;
 }
 
-function extractRegisteredTags(registryText) {
-	// strip JS comments first - COMPONENTS ships with its example entries
-	// commented out, and a `// tag: '...'` line must not count as registered.
-	const withoutComments = registryText
-		.replace(/\/\*[\s\S]*?\*\//g, '')
-		.replace(/\/\/.*$/gm, '');
-	const tags = new Set();
-	const re = /tag:\s*'([\w-]+)'/g;
-	let match;
-	while ((match = re.exec(withoutComments))) tags.add(match[1]);
-	return tags;
+async function listRegisteredComponentNames() {
+	try {
+		const entries = await readdir(COMPONENTS_DIR, { withFileTypes: true });
+		return new Set(entries.filter((e) => e.isDirectory()).map((e) => e.name));
+	} catch {
+		return new Set(); // components/ doesn't exist yet - nothing registered
+	}
 }
 
 function lineOf(text, index) {
 	return text.slice(0, index).split('\n').length;
 }
 
-const [deckCss, primitivesCss, registryJs] = await Promise.all([
+const [deckCss, primitivesCss, registeredComponentNames] = await Promise.all([
 	readFile(DECK_CSS, 'utf8'),
 	readFile(PRIMITIVES_CSS, 'utf8'),
-	readFile(REGISTRY_JS, 'utf8'),
+	listRegisteredComponentNames(),
 ]);
 
 const frameworkClasses = new Set([...extractClassSelectors(deckCss), ...REVEAL_NATIVE_CLASSES]);
 const tier1Names = extractDeclaredCustomProperties(primitivesCss);
-const registeredTags = extractRegisteredTags(registryJs);
 
 const slideFiles = (await readdir(SLIDES_DIR))
 	.filter((name) => ['.html', '.md'].includes(extname(name)))
@@ -108,8 +107,9 @@ for (const name of slideFiles) {
 	}
 
 	for (const tagMatch of text.matchAll(/<(deck-[\w-]+)[\s>]/g)) {
-		if (!registeredTags.has(tagMatch[1])) {
-			issues.push(`${name}:${lineOf(text, tagMatch.index)} — <${tagMatch[1]}> is not in src/components/registry.js's COMPONENTS map`);
+		const componentName = tagMatch[1].replace(/^deck-/, '');
+		if (!registeredComponentNames.has(componentName)) {
+			issues.push(`${name}:${lineOf(text, tagMatch.index)} — <${tagMatch[1]}> has no matching components/${componentName}/ folder`);
 		}
 	}
 
@@ -125,4 +125,4 @@ if (issues.length) {
 	process.exit(1);
 }
 
-console.log(`✓ ${slideFiles.length} slide file${slideFiles.length === 1 ? '' : 's'} clean (${frameworkClasses.size} known classes, ${registeredTags.size} registered <deck-*> tags)`);
+console.log(`✓ ${slideFiles.length} slide file${slideFiles.length === 1 ? '' : 's'} clean (${frameworkClasses.size} known classes, ${registeredComponentNames.size} registered <deck-*> component${registeredComponentNames.size === 1 ? '' : 's'})`);

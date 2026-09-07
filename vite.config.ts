@@ -20,9 +20,10 @@ export default defineConfig({
 	build: {
 		target: ['es2015'],
 		emptyOutDir: true,
+		outDir: 'vendor/reveal.js/dist',
 		lib: {
 			formats: ['es', 'umd'],
-			entry: resolve(__dirname, 'js/index.ts'),
+			entry: resolve(__dirname, 'vendor/reveal.js/js/index.ts'),
 			name: 'Reveal',
 			fileName: (format, entryName) => {
 				return appendExtension(format, 'reveal');
@@ -37,9 +38,9 @@ export default defineConfig({
 	resolve: {
 		alias: {
 			// Matches the exported paths in package.json
-			'reveal.js/plugin': '/plugin',
-			'reveal.js': '/js',
-			'reveal.css': '/css/reveal.scss',
+			'reveal.js/plugin': '/vendor/reveal.js/plugin',
+			'reveal.js': '/vendor/reveal.js/js',
+			'reveal.css': '/vendor/reveal.js/css/reveal.scss',
 			// Framework source
 			'@': '/src',
 		},

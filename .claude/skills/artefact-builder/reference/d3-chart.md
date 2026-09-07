@@ -27,8 +27,8 @@ guidance from the source transfers directly.
 ## Worked example - `<deck-chart kind="bar">`
 
 ```js
-// src/components/chart/index.js
-import { DeckElement } from '../deck-element.js';
+// components/chart/index.js
+import { DeckElement } from '@/components/deck-element.js';
 import { d3, readPalette } from '@/lib/d3.js';
 
 const W = 800, H = 400, M = { top: 16, right: 16, bottom: 32, left: 40 };
