@@ -77,7 +77,8 @@ class DeckTokeniser extends DeckElement {
 
 	static styles = `
 		:host { display: block; color: var(--fg); font: inherit; }
-		.line { display: flex; flex-wrap: wrap; gap: var(--space-gap); margin-block: var(--space-block); min-height: 1.8em; }
+		/* .token-row comes from component-styles.md - do not re-declare it here. */
+		.token-row { display: flex; flex-wrap: wrap; gap: var(--space-gap); margin-block: var(--space-block); min-height: 1.8em; }
 		.chip {
 			padding: 0.15em 0.5em; border-radius: var(--radius-control);
 			border: 1px solid var(--primary);
@@ -105,7 +106,7 @@ class DeckTokeniser extends DeckElement {
 		wrap.setAttribute('x-data', 'tokeniser()');
 		wrap.innerHTML = `
 			<template x-for="(chip, i) in shown" :key="i">
-				<span class="line" style="display:contents">
+				<span class="token-row" style="display:contents">
 					<template x-for="(tok, j) in chip.tokens" :key="j">
 						<span class="chip" :class="{ ragged: chip.ragged }"
 						      :style="'animation-delay:' + (j * 0.1) + 's'" x-text="tok"></span>

@@ -23,9 +23,16 @@ A slide is built from exactly three things:
    pull-quote, `<h2>`-`<h4>` for headings. The framework styles these already.
 2. **the `deck.css` utility classes** - `.text-primary` `.text-muted`
    `.text-center` `.flex-cols` `.flex-rows` `.columns` `.columns-3`
-   `.list-compact` `.box` (+ `.border` / `.bar`) `.chip`.
+   `.list-compact` `.box` (+ `.border` / `.bar` / `.interactive` / `.selected` /
+   `.compact`) `.chip`, and the whole-slide **molecules**: `.title-slide`
+   (+ `.eyebrow` / `.dek`), `.divider`, `.stage` (+ `.stage-vertical`,
+   `style="--stage-height: …"`), `blockquote.quote` (+ `<cite>`).
 3. **the colour modifiers** - `.primary` `.secondary` `.success` `.danger`
    `.warning`, added after a block class.
+4. **the topic-colour attribute** - `data-topic="<name>"` on a `.chip`/`.box`,
+   where `<name>` is one this deck actually defined in `deck.css`'s
+   `TOPIC COLOURS` section (see Read step below). Do not invent a topic name
+   that isn't defined there.
 
 That is the **entire** toolkit. You may **NOT** create a bespoke class family -
 `.glossary-book` / `.glossary-entry` / `.card-title` / `.step-2` and the like -
@@ -50,6 +57,7 @@ layout you need has no utility, it is one of:
 | "I'll put the classes in `deck.css` - that's the proper place" | `deck.css` is the framework's surface, not yours to extend from slide work. |
 | "It's a reusable pattern, it deserves its own classes" | Reusable -> a `<deck-*>` component, or one utility the user approves. Never a family. |
 | "A `<style>` block scoped to `#slug` is fine here" | Only for a genuinely one-off inline artefact (shape 3). A glossary is not that. |
+| "It's a step-by-step build-up over several slides, I'll copy the previous one and add a line" | That's the glossary-wall anti-pattern - use the auto-animate rung technique (`docs/cheatsheet.md` § Step-through across slides) instead. |
 
 ## Modes
 
@@ -73,7 +81,11 @@ layout you need has no utility, it is one of:
 4. `src/components/registry.js` - **only if** the slide will use a `<deck-*>` tag.
    If the tag is not in `COMPONENTS`, stop and tell the user to run
    `artefact-builder` first.
-5. **Edit mode:** read the target slide file itself; if the deck has an
+5. **If the slide will use `data-topic`**, also parse `deck.css`'s
+   `TOPIC COLOURS` section for the set of names this deck has actually
+   uncommented/defined. Warn (don't invent) if the requested name isn't there -
+   tell the user it needs adding to `deck.css` first.
+6. **Edit mode:** read the target slide file itself; if the deck has an
    overview/menu slide (e.g. `slides/01-overview.html`), read that too.
 
 ## Format heuristic
@@ -83,22 +95,31 @@ layout you need has no utility, it is one of:
 
 ## Procedure - new / structural
 
-1. Resolve the target position to a `major`(.`minor`).
-   - "insert between" / "before X": shift the prefix of X and every later sibling
-     by +1 (zero-padded, step 1). Produce an explicit **rename list**
-     (`git mv old new`), applied bottom-up so names never collide.
-   - "vertical child of N": assign `N.M` with the next free `M`.
-2. Pick the format. Render the body from the slide-file templates in
-   `docs/cheatsheet.md` ("Slide files").
-   - `.html`: exactly one `<section id="<slug>" data-slug="<slug>">...`.
-   - `.md`: raw Markdown, no wrapper (the plugin adds it). Use
-     `<!-- .slide: ... -->` only if the slide needs Reveal attributes.
+1. Run `scripts/make-slide.js` to do the position math, zero-padded renumbering,
+   rename list, and stub file - do not hand-derive this arithmetic:
+
+   ```
+   node scripts/make-slide.js --title "<title>" --format md|html \
+     --after <slug> | --before <slug> | --position <N> | --vertical-of <N> | --end
+   ```
+
+   ("insert between X and Y" = `--after X` or `--before Y`, either works;
+   "vertical child of N" = `--vertical-of N`.) Run with `--dry-run` first if the
+   position is at all ambiguous, to show the user the plan before touching disk.
+   It handles the rename list (via `git mv`, bottom-up, never colliding) and
+   writes a `TODO:`-stub file itself - you do not write the initial file by hand.
+2. Replace the script's `TODO:` stub with the real body, from the slide-file
+   shapes in `docs/cheatsheet.md` ("Slide files").
+   - `.html`: the script already wrote `<section id="<slug>" data-slug="<slug>">`
+     - fill in the content, keep the wrapper.
+   - `.md`: the script already wrote a heading - replace the `TODO:` bullet with
+     real content. Use `<!-- .slide: ... -->` only if the slide needs Reveal
+     attributes.
 3. **Portability lint** (see below).
 4. If an overview/menu slide exists, add one `<a href="#/<slug>">` link to it.
    Otherwise leave navigation alone.
-5. Write the new file; apply the rename list.
-6. Report: files created, files renamed, and confirm nothing else in the deck
-   references the new or moved slides by `id`.
+5. Report: files created, files renamed (from the script's output), and confirm
+   nothing else in the deck references the new or moved slides by `id`.
 
 ## Procedure - edit
 
@@ -124,19 +145,26 @@ layout you need has no utility, it is one of:
 
 ## Portability lint
 
-Reject or warn on:
+After writing the body, run `npm run lint:slides` (checks every file in
+`slides/`; the new/edited one is what matters here). It executes these same
+rules - a non-zero exit is a hard stop: rewrite with semantic HTML + utilities,
+or stop per "The one hard rule". Do not suppress or ignore a failure.
+
+- any **class not in the toolkit above** and not defined in this slide's own
+  scoped `<style>` (shape 3) - a `class="glossary-entry"` / `class="feature-card"`
+  invented for this slide,
+- any `<deck-*>` tag not present in `registry.js`'s `COMPONENTS` map,
+- any `var(--...)` that is a tier-1 primitive (semantic custom properties only).
+
+The lint is a static class/tag/var check - it doesn't know about the following,
+so still reason through these by hand:
 
 - `href="#/<other-slug>"` pointing at another slide (allowed only on the
   non-portable overview slide),
 - any `import` inside an inline `<script>`,
 - `document.currentScript` in an inline script (null once bundled - use
   `document.getElementById('<slug>')`),
-- any `<deck-*>` tag not present in `registry.js`,
-- any `var(--...)` that is a tier-1 primitive, or a raw colour / length literal
-  (semantic custom properties only),
-- any **class not in the toolkit above** - a `class="glossary-entry"` /
-  `class="feature-card"` invented for this slide. Reject it: rewrite with
-  semantic HTML + utilities, or stop per "The one hard rule".
+- a raw colour / length literal outside `var(...)` (e.g. `style="color: #fff"`).
 
 ## Consistency
 

@@ -75,7 +75,11 @@
 		"build:styles": "vite build -c vite.config.styles.ts",
 		"build": "tsc && vite build && vite build -c vite.config.styles.ts && vite build -c plugin/highlight/vite.config.ts && vite build -c plugin/markdown/vite.config.ts && vite build -c plugin/math/vite.config.ts && vite build -c plugin/notes/vite.config.ts && vite build -c plugin/search/vite.config.ts && vite build -c plugin/zoom/vite.config.ts && node scripts/add-banner.js dist/reveal.js",
 		"package": "node scripts/zip.js",
-		"test": "node scripts/test.js"
+		"test": "node scripts/test.js",
+		"lint:slides": "node scripts/lint-slide-classes.js",
+		"check:vocab": "node scripts/check-shared-vocabulary.js",
+		"make:slide": "node scripts/make-slide.js",
+		"make:component": "node scripts/make-component.js"
 	},
 	"author": "Greg Shallard",
 	"devEngines": {

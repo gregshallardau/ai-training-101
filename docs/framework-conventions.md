@@ -97,6 +97,18 @@ Highest layer, so it wins with no `!important`. `skin-builder` still writes
 `[data-theme]` blocks to `semantic.css`, not here - this file is the single look
 the deck ships with.
 
+**Topic colours** (`deck.css`'s `TOPIC COLOURS` section, inside `:root {}`): an
+open-ended, **deck-owned** named legend - `--topic-<name>` / `--topic-<name>-fg`
+pairs a deck author defines for identity tagging (which speaker / theme /
+category), any count, any names. Explicitly separate from and additive to the
+tier-2 status colours above (`--success` / `--danger` / `--warning` stay for
+severity, not identity). Unlike tier-2 semantics, these aren't a fixed
+framework-owned role list - they live in `deck.css`, not `semantic.css`, because
+each deck picks its own set. A matching `[data-topic="<name>"]` selector (near
+`COLOUR MODIFIERS`, same file) sets `--c`/`--c-fg` the same way `.primary` /
+`.success` etc. do, so `data-topic="<name>"` on any `.chip` or `.box` picks up
+the tint with no new CSS - see `deck.css`'s own comments for the exact shape.
+
 ---
 
 ## 3. Cascade layer order

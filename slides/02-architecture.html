@@ -1,9 +1,14 @@
 <section id="architecture" data-slug="architecture">
 	<h2>Architecture</h2>
 	<!--
-		Canonical-component slide. <deck-diagram> is inert until the component is
-		created + registered via the artefact-builder skill. This slide stays
-		portable: it only references a framework-guaranteed <deck-*> tag.
+		Canonical-component slide, illustrative only: once a real component is
+		created + registered via the artefact-builder skill (see
+		.claude/skills/artefact-builder/reference/svg-diagram.md's <deck-diagram>
+		worked example), uncomment the line below. Left commented out (rather
+		than a live tag) so this scaffold slide passes `npm run lint:slides`
+		clean - a <deck-*> tag not in registry.js's COMPONENTS map is exactly
+		the "dead reference" the lint exists to catch.
+
+		<deck-diagram kind="layers"></deck-diagram>
 	-->
-	<deck-diagram kind="layers"></deck-diagram>
 </section>
