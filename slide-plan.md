@@ -430,8 +430,8 @@ Core content bullets:
   / this slide / 30, so the colour-and-texture language is one system.
 
 TODO (deck build, later — record only for now):
-- [ ] insert the stub `slides/22-context-can-have-many-forms.html` between 21 and 22 (slide-builder: apply the rename list in the Slide 27 section, then add the overview link)
-- [ ] write the slide prose from the bullets above
+- [x] stub built as `slides/210.1-context-can-have-many-forms.html` — a vertical child of `210-context-in-the-real-world.html`, NOT the horizontal insert + Transformers-move described below; that reorder (renumbering `22`-`31`) has not been applied to the actual deck
+- [x] slide prose from the bullets above is now on the slide (chip demo + core content bullets); the open items below (visual, diagram, CSS check) still stand
 - [x] **specific-case CSS (deck-author approved)** — DONE: the framework is built. `deck.css` now ships the six **input-type** chips (`.chip.type-words/slides/data/voice/image/video`, Table 1 hues) **plus** the six **context-kind** border textures (`.chip.context-who/what/when/where/why/how`, Table 2), kept out of the core theme/glossary colours; documented in the `deck.css` block comment (framework docs are not edited). Usage: `class="chip context-when type-data"`. Remaining work is *building the chips onto the slide* (markup + labels), not the CSS
 - [ ] CSS build check (once chips are placed on the slide): groove / ridge must read at chip size (else swap to a small glyph prefix per kind); confirm each fill's white text has enough contrast
 - [ ] decide the matrix visual: a simple grid (rows = the eight questions, columns = forms, chips in the cells) vs the Slide 21 list with a form chip on each answer; plain HTML/table vs a registered `<deck-*>` via artefact-builder
@@ -630,4 +630,4 @@ Extended terms — already on the wall, but not yet on any earlier glossary slid
 TODO (deck):
 
 - [ ] decide where the extended terms get introduced earlier in the talk (several slot naturally into the multimodal / Transformers / trust-in-information beats)
-- [ ] `slides/31-glossary-wall.html` currently carries `id="glossary-prompt"` / `data-slug="glossary-prompt"` — a leftover that duplicates slide 14's slug and breaks the overview's `#/glossary-wall` link. Fix to `id="glossary-wall"`.
+- [x] `slides/310-glossary-wall.html` fixed — was `id="glossary-prompt"` / `data-slug="glossary-prompt"`, now `id="glossary-wall"` / `data-slug="glossary-wall"`, matching the overview's `#/glossary-wall` link.
