@@ -1,16 +1,11 @@
 <section data-auto-animate id="context-picture-house-question" data-slug="context-picture-house-question">
 	<p class="text-muted"><small>PICTURE 1 · WHAT ANIMAL WOULD YOU FIND HERE?</small></p>
-	<!-- Fixed-height stage: keeps this slide's total content height (and so
-	     Reveal's auto-centred top offset) identical across both steps, so
-	     the label above never shifts when the "?" is replaced by the answer. -->
-	<div style="height: 720px; display: flex; align-items: center; justify-content: center">
-		<div class="flex-cols" style="align-items: center">
-			<img data-id="scene" src="/pictures/context-picture-house.svg"
-			     alt="Placeholder — a house with a family and two kids; swap for the real photo"
-			     width="640" style="flex: 0 0 auto">
-			<p data-id="arrow" class="text-center text-muted" style="flex: 0 0 auto; margin: 0; font-size: 2.4em">→</p>
-			<p class="text-center" style="flex: 0 0 auto; width: 640px; margin: 0; font-size: 2.4em">?</p>
-		</div>
+	<div class="stage" style="--stage-height: 720px">
+		<div class="stage-item"><img data-id="scene" src="/pictures/context-picture-house.svg"
+		     alt="Placeholder — a house with a family and two kids; swap for the real photo"
+		     width="640"></div>
+		<div class="stage-arrow" data-id="arrow">→</div>
+		<div class="stage-item"><p class="text-center" style="margin: 0; font-size: 2.4em">?</p></div>
 	</div>
 
 	<aside class="notes">
