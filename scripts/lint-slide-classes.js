@@ -38,6 +38,8 @@ const REVEAL_NATIVE_CLASSES = new Set([
 	'current-visible',
 	'stack',
 	'r-fit-text', 'r-stretch', 'r-stack', 'r-hstack', 'r-vstack',
+	'notes', // Reveal speaker notes
+	'language-javascript', 'language-python', 'language-json', 'language-bash', 'language-html', 'language-css', // Highlight.js language classes
 ]);
 
 function extractClassSelectors(cssText) {
