@@ -1,0 +1,49 @@
+<section id="context-can-have-many-forms" data-slug="context-can-have-many-forms">
+	<h2>Context Can Have Many Forms</h2>
+	<p class="fragment">The context you give an AI doesn't have to be typed.</p>
+	<p class="fragment">It takes context in many forms — typed words, Word docs, PDFs, Excel sheets, PowerPoint, images, video, audio — and turns all of them into the same tokens.</p>
+
+	<h3 class="fragment">The context matrix</h3>
+	<p class="fragment text-muted">The same eight questions from "Context in the Real World" — now each answer is tagged with <em>what it actually is</em> and <em>the form it arrives in.</em></p>
+
+	<p class="fragment">
+		<span class="chip context-who type-slides">WHO · Sarah's client deck.pptx</span>
+		<span class="chip context-when type-data">WHEN · claims_history.xlsx</span>
+		<span class="chip context-why type-words">WHY · market commentary.pdf</span>
+		<span class="chip context-how type-words">HOW · tone notes (typed)</span>
+		<span class="chip context-when type-image">WHEN · scanned policy schedule (image)</span>
+	</p>
+	<p class="fragment text-muted">Chip fill colour = the input type it arrived in. Chip border texture = which kind of context it answers (WHO / WHAT / WHEN / WHERE / WHY / HOW). The label always names the real artefact, so the colour is never floating without a reason.</p>
+
+	<ul>
+		<li class="fragment">Text-bearing documents (PDFs, Word docs, Excel, slides) — the model pulls the words out of them (OCR for a scan, an extraction step for a digital file), and from there they're just tokens, exactly like typed words.</li>
+		<li class="fragment">Images, video and audio have no words to lift out — the model "sees" and "hears" them directly. Sketch: a projector beaming a picture onto the wall, scattering it into token chips on the far side.</li>
+		<li class="fragment">Pay-off: paste the whiteboard photo, the client's PDF, or your spreadsheet straight in — that <em>is</em> context, just in another form.</li>
+		<li class="fragment text-danger">Caution: garbage in, garbage out — verify what a file actually says. If it reads a claim PDF or a policy word-for-word, it will use words you didn't notice were in there.</li>
+	</ul>
+
+	<aside class="notes">
+		Grounding for the wh-word borders (not shown on the slide): situation-model
+		theory - Zwaan &amp; Radvansky (1998), Psychological Bulletin; Hymes' SPEAKING
+		grid. WHO = participants (solid border), WHAT = the action/state held
+		(dashed), WHEN = timing/history (dotted), WHERE = place/setting (double),
+		WHY = drivers/causation (groove), HOW = tone/register (ridge).
+
+		Multi-kind facts: colour tags the medium, the border tags the fact. If one
+		artefact feeds two layers (e.g. one Excel holding the client list AND the
+		renewals), show two chips of the same colour, one per fact; a fact that
+		genuinely straddles two kinds gets a compound label on one chip, e.g.
+		"WHO + WHAT · client_tasks.xlsx" - one chip can't carry two border
+		textures.
+
+		TODO (deck build, not yet decided):
+		- decide the matrix visual: a grid (rows = the eight questions, columns =
+		  forms) vs. the Context-in-the-Real-World list with a chip on each answer
+		- build the projector -&gt; tokens diagram: a one-off inline SVG on this
+		  slide, or a registered deck-* via artefact-builder if it should animate
+		- confirm the groove/ridge borders still read as distinct at chip size;
+		  swap to a small glyph prefix per kind if not
+		- glossary tie-in: this is where the closing wall's Multi-Modal chip
+		  ("reads more than words — pictures, voice, files too") gets introduced
+	</aside>
+</section>
