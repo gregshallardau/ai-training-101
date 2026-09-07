@@ -1,14 +1,37 @@
 <section id="not-trained-on-you" data-slug="not-trained-on-you">
+	<style>
+		/* Once each intro line has been stepped past, drop it from flow so the
+		   chart reflows into the freed height (Reveal only fades fragments, it
+		   doesn't collapse them). */
+		#not-trained-on-you .fragment.fade-out.visible,
+		#not-trained-on-you .fragment.current-visible.visible:not(.current-fragment) { display: none; }
+	</style>
 	<h2>But It Wasn't Trained on You</h2>
-	<p class="fragment">An AI model has zero context of who we are. Its context is built from the world.</p>
-	<p class="fragment">Trillions of patterns — books, articles, code, conversations, textbooks, recipes, forums, novels, manuals.</p>
-	<p class="fragment">It's read more than any one person could read in ten lifetimes.</p>
-	<div class="box bar primary fragment">
-		<h3>It knows everything about the world. And nothing about you.</h3>
-	</div>
-	<p class="fragment">But we bring context to the table whether we know it or not.</p>
-	<p class="fragment">It doesn't know your name. It doesn't know what you do. It doesn't know that you're standing in a room right now trying to understand how this thing works.</p>
-	<p class="fragment">It doesn't know that you grew up in Melbourne, or that you worked in finance, or that you play cricket on weekends, or that you're worried about your kid's homework, or that you've been told to "learn AI" and you're not sure where to start.</p>
-	<p class="fragment">All of this shapes how we see the world, and what we do. Everything we do and say is shaped by everything that came before.</p>
-	<aside class="notes">Next: the Glossary — Prompt joins Token, Vector, Weight and Model.</aside>
+	<p class="fragment fade-out" data-fragment-index="2">It has read more than any of us could in ten lifetimes — books, articles, code, forums, manuals, recipes, novels.</p>
+	<p class="fragment current-visible" data-fragment-index="1">Step through what that pile is actually made of:</p>
+	<deck-training-bars class="fragment" data-fragment-index="2" label="What the model was trained on"></deck-training-bars>
+	<aside class="notes">rehrough the six stages
+		while you talk:
+
+		1. what it knows, grouped the way the map groups it;
+		2. every area is stitched together from the web, books, code and
+		   reference works;
+		3. forget the sources for a second —
+		4. each bar is really thousands of specific things it has seen
+		   (in Animals: lion, lioness, cub, tiger…);
+		5. drain it all to grey — none of this is *you*. It doesn't know your
+		   name, what you do, that you grew up in Melbourne or worked in
+		   finance or play cricket on weekends, or that you've been told to
+		   "learn AI" and aren't sure where to start;
+		6. …except maybe the one slice that lights back up: that painting you
+		   entered in the Year 7 art competition. With trillions of documents
+		   in the training set, a few scraps of your life probably are in there
+		   somewhere — an old forum post, a work-trivia photo — just not in any
+		   way it can find or knows is yours.
+
+		But we bring that context to the table whether we know it or not —
+		everything we do and say is shaped by everything that came before.
+
+		Next: the Glossary — Prompt joins Token, Vector, Weight and Model.
+	</aside>
 </section>
