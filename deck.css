@@ -98,7 +98,7 @@
 		   Font stack for everything that isn't a heading or a code span.
 		   Framework default: the system UI sans stack.
 		*/
-		/* --font-body: "Your Font", ui-sans-serif, system-ui, sans-serif; */
+		--font-body: "Helvetica Now Text", ui-sans-serif, system-ui, sans-serif;
 
 		/* --font-code  ───────────────────────────────────────────────────
 		   Font stack for <code>, <pre>, and syntax-highlighted blocks.
