@@ -34,6 +34,7 @@ Registered in `src/components/registry.js`. Tests: `test/ideas-map.html`
 | `storyboard.html` | the key views rendered — open it to show what each state looks like. |
 | `authoring.md` | how to make it *your* map: author the `DATASET`, wire slides per beat. |
 | `attributes.md` | per-slide state cheatsheet (one row per beat). |
+| `slide-recipes.md` | **copy-paste tags per state, and which slide each is for** — checked against the current `dataset.json`. Start here when wiring slides. |
 | `dataset-template.jsonc` | annotated starting point for a hand-authored `DATASET`. |
 | `seed/` | bulk-generate a large `DATASET` with a local LLM — schema, relation vocabulary, prompt, validator, merge. |
 
