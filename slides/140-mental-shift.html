@@ -1,29 +1,51 @@
 <section id="mental-shift" data-slug="mental-shift" data-state="make-it-pop">
+	<style>
+		#mental-shift .mental-shift-grid {
+			display: grid;
+			grid-template-columns: 0.95fr 1.05fr;
+			gap: calc(var(--space-gap) * 1.4);
+			align-items: start;
+		}
+		#mental-shift .checkins p {
+			font-size: 1.08em;
+			line-height: 1.25;
+		}
+		#mental-shift .definitions {
+			font-size: 0.82em;
+		}
+		#mental-shift .definitions p {
+			margin: 0 0 0.42em;
+			line-height: 1.18;
+		}
+		#mental-shift .definitions .chip {
+			min-width: 8.5em;
+			justify-content: center;
+		}
+	</style>
+
 	<p class="text-muted"><small>BEFORE WE GET TO THE EXAMPLES — A QUICK CHECK.</small></p>
 	<h2>What We've Built So Far</h2>
-	<div class="flex-cols">
-		<div>
-			<p><span class="chip primary">Token</span> <span class="text-muted">— a chunk of text.</span></p>
-			<p><span class="chip secondary">Vector</span> <span class="text-muted">— where similar words live together.</span></p>
-			<p><span class="chip success">Weight</span> <span class="text-muted">— how strongly two things are linked.</span></p>
-			<p><span class="chip primary">Context</span> <span class="text-muted">— everything that came before. The situation around the words.</span></p>
-			<p><span class="chip warning">Model</span> <span class="text-muted">— all the weights. Everything it knows.</span></p>
-			<p><span class="chip danger">Prompt</span> <span class="text-muted">— where you start. But it knows nothing on its own.</span></p>
+
+	<div class="mental-shift-grid">
+		<div class="checkins">
+			<p class="fragment" data-fragment-index="0">It breaks language into <strong>chunks</strong>, then places meaning on a <strong>map</strong>.</p>
+			<p class="fragment" data-fragment-index="1">Relationships have <strong>direction and distance</strong> — same pattern, same arrow.</p>
+			<p class="fragment" data-fragment-index="2">The model is not a library. It is <strong>billions of learned connections</strong> from training.</p>
+			<p class="fragment" data-fragment-index="3">It has read more than any one person could in ten lifetimes — <strong>it knows a lot about the world.</strong></p>
+			<p class="fragment" data-fragment-index="4"><strong>And nothing about you.</strong> Your job, your client, why you're asking, who it's for.</p>
+			<p class="fragment" data-fragment-index="5">Same as the picture game: <em>same question, different context → different answer.</em></p>
+		</div>
+
+		<div class="definitions box bar primary">
+			<p><span class="chip primary">Token</span> <span class="text-muted">— a chunk of text. A word, or part of a word.</span></p>
+			<p><span class="chip secondary">Vector</span> <span class="text-muted">— a direction and a distance on the meaning map.</span></p>
+			<p><span class="chip success">Weight</span> <span class="text-muted">— how strongly two tokens or ideas are connected.</span></p>
+			<p><span class="chip warning">Model</span> <span class="text-muted">— all the learned connections together. The learned knowledge.</span></p>
+			<p><span class="chip primary">Context</span> <span class="text-muted">— everything that came before; the situation around the words.</span></p>
+			<p><span class="chip danger">Prompt</span> <span class="text-muted">— what you type. Where you start.</span></p>
 		</div>
 	</div>
-	<p class="fragment" data-fragment-index="1" style="margin-top: var(--space-block);">
-		It's read more than any one person could in ten lifetimes — <strong>it knows everything about the world.</strong>
-	</p>
-	<p class="fragment" data-fragment-index="2">
-		<strong>And nothing about you.</strong> — your name, your job, why you're asking, who it's for.
-	</p>
-	<p class="fragment" data-fragment-index="3">
-		Same we saw in the picture game: <em>same question, different context → totally different answer.</em>
-	</p>
-	<!-- <p class="fragment" data-fragment-index="4">
-		<span class="chip success">The takeaway:</span> you're not a prompt writer — you're a <strong>context builder</strong>.
-		The question shifts from <em>"What do I need to type?"</em> to <em>"What does it need to know?"</em>
-	</p> -->
+
 	<aside class="notes">
 		From the plan, if there's time for a live analogy here: you wouldn't walk
 		up to your colleague and say "help me" and expect them to know what you
