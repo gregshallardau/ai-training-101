@@ -35,7 +35,7 @@ function renderMd(raw, slug) {
 }
 
 function injectAttrs(html, slug) {
-	const openTag = html.slice(0, html.indexOf('>') + 1);
+	const openTag = html.match(/<section\b[^>]*>/i)?.[0] ?? '';
 	if (/\bdata-slug=/.test(openTag) || /\bid=/.test(openTag)) return html; // author set one
 	return html.replace(/<section(\s|>)/i, `<section id="${slug}" data-slug="${slug}"$1`);
 }
