@@ -18,7 +18,6 @@ import { DeckElement } from '@/components/deck-element.js';
 import { SHARED_STYLES } from '@/components/shared-styles.js';
 import { d3 } from '@/lib/d3.js';
 import rawDataset from '../ideas-map/dataset.json';
-import { topicColors } from '../ideas-map/palette.js';
 
 const VB = { w: 960, h: 620 };
 const M = { top: 24, right: 26, bottom: 64, left: 46 };
@@ -68,6 +67,29 @@ function titleCase(s) {
 	return String(s).replace(/(^|[-_ ])(\w)/g, (_, b, c) => (b ? ' ' : '') + c.toUpperCase());
 }
 
+function darker(color, amount = 16) {
+	const c = d3.hcl(color);
+	if (!Number.isFinite(c.l)) return color;
+	return d3.hcl(c.h, c.c, Math.max(c.l - amount, 0)).formatHex();
+}
+
+function semanticTopicColors(topicIds, resolve) {
+	const series = [
+		['--primary', '--primary-strong'],
+		['--secondary', '--secondary-strong'],
+		['--success'],
+		['--warning'],
+		['--danger'],
+	];
+	const out = new Map();
+	topicIds.forEach((id, i) => {
+		const [fillVar, strokeVar] = series[i % series.length];
+		const fill = resolve(fillVar) || '#2563eb';
+		out.set(id, { fill, stroke: resolve(strokeVar) || darker(fill) });
+	});
+	return out;
+}
+
 class DeckTrainingBars extends DeckElement {
 	static tag = 'deck-training-bars';
 	static observedAttributes = ['label', 'sliver'];
@@ -94,7 +116,7 @@ class DeckTrainingBars extends DeckElement {
 		.grid text { fill: var(--muted); font-family: var(--font-body); font-size: 11px; }
 		.band-label { fill: var(--fg); font-family: var(--font-heading); font-size: 14px; font-weight: 600; }
 		.node-label { fill: var(--fg); font-family: var(--font-body); font-size: 10px; font-weight: 500; pointer-events: none; }
-		.layer.nodes rect { stroke: var(--bg); stroke-width: 1; }
+		.layer.nodes rect { stroke: none; }
 		.sliver.glow { filter: drop-shadow(0 0 6px var(--primary)); }
 		.anno line { stroke: var(--primary); stroke-width: 1.5; }
 		.anno text { fill: var(--fg); font-family: var(--font-heading); font-size: 13px; font-weight: 600; }
@@ -113,7 +135,7 @@ class DeckTrainingBars extends DeckElement {
 		this._uid = ++INSTANCE;
 		this._topics = readTopics();
 		const ids = this._topics.map((t) => t.id);
-		this._colors = topicColors(ids, (n) => this.cssVar(n));
+		this._colors = semanticTopicColors(ids, (n) => this.cssVar(n));
 
 		this._x = d3.scaleBand().domain(ids).range([0, IW]).padding(0.28);
 		this._y = d3.scaleLinear().domain([0, d3.max(this._topics, (t) => t.count)]).nice().range([IH, 0]);
@@ -184,8 +206,7 @@ class DeckTrainingBars extends DeckElement {
 			.attr('height', (d) => IH - this._y(d.count))
 			.attr('rx', 3).attr('ry', 3)
 			.attr('fill', (d) => this._colors.get(d.id).fill)
-			.attr('stroke', (d) => this._colors.get(d.id).stroke)
-			.attr('stroke-width', 1);
+			.attr('stroke', 'none');
 
 		// stage 1 - each bar stacked by source, base fill + texture overlay
 		const segs = [];
@@ -207,7 +228,7 @@ class DeckTrainingBars extends DeckElement {
 		const seg = this._gSources.selectAll('g.seg').data(segs, (d) => d.key).join('g').attr('class', 'seg');
 		place(seg.append('rect'), 'seg-base', (d) => this._colors.get(d.topic).fill)
 			.attr('fill-opacity', (d) => TONE[d.si % TONE.length])
-			.attr('stroke', (d) => this._colors.get(d.topic).stroke).attr('stroke-width', 0.75);
+			.attr('stroke', 'none');
 		place(seg.append('rect'), 'seg-tex', (d) => `url(#tb-${this._uid}-${d.src})`);
 
 		// stage 3+ - one unit-height slice per idea
@@ -286,7 +307,7 @@ class DeckTrainingBars extends DeckElement {
 		this._apply(0, false);
 
 		this._ro = new ResizeObserver(() => {
-			this._colors = topicColors(ids, (n) => this.cssVar(n));
+			this._colors = semanticTopicColors(ids, (n) => this.cssVar(n));
 			this._gTopics.selectAll('rect').attr('stroke', (d) => this._colors.get(d.id).stroke);
 			this._apply(this._stage, false);
 		});
