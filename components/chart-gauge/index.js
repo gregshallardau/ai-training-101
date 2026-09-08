@@ -31,15 +31,22 @@ class DeckChartGauge extends DeckElement {
 	render() {
 		const label = this.getAttribute('label') || '';
 		this.shadowRoot.innerHTML = `
-			<svg viewBox="0 0 200 200" role="img" aria-label="${label}">
+			<svg viewBox="0 0 200 200" role="img">
 				<circle class="track" cx="100" cy="100" r="${R}" stroke-width="16" />
 				<circle class="fill" cx="100" cy="100" r="${R}" stroke-width="16"
 				        stroke-dasharray="${CIRCUMFERENCE}" stroke-dashoffset="${CIRCUMFERENCE}"
 				        transform="rotate(-90 100 100)" />
 				<text x="100" y="94" font-size="32"></text>
-				${label ? `<text class="label" x="100" y="124">${label}</text>` : ''}
+				${label ? `<text class="label" x="100" y="124"></text>` : ''}
 			</svg>
 		`;
+
+		const svg = this.shadowRoot.querySelector('svg');
+		if (label) {
+			svg.setAttribute('aria-label', label);
+			this.shadowRoot.querySelector('.label').textContent = label;
+		}
+
 		requestAnimationFrame(() => this._setValue(Number(this.getAttribute('value')) || 0));
 	}
 
