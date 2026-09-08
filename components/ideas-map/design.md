@@ -203,6 +203,15 @@ Plain associations — drawn as edges on `show-links`, between wherever the two
 nodes settled. They do **not** enter the simulation (see §3.1). `distance` is
 accepted but currently unused. ~30–50 links.
 
+A link may carry `weight` (0..1), setting the drawn line thickness
+(`0.5 + weight * 2`; an unweighted link keeps the 1.5 default) so a strong
+association reads heavier than a loose one — `chef`–`restaurant` thick,
+`chef`–`pasta` thin. It is **draw-only**: §3.1 keeps links out of the
+simulation, so a weight never moves a node. In the authored node-centric shape
+a link is either `"other-id"` or `{ "to": "other-id", "weight": 0.8 }`; the two
+forms mix freely in one list. A mutual pair is deduped on a sorted key, so the
+first weight seen is the one kept.
+
 ### 4.4 `relations` + `RELATION_OFFSETS` — the consistent steps
 
 ```jsonc
@@ -315,6 +324,24 @@ step (or stacks more `contexts` keys — §4.5).
 
 This is "drag an idea around to see what it's linked to."
 
+### 5.1a Right-click — the constellation gesture
+
+`contextmenu` on a node — never colliding with the left-click topic zoom of
+§6.1, since that listens on `click` and d3-drag's default filter already ignores
+a non-primary button. It walks the association web `CONSTELLATION_DEPTH` (3)
+hops out from that idea:
+
+- each hop is `HOP_FALLOFF` (0.5) dimmer than the last, scaled by the link's own
+  `weight` (§4.3); the nearest hop wins when a node is reachable two ways;
+- the fan is renormalised to the same fixed attention budget `_parseActivate`
+  uses — everything except the source sums to 1;
+- the rest of the map falls back to faint stars, and the web is drawn.
+
+Right-click on empty space clears it. The result is a **prebuilt** activation
+(`_ov.activateObj`) that outranks the authored `activate=` csv/context form, so
+a slide's own framing returns on any attribute or `mode` change. On macOS
+ctrl+click raises `contextmenu`, so it is the same gesture there.
+
 ### 5.2 Attribute changes
 
 `attributeChangedCallback` (after `_upgraded`): the node **data and settled
@@ -343,12 +370,13 @@ Shadow-DOM `<svg viewBox="0 0 1600 1000">` (the simulation's coordinate space),
 scaling at CSS `width: 100%`. One `<g class="view">` takes the camera transform
 from `zoomTo`. Layers, bottom to top:
 
-1. **links** — `<line>` per edge, `--line`, `stroke-width` 1.5, `stroke-opacity`
+1. **links** — `<line>` per edge, `--line`, `stroke-width` `0.5 + weight * 2`
+   (1.5 when the link carries no `weight` — see §4.3), `stroke-opacity`
    0 → 0.55 on `show-links` (staggered, `--motion-ui-duration`).
 2. **spotlight arrows** — on `spotlight="<rel>"`: `<line>` + `<marker>` triangle
-   in `--primary-strong` from each pair's source to target; a short `--muted`
-   caption near the first arrow (`one step = <rel>`). Non-involved nodes/links
-   drop to ~0.15. Present only while `spotlight` is set.
+   in `--primary-strong` from each pair's source to target. Non-involved
+   nodes/links drop to ~0.15. Present only while `spotlight` is set. The arrows
+   carry no caption — the relation is narrated, not labelled.
 3. **attention** — on `activate`: for the activated set, either edges **fanning
    from** `attention-from` / the context `from` node to each other activated node,
    or (no `from`) a light mesh among them. **Fixed budget:** the fan edge widths

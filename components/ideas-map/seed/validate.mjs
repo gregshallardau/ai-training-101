@@ -16,6 +16,7 @@ import { readFileSync } from 'node:fs';
 const RELS = new Set([
 	'gender', 'parent', 'tense', 'plural', 'comparative', 'superlative',
 	'capital-of', 'opposite', 'part-of', 'instance-of', 'profession', 'symbol',
+	'produces',
 ]);
 const SLUG = /^[a-z0-9]+([.-][a-z0-9]+)*$/;
 const MAX_NODES = 5000;
@@ -120,9 +121,15 @@ function validateAuthored(doc) {
 				else if (t === n.topic) W(`${at} ("${n.id}"): also repeats its own topic "${t}"`);
 			}
 		}
-		for (const t of n.links || []) {
+		for (const l of n.links || []) {
+			const t = (typeof l === 'string') ? l : (l && l.to);
+			if (t == null) { E(`${at} ("${n.id}"): link must be a node id or { to, weight }`); continue; }
 			if (!nodeIds.has(t)) E(`${at} ("${n.id}"): link to unknown node "${t}"`);
 			else if (t === n.id) E(`${at} ("${n.id}"): self-link`);
+			if (l && typeof l === 'object' && l.weight != null
+				&& !(Number.isFinite(l.weight) && l.weight >= 0 && l.weight <= 1)) {
+				E(`${at} ("${n.id}"): link weight for "${t}" must be a number 0..1`);
+			}
 		}
 		for (const [j, s] of (n.rels || []).entries()) {
 			const sa = `${at} ("${n.id}").rels[${j}]`;

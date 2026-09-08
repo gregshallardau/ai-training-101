@@ -19,6 +19,12 @@ const MODES = {
 };
 const MODE_ORDER = ['star-map', 'labels', 'vectors', 'web', 'constellation'];
 
+// Right-click walks the association web this many hops out from the clicked
+// idea. Each hop is half as bright as the last (HOP_FALLOFF), scaled by the
+// link's own weight, then the fan is renormalised to the fixed attention budget.
+const CONSTELLATION_DEPTH = 3;
+const HOP_FALLOFF = 0.5;
+
 class DeckIdeasMap extends DeckElement {
 	static tag = 'deck-ideas-map';
 	static observedAttributes = [
@@ -179,6 +185,16 @@ class DeckIdeasMap extends DeckElement {
 			this._zoomFromTap(el ? el.dataset.id : null);
 		});
 
+		// Right-click a node → constellation from it; right-click empty space →
+		// clear. Separate from the left-click zoom above: this is `contextmenu`,
+		// not `click`, and d3-drag's default filter already ignores button != 0.
+		// (On macOS ctrl+click raises `contextmenu` too, so it is the same gesture.)
+		this._svg.addEventListener('contextmenu', (event) => {
+			event.preventDefault();
+			const el = event.target && event.target.closest && event.target.closest('circle.node');
+			this._constellationFromTap(el ? el.dataset.id : null);
+		});
+
 		// Drag empty space → pan the camera (translate only, zoom unchanged). Lets
 		// you move around a topic you've zoomed into. Node drags are excluded via
 		// the filter so they still move the node.
@@ -314,6 +330,61 @@ class DeckIdeasMap extends DeckElement {
 		}
 		this._redraw();
 		this._applyScope();
+	}
+
+	/** Undirected adjacency over the association web, carrying each link's
+	 *  weight. Built once per dataset; `_rebuild()` drops it. */
+	_adjacency() {
+		if (this._adj) return this._adj;
+		const adj = new Map();
+		const put = (a, b, w) => { if (!adj.has(a)) adj.set(a, []); adj.get(a).push({ to: b, w }); };
+		for (const l of this._data.links || []) {
+			const w = Number.isFinite(l.weight) ? l.weight : 0.5;
+			put(l.source, l.target, w);
+			put(l.target, l.source, w);
+		}
+		this._adj = adj;
+		return adj;
+	}
+
+	/** Right-click gesture: light the clicked idea and everything within
+	 *  CONSTELLATION_DEPTH hops of it, dimming per hop and by link weight, and
+	 *  fade the rest to stars. Passing null clears back to the slide's state. */
+	_constellationFromTap(nodeId) {
+		if (!nodeId) {
+			delete this._ov.activateObj;
+			delete this._ov.starmap;
+			delete this._ov.links;
+			this._redraw();
+			return;
+		}
+		const adj = this._adjacency();
+		const ids = new Set([nodeId]);
+		const weights = new Map();
+		let frontier = [nodeId];
+		let falloff = 1;
+		for (let d = 0; d < CONSTELLATION_DEPTH; d++) {
+			falloff *= HOP_FALLOFF;
+			const next = [];
+			for (const u of frontier) {
+				for (const { to, w } of adj.get(u) || []) {
+					if (ids.has(to)) continue;   // nearest hop wins
+					ids.add(to);
+					next.push(to);
+					weights.set(to, falloff * w);
+				}
+			}
+			frontier = next;
+		}
+		// same fixed attention budget as `_parseActivate`: the fan sums to 1
+		const fan = [...ids].filter((id) => id !== nodeId);
+		const sum = fan.reduce((s, id) => s + (weights.get(id) || 0), 0) || 1;
+		for (const id of fan) weights.set(id, (weights.get(id) || 0) / sum);
+
+		this._ov.activateObj = { ids, from: nodeId, weights, constellation: true };
+		this._ov.starmap = true;   // everything outside the constellation → faint stars
+		this._ov.links = true;     // show the web the constellation walked
+		this._redraw();
 	}
 
 	/** Translate the camera by a pointer delta given in viewBox units. `k = W/w`
@@ -511,7 +582,9 @@ class DeckIdeasMap extends DeckElement {
 			scope,
 			highlight: new Set((this.getAttribute('highlight') || '').split(',').map((s) => s.trim()).filter(Boolean)),
 			spotlight: ov.vectors ?? this.getAttribute('spotlight') ?? m.vectors ?? null,
-			activate: this._parseActivate(ov.activate ?? this.getAttribute('activate') ?? m.activate ?? null),
+			// `activateObj` is a prebuilt activation (the right-click constellation);
+			// it outranks the csv/context form, which still drives authored slides.
+			activate: ov.activateObj ?? this._parseActivate(ov.activate ?? this.getAttribute('activate') ?? m.activate ?? null),
 			starmap: ov.starmap ?? m.starmap ?? false,
 			reveal: this.hasAttribute('reveal') ? Number(this.getAttribute('reveal')) : null,
 			relations: this._data.relations,
@@ -599,6 +672,7 @@ class DeckIdeasMap extends DeckElement {
 	 *  link force is always in the warm-up; `show-links` never rebuilds anything. */
 	_rebuild() {
 		this._sim && this._sim.stop();
+		this._adj = null;   // the web changed with the data
 		this._sim = buildSimulation(this._data);
 		this._wireSim();
 		this._redraw();

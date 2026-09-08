@@ -123,11 +123,17 @@ function expandAuthored(doc) {
 		for (const t of e.also || []) { pushTopic(t); topics.push(t); }
 		nodes.push({ id, name: (e.name != null && e.name !== '') ? e.name : id, topics });
 
-		for (const t of e.links || []) {
+		// A link is either "other-id" or { to, weight }. `weight` (0..1) is
+		// DRAW-ONLY — §3.1 keeps links out of the simulation.
+		for (const link of e.links || []) {
+			const t = (typeof link === 'string') ? link : (link && link.to);
+			if (t == null) continue;
 			const key = [id, t].sort().join('\u0001');
 			if (linkSeen.has(key)) continue;
 			linkSeen.add(key);
-			links.push({ source: id, target: t });
+			// a mutual pair is deduped on the sorted key, so the first weight wins
+			const w = (link && typeof link === 'object' && Number.isFinite(link.weight)) ? link.weight : null;
+			links.push({ source: id, target: t, weight: w });
 		}
 
 		for (const s of e.rels || []) {

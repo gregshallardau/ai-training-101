@@ -22,6 +22,7 @@ spread so distinct relations read as distinct arrows; `comparative` and
 | `instance-of`   | `[D * 0.75, D * 0.65]` | instance → category              | SE |
 | `profession`    | `[-D * 0.35, -D * 1.0]` | person → their field             | NNW |
 | `symbol`        | `[D * 0.35, D * 1.0]` | element / unit → its symbol       | SSE |
+| `produces`      | `[-D * 0.7, D * 0.7]` | source → what it yields           | SW |
 
 ## Authoring the offsets
 

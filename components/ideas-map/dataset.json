@@ -47,14 +47,32 @@
         }
       ],
       "links": [
-        "father"
+        {
+          "to": "father",
+          "weight": 0.8
+        },
+        {
+          "to": "woman",
+          "weight": 0.9
+        },
+        {
+          "to": "boy",
+          "weight": 0.6
+        }
       ]
     },
     {
       "id": "woman",
       "topic": "family",
       "links": [
-        "mother"
+        {
+          "to": "mother",
+          "weight": 0.85
+        },
+        {
+          "to": "girl",
+          "weight": 0.6
+        }
       ]
     },
     {
@@ -74,7 +92,15 @@
         "royalty"
       ],
       "links": [
-        "france"
+        "france",
+        {
+          "to": "queen",
+          "weight": 0.9
+        },
+        {
+          "to": "uk",
+          "weight": 0.6
+        }
       ]
     },
     {
@@ -82,7 +108,8 @@
       "topic": "family",
       "contexts": {
         "royalty": 1
-      }
+      },
+      "links": []
     },
     {
       "id": "son",
@@ -104,6 +131,16 @@
             -90
           ]
         }
+      ],
+      "links": [
+        {
+          "to": "father",
+          "weight": 0.85
+        },
+        {
+          "to": "daughter",
+          "weight": 0.8
+        }
       ]
     },
     {
@@ -120,7 +157,11 @@
         }
       ],
       "links": [
-        "book"
+        "book",
+        {
+          "to": "mother",
+          "weight": 0.85
+        }
       ]
     },
     {
@@ -130,7 +171,11 @@
         "royalty": 0.4
       },
       "links": [
-        "gene"
+        "gene",
+        {
+          "to": "mother",
+          "weight": 0.8
+        }
       ]
     },
     {
@@ -151,6 +196,16 @@
             0,
             90
           ]
+        }
+      ],
+      "links": [
+        {
+          "to": "children",
+          "weight": 0.9
+        },
+        {
+          "to": "father",
+          "weight": 0.6
         }
       ]
     },
@@ -175,7 +230,15 @@
         }
       ],
       "links": [
-        "king"
+        "king",
+        {
+          "to": "lioness",
+          "weight": 0.9
+        },
+        {
+          "to": "forest",
+          "weight": 0.3
+        }
       ]
     },
     {
@@ -196,7 +259,11 @@
         }
       ],
       "links": [
-        "farmer"
+        "farmer",
+        {
+          "to": "cow",
+          "weight": 0.8
+        }
       ]
     },
     {
@@ -210,6 +277,16 @@
             -63,
             63
           ]
+        }
+      ],
+      "links": [
+        {
+          "to": "calf",
+          "weight": 0.85
+        },
+        {
+          "to": "milk",
+          "weight": 0.9
         }
       ]
     },
@@ -227,7 +304,10 @@
         }
       ],
       "links": [
-        "farmer"
+        {
+          "to": "farmer",
+          "weight": 0.4
+        }
       ]
     },
     {
@@ -244,14 +324,21 @@
         }
       ],
       "links": [
-        "lioness"
+        "lioness",
+        {
+          "to": "lion",
+          "weight": 0.8
+        }
       ]
     },
     {
       "id": "horse",
       "topic": "animals",
       "links": [
-        "farmer",
+        {
+          "to": "farmer",
+          "weight": 0.5
+        },
         "car"
       ]
     },
@@ -259,23 +346,43 @@
       "id": "tiger",
       "topic": "animals",
       "links": [
-        "forest",
-        "lion"
+        {
+          "to": "forest",
+          "weight": 0.5
+        },
+        {
+          "to": "lion",
+          "weight": 0.7
+        },
+        {
+          "to": "cat",
+          "weight": 0.6
+        }
       ]
     },
     {
       "id": "dog",
       "topic": "animals",
       "links": [
-        "cat",
-        "child"
+        {
+          "to": "cat",
+          "weight": 0.75
+        },
+        "child",
+        {
+          "to": "man",
+          "weight": 0.4
+        }
       ]
     },
     {
       "id": "cat",
       "topic": "animals",
       "links": [
-        "mouse"
+        {
+          "to": "mouse",
+          "weight": 0.7
+        }
       ]
     },
     {
@@ -296,8 +403,18 @@
         "royalty": 0.7
       },
       "links": [
-        "wine",
-        "cheese"
+        {
+          "to": "wine",
+          "weight": 0.8
+        },
+        {
+          "to": "cheese",
+          "weight": 0.75
+        },
+        {
+          "to": "paris",
+          "weight": 0.9
+        }
       ]
     },
     {
@@ -308,7 +425,10 @@
         "royalty": 0.5
       },
       "links": [
-        "painting"
+        {
+          "to": "painting",
+          "weight": 0.4
+        }
       ]
     },
     {
@@ -326,7 +446,14 @@
         }
       ],
       "links": [
-        "pasta"
+        {
+          "to": "pasta",
+          "weight": 0.85
+        },
+        {
+          "to": "rome",
+          "weight": 0.9
+        }
       ]
     },
     {
@@ -349,11 +476,33 @@
             63,
             -49.5
           ]
+        },
+        {
+          "rel": "produces",
+          "to": "sushi",
+          "offset": [
+            -63,
+            63
+          ]
         }
       ],
       "links": [
-        "train",
-        "rice"
+        {
+          "to": "train",
+          "weight": 0.5
+        },
+        {
+          "to": "rice",
+          "weight": 0.7
+        },
+        {
+          "to": "tokyo",
+          "weight": 0.9
+        },
+        {
+          "to": "sushi",
+          "weight": 0.85
+        }
       ]
     },
     {
@@ -380,7 +529,14 @@
       ],
       "links": [
         "lion",
-        "queen"
+        {
+          "to": "queen",
+          "weight": 0.6
+        },
+        {
+          "to": "london",
+          "weight": 0.9
+        }
       ]
     },
     {
@@ -388,7 +544,10 @@
       "topic": "places",
       "name": "London",
       "links": [
-        "queen"
+        {
+          "to": "queen",
+          "weight": 0.5
+        }
       ]
     },
     {
@@ -406,7 +565,11 @@
         }
       ],
       "links": [
-        "river"
+        "river",
+        {
+          "to": "cairo",
+          "weight": 0.9
+        }
       ]
     },
     {
@@ -429,6 +592,12 @@
             90
           ]
         }
+      ],
+      "links": [
+        {
+          "to": "mice",
+          "weight": 0.95
+        }
       ]
     },
     {
@@ -449,7 +618,19 @@
         }
       ],
       "links": [
-        "doctor"
+        "doctor",
+        {
+          "to": "better",
+          "weight": 0.9
+        },
+        {
+          "to": "best",
+          "weight": 0.8
+        },
+        {
+          "to": "bad",
+          "weight": 0.7
+        }
       ]
     },
     {
@@ -463,6 +644,12 @@
             100,
             40
           ]
+        }
+      ],
+      "links": [
+        {
+          "to": "best",
+          "weight": 0.9
         }
       ]
     },
@@ -484,7 +671,15 @@
         }
       ],
       "links": [
-        "judge"
+        "judge",
+        {
+          "to": "worse",
+          "weight": 0.9
+        },
+        {
+          "to": "worst",
+          "weight": 0.8
+        }
       ]
     },
     {
@@ -499,6 +694,12 @@
             40
           ]
         }
+      ],
+      "links": [
+        {
+          "to": "worst",
+          "weight": 0.9
+        }
       ]
     },
     {
@@ -509,7 +710,11 @@
       "id": "tree",
       "topic": "nature",
       "links": [
-        "book"
+        "book",
+        {
+          "to": "apple",
+          "weight": 0.75
+        }
       ],
       "rels": [
         {
@@ -526,21 +731,35 @@
       "id": "flower",
       "topic": "nature",
       "links": [
-        "painting"
+        "painting",
+        {
+          "to": "leaf",
+          "weight": 0.6
+        }
       ]
     },
     {
       "id": "forest",
       "topic": "nature",
       "links": [
-        "tree"
+        {
+          "to": "tree",
+          "weight": 0.9
+        },
+        {
+          "to": "leaf",
+          "weight": 0.6
+        }
       ]
     },
     {
       "id": "river",
       "topic": "nature",
       "links": [
-        "france"
+        {
+          "to": "france",
+          "weight": 0.3
+        }
       ]
     },
     {
@@ -548,29 +767,48 @@
       "topic": "nature",
       "links": [
         "gravity",
-        "river"
+        {
+          "to": "river",
+          "weight": 0.6
+        }
       ]
     },
     {
       "id": "ocean",
       "topic": "nature",
       "links": [
-        "river"
+        {
+          "to": "river",
+          "weight": 0.7
+        }
       ]
     },
     {
       "id": "moon",
       "topic": "nature",
       "links": [
-        "planet",
-        "ocean"
+        {
+          "to": "planet",
+          "weight": 0.7
+        },
+        {
+          "to": "ocean",
+          "weight": 0.6
+        }
       ]
     },
     {
       "id": "sun",
       "topic": "nature",
       "links": [
-        "plant"
+        {
+          "to": "plant",
+          "weight": 0.7
+        },
+        {
+          "to": "moon",
+          "weight": 0.6
+        }
       ],
       "rels": [
         {
@@ -587,71 +825,134 @@
       "id": "leaf",
       "topic": "nature",
       "links": [
-        "tree",
-        "plant"
+        {
+          "to": "tree",
+          "weight": 0.85
+        },
+        {
+          "to": "plant",
+          "weight": 0.8
+        }
       ]
     },
     {
       "id": "cell",
-      "topic": "sciences"
+      "topic": "sciences",
+      "links": []
     },
     {
       "id": "gene",
       "topic": "sciences",
       "links": [
-        "evolution"
+        {
+          "to": "evolution",
+          "weight": 0.7
+        },
+        {
+          "to": "cell",
+          "weight": 0.8
+        },
+        {
+          "to": "biology",
+          "weight": 0.7
+        }
       ]
     },
     {
       "id": "atom",
       "topic": "sciences",
       "links": [
-        "energy"
+        {
+          "to": "energy",
+          "weight": 0.6
+        }
       ]
     },
     {
       "id": "energy",
-      "topic": "sciences"
+      "topic": "sciences",
+      "links": [
+        {
+          "to": "sun",
+          "weight": 0.7
+        }
+      ]
     },
     {
       "id": "electron",
       "topic": "sciences",
       "links": [
-        "computer",
-        "atom"
+        {
+          "to": "computer",
+          "weight": 0.4
+        },
+        {
+          "to": "atom",
+          "weight": 0.85
+        }
       ]
     },
     {
       "id": "planet",
       "topic": "sciences",
       "links": [
-        "sun"
+        {
+          "to": "sun",
+          "weight": 0.8
+        }
       ]
     },
     {
       "id": "gravity",
-      "topic": "sciences"
+      "topic": "sciences",
+      "links": [
+        {
+          "to": "planet",
+          "weight": 0.7
+        },
+        {
+          "to": "moon",
+          "weight": 0.6
+        }
+      ]
     },
     {
       "id": "evolution",
       "topic": "sciences",
       "links": [
-        "lion"
+        "lion",
+        {
+          "to": "biology",
+          "weight": 0.7
+        }
       ]
     },
     {
       "id": "nucleus",
       "topic": "sciences",
       "links": [
-        "cell",
-        "atom"
+        {
+          "to": "cell",
+          "weight": 0.8
+        },
+        {
+          "to": "atom",
+          "weight": 0.85
+        },
+        {
+          "to": "biology",
+          "weight": 0.5
+        }
       ]
     },
     {
       "id": "painting",
       "topic": "arts",
       "links": [
-        "sculpture"
+        {
+          "to": "sculpture",
+          "weight": 0.7
+        }
       ]
     },
     {
@@ -662,23 +963,46 @@
       "id": "novel",
       "topic": "arts",
       "links": [
-        "teacher",
-        "book"
+        {
+          "to": "teacher",
+          "weight": 0.5
+        },
+        {
+          "to": "book",
+          "weight": 0.9
+        }
       ]
     },
     {
       "id": "dance",
       "topic": "arts",
       "links": [
-        "music",
-        "guitar"
+        {
+          "to": "music",
+          "weight": 0.85
+        },
+        {
+          "to": "guitar",
+          "weight": 0.4
+        }
       ]
     },
     {
       "id": "mozart",
       "topic": "arts",
       "links": [
-        "piano"
+        {
+          "to": "piano",
+          "weight": 0.8
+        },
+        {
+          "to": "music",
+          "weight": 0.9
+        },
+        {
+          "to": "dance",
+          "weight": 0.5
+        }
       ],
       "contexts": {
         "celebrity": 1
@@ -688,7 +1012,10 @@
       "id": "music",
       "topic": "arts",
       "links": [
-        "piano",
+        {
+          "to": "piano",
+          "weight": 0.85
+        },
         "software"
       ]
     },
@@ -696,21 +1023,30 @@
       "id": "guitar",
       "topic": "arts",
       "links": [
-        "music"
+        {
+          "to": "music",
+          "weight": 0.85
+        }
       ]
     },
     {
       "id": "piano",
       "topic": "arts",
       "links": [
-        "guitar"
+        {
+          "to": "guitar",
+          "weight": 0.6
+        }
       ]
     },
     {
       "id": "book",
       "topic": "arts",
       "links": [
-        "children"
+        {
+          "to": "children",
+          "weight": 0.4
+        }
       ]
     },
     {
@@ -722,35 +1058,72 @@
     },
     {
       "id": "cheese",
-      "topic": "food"
+      "topic": "food",
+      "links": [
+        {
+          "to": "restaurant",
+          "weight": 0.5
+        }
+      ]
     },
     {
       "id": "rice",
-      "topic": "food"
+      "topic": "food",
+      "links": [
+        {
+          "to": "restaurant",
+          "weight": 0.5
+        }
+      ]
     },
     {
       "id": "pasta",
       "topic": "food",
       "links": [
-        "cheese"
+        "cheese",
+        {
+          "to": "restaurant",
+          "weight": 0.6
+        }
       ]
     },
     {
       "id": "fruit",
-      "topic": "food"
+      "topic": "food",
+      "links": [
+        {
+          "to": "tree",
+          "weight": 0.6
+        },
+        {
+          "to": "cake",
+          "weight": 0.3
+        }
+      ]
     },
     {
       "id": "vegetable",
       "topic": "food",
       "links": [
-        "farmer"
+        {
+          "to": "farmer",
+          "weight": 0.6
+        },
+        {
+          "to": "restaurant",
+          "weight": 0.4
+        }
       ]
     },
     {
       "id": "coffee",
       "topic": "food",
       "links": [
-        "energy"
+        "energy",
+        {
+          "to": "restaurant",
+          "weight": 0.5
+        }
       ]
     },
     {
@@ -758,151 +1131,301 @@
       "topic": "food",
       "links": [
         "mozart",
-        "coffee"
+        {
+          "to": "coffee",
+          "weight": 0.5
+        }
       ]
     },
     {
       "id": "apple",
       "topic": "food",
       "links": [
-        "fruit"
+        {
+          "to": "fruit",
+          "weight": 0.9
+        },
+        {
+          "to": "cake",
+          "weight": 0.4
+        }
       ]
     },
     {
       "id": "wine",
       "topic": "food",
       "links": [
-        "cheese"
+        {
+          "to": "cheese",
+          "weight": 0.7
+        },
+        {
+          "to": "restaurant",
+          "weight": 0.7
+        }
       ]
     },
     {
       "id": "teacher",
       "topic": "professions",
       "links": [
-        "book",
-        "child"
+        {
+          "to": "book",
+          "weight": 0.7
+        },
+        {
+          "to": "child",
+          "weight": 0.6
+        }
       ]
     },
     {
       "id": "doctor",
       "topic": "professions",
       "links": [
-        "cell",
-        "gene"
+        {
+          "to": "cell",
+          "weight": 0.6
+        },
+        "gene",
+        {
+          "to": "biology",
+          "weight": 0.5
+        }
       ]
     },
     {
       "id": "chef",
       "topic": "professions",
       "links": [
-        "bread"
+        {
+          "to": "bread",
+          "weight": 0.6
+        },
+        {
+          "to": "pasta",
+          "weight": 0.25
+        },
+        {
+          "to": "cake",
+          "weight": 0.5
+        },
+        {
+          "to": "wine",
+          "weight": 0.5
+        }
       ]
     },
     {
       "id": "farmer",
       "topic": "professions",
       "links": [
-        "cow",
-        "plant",
-        "vegetable"
+        {
+          "to": "cow",
+          "weight": 0.7
+        },
+        {
+          "to": "plant",
+          "weight": 0.6
+        },
+        "vegetable",
+        {
+          "to": "milk",
+          "weight": 0.5
+        }
       ]
     },
     {
       "id": "judge",
       "topic": "professions",
       "links": [
-        "uk"
+        {
+          "to": "uk",
+          "weight": 0.3
+        }
       ]
     },
     {
       "id": "engineer",
       "topic": "professions",
       "links": [
-        "computer"
+        {
+          "to": "computer",
+          "weight": 0.7
+        },
+        {
+          "to": "software",
+          "weight": 0.6
+        }
       ]
     },
     {
       "id": "scientist",
       "topic": "professions",
       "links": [
-        "atom"
+        {
+          "to": "atom",
+          "weight": 0.7
+        },
+        {
+          "to": "chemistry",
+          "weight": 0.7
+        },
+        {
+          "to": "biology",
+          "weight": 0.6
+        }
       ]
     },
     {
       "id": "artist",
       "topic": "professions",
       "links": [
-        "painting",
-        "sculpture"
+        {
+          "to": "painting",
+          "weight": 0.85
+        },
+        {
+          "to": "sculpture",
+          "weight": 0.7
+        },
+        {
+          "to": "music",
+          "weight": 0.4
+        }
       ]
     },
     {
       "id": "computer",
       "topic": "technology",
       "links": [
-        "internet",
-        "electron"
+        {
+          "to": "internet",
+          "weight": 0.85
+        },
+        "electron",
+        {
+          "to": "smartphone",
+          "weight": 0.8
+        }
       ]
     },
     {
       "id": "internet",
-      "topic": "technology"
+      "topic": "technology",
+      "links": [
+        {
+          "to": "robot",
+          "weight": 0.35
+        }
+      ]
     },
     {
       "id": "smartphone",
       "topic": "technology",
       "links": [
-        "internet",
-        "screen"
+        {
+          "to": "internet",
+          "weight": 0.8
+        },
+        {
+          "to": "screen",
+          "weight": 0.85
+        }
       ]
     },
     {
       "id": "robot",
       "topic": "technology",
       "links": [
-        "scientist",
-        "engineer"
+        {
+          "to": "scientist",
+          "weight": 0.6
+        },
+        {
+          "to": "engineer",
+          "weight": 0.65
+        },
+        {
+          "to": "computer",
+          "weight": 0.7
+        },
+        {
+          "to": "software",
+          "weight": 0.6
+        }
       ]
     },
     {
       "id": "software",
       "topic": "technology",
       "links": [
-        "computer"
+        {
+          "to": "computer",
+          "weight": 0.85
+        },
+        {
+          "to": "smartphone",
+          "weight": 0.7
+        },
+        {
+          "to": "internet",
+          "weight": 0.6
+        }
       ]
     },
     {
       "id": "car",
       "topic": "technology",
       "links": [
-        "train",
-        "engineer"
+        {
+          "to": "train",
+          "weight": 0.5
+        },
+        {
+          "to": "engineer",
+          "weight": 0.5
+        }
       ]
     },
     {
       "id": "train",
-      "topic": "technology"
+      "topic": "technology",
+      "links": []
     },
     {
       "id": "keyboard",
       "topic": "technology",
       "links": [
-        "computer",
-        "piano"
+        {
+          "to": "computer",
+          "weight": 0.8
+        },
+        {
+          "to": "piano",
+          "weight": 0.4
+        }
       ]
     },
     {
       "id": "screen",
       "topic": "technology",
       "links": [
-        "computer"
+        {
+          "to": "computer",
+          "weight": 0.8
+        }
       ]
     },
     {
       "id": "plant",
       "topic": "nature",
       "links": [
-        "biology"
+        "biology",
+        {
+          "to": "flower",
+          "weight": 0.75
+        }
       ],
       "rels": [
         {
@@ -943,7 +1466,10 @@
       "id": "biology",
       "topic": "sciences",
       "links": [
-        "cell",
+        {
+          "to": "cell",
+          "weight": 0.8
+        },
         "chemistry"
       ]
     },
@@ -951,8 +1477,15 @@
       "id": "chemistry",
       "topic": "sciences",
       "links": [
-        "atom",
-        "electron"
+        {
+          "to": "atom",
+          "weight": 0.8
+        },
+        "electron",
+        {
+          "to": "copper",
+          "weight": 0.5
+        }
       ]
     },
     {
@@ -966,8 +1499,14 @@
         "celebrity": 0.8
       },
       "links": [
-        "chef",
-        "restaurant"
+        {
+          "to": "chef",
+          "weight": 0.85
+        },
+        {
+          "to": "restaurant",
+          "weight": 0.7
+        }
       ]
     },
     {
@@ -979,8 +1518,14 @@
       ],
       "links": [
         "atom",
-        "gravity",
-        "scientist",
+        {
+          "to": "gravity",
+          "weight": 0.8
+        },
+        {
+          "to": "scientist",
+          "weight": 0.7
+        },
         "music"
       ]
     },
@@ -988,8 +1533,14 @@
       "id": "restaurant",
       "topic": "food",
       "links": [
-        "chef",
-        "bread"
+        {
+          "to": "chef",
+          "weight": 0.9
+        },
+        {
+          "to": "bread",
+          "weight": 0.5
+        }
       ]
     },
     {
@@ -1006,7 +1557,14 @@
         }
       ],
       "links": [
-        "farmer"
+        {
+          "to": "farmer",
+          "weight": 0.6
+        },
+        {
+          "to": "egg",
+          "weight": 0.9
+        }
       ]
     },
     {
@@ -1036,6 +1594,24 @@
             63,
             63
           ]
+        }
+      ],
+      "links": [
+        {
+          "to": "bread",
+          "weight": 0.9
+        },
+        {
+          "to": "cake",
+          "weight": 0.6
+        },
+        {
+          "to": "pancakes",
+          "weight": 0.6
+        },
+        {
+          "to": "farmer",
+          "weight": 0.7
         }
       ]
     },
@@ -1075,6 +1651,24 @@
             63
           ]
         }
+      ],
+      "links": [
+        {
+          "to": "cheese",
+          "weight": 0.85
+        },
+        {
+          "to": "butter",
+          "weight": 0.85
+        },
+        {
+          "to": "coffee",
+          "weight": 0.5
+        },
+        {
+          "to": "cake",
+          "weight": 0.6
+        }
       ]
     },
     {
@@ -1096,6 +1690,20 @@
             63,
             63
           ]
+        }
+      ],
+      "links": [
+        {
+          "to": "bread",
+          "weight": 0.8
+        },
+        {
+          "to": "pancakes",
+          "weight": 0.7
+        },
+        {
+          "to": "cake",
+          "weight": 0.7
         }
       ]
     },
@@ -1119,15 +1727,341 @@
             63
           ]
         }
+      ],
+      "links": [
+        {
+          "to": "cake",
+          "weight": 0.8
+        },
+        {
+          "to": "pancakes",
+          "weight": 0.85
+        },
+        {
+          "to": "chef",
+          "weight": 0.5
+        }
       ]
     },
     {
       "id": "cake",
-      "topic": "food"
+      "topic": "food",
+      "links": [
+        {
+          "to": "chocolate",
+          "weight": 0.7
+        },
+        {
+          "to": "restaurant",
+          "weight": 0.4
+        }
+      ]
     },
     {
       "id": "pancakes",
-      "topic": "food"
+      "topic": "food",
+      "links": [
+        {
+          "to": "restaurant",
+          "weight": 0.4
+        }
+      ]
+    },
+    {
+      "id": "girl",
+      "topic": "family",
+      "rels": [
+        {
+          "rel": "parent",
+          "to": "mother",
+          "offset": [
+            0,
+            -90
+          ]
+        }
+      ],
+      "links": [
+        {
+          "to": "boy",
+          "weight": 0.9
+        },
+        {
+          "to": "sister",
+          "weight": 0.7
+        },
+        {
+          "to": "mother",
+          "weight": 0.6
+        }
+      ]
+    },
+    {
+      "id": "boy",
+      "topic": "family",
+      "rels": [
+        {
+          "rel": "gender",
+          "to": "girl",
+          "offset": [
+            -90,
+            0
+          ]
+        },
+        {
+          "rel": "parent",
+          "to": "father",
+          "offset": [
+            0,
+            -90
+          ]
+        }
+      ],
+      "links": [
+        {
+          "to": "brother",
+          "weight": 0.7
+        },
+        {
+          "to": "father",
+          "weight": 0.6
+        }
+      ]
+    },
+    {
+      "id": "sister",
+      "topic": "family",
+      "links": [
+        {
+          "to": "brother",
+          "weight": 0.9
+        },
+        {
+          "to": "daughter",
+          "weight": 0.5
+        }
+      ]
+    },
+    {
+      "id": "brother",
+      "topic": "family",
+      "rels": [
+        {
+          "rel": "gender",
+          "to": "sister",
+          "offset": [
+            -90,
+            0
+          ]
+        }
+      ],
+      "links": [
+        {
+          "to": "son",
+          "weight": 0.5
+        }
+      ]
+    },
+    {
+      "id": "australia",
+      "topic": "places",
+      "name": "Australia",
+      "rels": [
+        {
+          "rel": "produces",
+          "to": "bunnings-sausage",
+          "offset": [
+            -63,
+            63
+          ]
+        }
+      ],
+      "links": [
+        {
+          "to": "sydney",
+          "weight": 0.7
+        },
+        {
+          "to": "melbourne",
+          "weight": 0.6
+        },
+        {
+          "to": "bunnings-sausage",
+          "weight": 0.6
+        },
+        {
+          "to": "forest",
+          "weight": 0.3
+        }
+      ]
+    },
+    {
+      "id": "victoria",
+      "topic": "places",
+      "name": "Victoria",
+      "rels": [
+        {
+          "rel": "capital-of",
+          "to": "melbourne",
+          "offset": [
+            63,
+            -49.5
+          ]
+        }
+      ],
+      "links": [
+        {
+          "to": "melbourne",
+          "weight": 0.9
+        },
+        {
+          "to": "nsw",
+          "weight": 0.5
+        }
+      ]
+    },
+    {
+      "id": "melbourne",
+      "topic": "places",
+      "name": "Melbourne",
+      "links": [
+        {
+          "to": "sydney",
+          "weight": 0.6
+        },
+        {
+          "to": "coffee",
+          "weight": 0.4
+        }
+      ]
+    },
+    {
+      "id": "nsw",
+      "topic": "places",
+      "name": "New South Wales",
+      "rels": [
+        {
+          "rel": "capital-of",
+          "to": "sydney",
+          "offset": [
+            63,
+            -49.5
+          ]
+        }
+      ],
+      "links": [
+        {
+          "to": "sydney",
+          "weight": 0.9
+        }
+      ]
+    },
+    {
+      "id": "sydney",
+      "topic": "places",
+      "name": "Sydney",
+      "links": [
+        {
+          "to": "ocean",
+          "weight": 0.4
+        }
+      ]
+    },
+    {
+      "id": "sushi",
+      "topic": "food",
+      "links": [
+        {
+          "to": "rice",
+          "weight": 0.8
+        },
+        {
+          "to": "restaurant",
+          "weight": 0.6
+        }
+      ]
+    },
+    {
+      "id": "bunnings-sausage",
+      "topic": "food",
+      "name": "Bunnings sausage",
+      "links": [
+        {
+          "to": "bread",
+          "weight": 0.6
+        }
+      ]
+    },
+    {
+      "id": "copper",
+      "topic": "sciences",
+      "rels": [
+        {
+          "rel": "symbol",
+          "to": "cu",
+          "offset": [
+            31.5,
+            90
+          ]
+        }
+      ],
+      "links": [
+        {
+          "to": "zinc",
+          "weight": 0.6
+        },
+        {
+          "to": "atom",
+          "weight": 0.5
+        },
+        {
+          "to": "engineer",
+          "weight": 0.3
+        },
+        {
+          "to": "cu",
+          "weight": 0.9
+        }
+      ]
+    },
+    {
+      "id": "cu",
+      "topic": "sciences",
+      "name": "Cu",
+      "links": [
+        {
+          "to": "zn",
+          "weight": 0.4
+        }
+      ]
+    },
+    {
+      "id": "zinc",
+      "topic": "sciences",
+      "rels": [
+        {
+          "rel": "symbol",
+          "to": "zn",
+          "offset": [
+            31.5,
+            90
+          ]
+        }
+      ],
+      "links": [
+        {
+          "to": "atom",
+          "weight": 0.5
+        },
+        {
+          "to": "zn",
+          "weight": 0.9
+        }
+      ]
+    },
+    {
+      "id": "zn",
+      "topic": "sciences",
+      "name": "Zn"
     }
   ]
 }

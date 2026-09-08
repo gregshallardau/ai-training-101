@@ -53,7 +53,7 @@ export function drawGraph(svgOrEl, state) {
 	if (state.spotlight) {
 		const rel = state.relations.find((r) => r.rel === state.spotlight);
 		if (rel) {
-			rel.steps.forEach((st, i) => {
+			rel.steps.forEach((st) => {
 				const a = byId.get(st.a); const b = byId.get(st.b);
 				if (!a || !b) return;
 				if (revealHidden && (revealHidden.has(a.topics[0]) || revealHidden.has(b.topics[0]))) return;
@@ -70,14 +70,6 @@ export function drawGraph(svgOrEl, state) {
 						+ `L ${b.x - h * Math.cos(ang + 0.4)} ${b.y - h * Math.sin(ang + 0.4)} Z`,
 					fill: 'var(--primary-strong)',
 				}));
-				if (i === 0) {
-					const cap = make('text', {
-						class: 'rel-caption', x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 - 12,
-						'text-anchor': 'middle', 'font-size': 12, fill: 'var(--muted)',
-					});
-					cap.textContent = `one step = ${state.spotlight}`;
-					gSpotlight.appendChild(cap);
-				}
 			});
 		}
 	}
@@ -90,11 +82,13 @@ export function drawGraph(svgOrEl, state) {
 		let strokeOpacity = state.showLinks ? 0.55 : 0;
 		// only dim links that are ALREADY visible — never turn a hidden link on
 		if (state.spotlight && strokeOpacity > 0 && !(spotIds.has(s.id) && spotIds.has(t.id))) strokeOpacity = 0.12;
+		// weight (0..1) drives thickness; an unweighted link keeps the 1.5 default
+		const lw = Number.isFinite(l.weight) ? 0.5 + l.weight * 2 : 1.5;
 		gLinks.appendChild(make('line', {
 			class: 'link',
 			'data-s': s.id, 'data-t': t.id,
 			x1: s.x, y1: s.y, x2: t.x, y2: t.y,
-			stroke: 'var(--line)', 'stroke-width': 1.5,
+			stroke: 'var(--line)', 'stroke-width': lw,
 			'stroke-opacity': strokeOpacity,
 		}));
 	}
