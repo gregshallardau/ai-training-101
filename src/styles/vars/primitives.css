@@ -10,9 +10,11 @@
  */
 @layer vars.primitive {
 	:root {
-		/* Enable font smoothing for better text rendering on Windows */
-		-webkit-font-smoothing: antialiased;
-		-moz-osx-font-smoothing: grayscale;
+		/* Windows font rendering: use subpixel for sharpness */
+		-webkit-font-smoothing: subpixel-antialiased;
+		-moz-osx-font-smoothing: auto;
+		/* Optimize for geometric precision to avoid fractional pixel blur */
+		text-rendering: geometricPrecision;
 
 		/* --- colour: neutral ramp --- */
 		--color-ink-900: #0b0c0e;
