@@ -454,7 +454,10 @@
           "to": "rome",
           "weight": 0.9
         }
-      ]
+      ],
+      "contexts": {
+        "industry": 0.7
+      }
     },
     {
       "id": "rome",
@@ -503,7 +506,10 @@
           "to": "sushi",
           "weight": 0.85
         }
-      ]
+      ],
+      "contexts": {
+        "specialist": 0.9
+      }
     },
     {
       "id": "tokyo",
@@ -1054,7 +1060,10 @@
       "topic": "food",
       "links": [
         "rice"
-      ]
+      ],
+      "contexts": {
+        "general": 0.5
+      }
     },
     {
       "id": "cheese",
@@ -1064,7 +1073,10 @@
           "to": "restaurant",
           "weight": 0.5
         }
-      ]
+      ],
+      "contexts": {
+        "industry": 0.7
+      }
     },
     {
       "id": "rice",
@@ -1085,7 +1097,10 @@
           "to": "restaurant",
           "weight": 0.6
         }
-      ]
+      ],
+      "contexts": {
+        "industry": 0.7
+      }
     },
     {
       "id": "fruit",
@@ -1163,7 +1178,10 @@
           "to": "restaurant",
           "weight": 0.7
         }
-      ]
+      ],
+      "contexts": {
+        "industry": 0.7
+      }
     },
     {
       "id": "teacher",
@@ -1214,6 +1232,11 @@
           "to": "wine",
           "weight": 0.5
         }
+      ],
+      "from": [
+        "general",
+        "industry",
+        "specialist"
       ]
     },
     {
@@ -1496,7 +1519,8 @@
         "food"
       ],
       "contexts": {
-        "celebrity": 0.8
+        "celebrity": 0.8,
+        "specialist": 0.9
       },
       "links": [
         {
@@ -1541,7 +1565,10 @@
           "to": "bread",
           "weight": 0.5
         }
-      ]
+      ],
+      "contexts": {
+        "general": 0.5
+      }
     },
     {
       "id": "chicken",
@@ -1741,7 +1768,10 @@
           "to": "chef",
           "weight": 0.5
         }
-      ]
+      ],
+      "contexts": {
+        "general": 0.5
+      }
     },
     {
       "id": "cake",
@@ -1978,7 +2008,10 @@
           "to": "restaurant",
           "weight": 0.6
         }
-      ]
+      ],
+      "contexts": {
+        "specialist": 0.9
+      }
     },
     {
       "id": "bunnings-sausage",
