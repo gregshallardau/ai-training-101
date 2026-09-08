@@ -585,8 +585,11 @@ class DeckIdeasMap extends DeckElement {
 		const target = scope
 			? bboxOf(shown.filter((n) => n.topics[0] === scope), 90)
 			: bboxOf(shown, 90);
+		// A topic fit sits back 20%. bboxOf frames the nodes, but the topic caption
+		// is drawn above the topmost one, outside that box - a tight fit crops it.
+		const w = scope ? target.w * 1.2 : target.w;
 		this._camera.easeTo(
-			[target.cx, target.cy, target.w],
+			[target.cx, target.cy, w],
 			{ duration: instant ? 0 : this._dur('hero') },
 		);
 	}

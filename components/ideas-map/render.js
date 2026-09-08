@@ -153,7 +153,7 @@ export function drawGraph(svgOrEl, state) {
 			const cy = Math.min(...pts.map((n) => n.y)) - NODE_R - 24;
 			const cap = make('text', {
 				class: 'topic-caption', x: cx, y: cy, 'text-anchor': 'middle',
-				'font-size': 20, 'letter-spacing': '2.5', 'font-weight': 600,
+				'font-size': 26, 'letter-spacing': '3.25', 'font-weight': 600,
 				fill: 'var(--muted)', 'fill-opacity': 0.85,
 			});
 			cap.textContent = (state.topicNames.get(id) || id).toUpperCase();

@@ -44,7 +44,7 @@ import dataset from './dataset.json';
 
 export const W = 1600;
 export const H = 1000;
-export const NODE_R = 9;
+export const NODE_R = 11;
 export const LINK_DIST = 150;
 export const CHARGE = -340;
 export const CLUSTER = 0.05;   // weak topic pull — shapes the layout during warm-up only
