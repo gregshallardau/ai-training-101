@@ -24,6 +24,41 @@ transfers; the **integration** does not - re-home every one of these:
 Add `role="img"` + `<title>`/`<desc>` to the `<svg>` for accessibility - that
 guidance from the source transfers directly.
 
+## Rounded corners
+
+SVG has no `border-radius`; a bar/cell that should carry the deck's actual
+`--radius-control` needs its outline drawn as a path via `roundedRectPath`
+(`@/lib/d3.js`) instead of a plain `<rect>`. The token is a px value against
+the *rendered* element, but marks are drawn in `viewBox` units - convert with
+`pxToViewBoxUnits` before passing the radius in:
+
+```js
+import { d3, readPalette, roundedRectPath, pxToViewBoxUnits } from '@/lib/d3.js';
+// ...inside _draw(), after `const svg = d3.select(...)`:
+// cssVarPx (DeckElement, not cssVar) - a custom property's value is literal
+// authored text ("0.375rem"), not a resolved length; cssVarPx is what
+// actually converts it to a px number.
+const rPx = this.cssVarPx('--radius-control');
+const r = pxToViewBoxUnits(rPx, svg.node(), W);
+
+g.selectAll('path.bar').data(data).join('path').attr('class', 'bar')
+	.attr('d', (d) => roundedRectPath(x(d.label), y(d.value), x.bandwidth(), ih - y(d.value), r))
+	.attr('fill', primary)
+	// same mousemove/mouseleave tooltip handlers as the plain-rect version above
+```
+
+Default corners are `{ tl: true, tr: true }` (top-only, the standard bar look);
+pass `{ tl: true, tr: true, bl: true, br: true }` for a fully-rounded cell
+(e.g. a heatmap square). For pie/donut wedges, radial charts round via
+`d3.arc().cornerRadius(r)` instead (same `r`, no `roundedRectPath` needed -
+`d3.arc()` already emits an SVG arc). Recompute `r` inside `_draw` (and on
+`[data-theme]` changes, since re-themeing goes through the same redraw path)
+rather than caching it - it depends on the live rendered size.
+
+Wrap the whole component's shadow-root content in `SHARED_STYLES`'s `.box`
+class (padding, `--bg`, `--radius-card`, hover shadow) when the chart should
+read as its own card rather than sit directly on the slide background.
+
 ## Worked example - `<deck-chart kind="bar">`
 
 ```js
