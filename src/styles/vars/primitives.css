@@ -10,6 +10,10 @@
  */
 @layer vars.primitive {
 	:root {
+		/* Enable font smoothing for better text rendering on Windows */
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+
 		/* --- colour: neutral ramp --- */
 		--color-ink-900: #0b0c0e;
 		--color-ink-700: #24272e;
