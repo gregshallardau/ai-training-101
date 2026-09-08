@@ -16,10 +16,9 @@ export default {
 	width: 1920,
 	height: 1080,
 
-	/* Empty gutter around every slide, as a fraction of the slide size.
-	   Reveal's stock is 0.04; raise it (0.08) for a calmer frame, lower it
-	   for edge-to-edge visuals. */
-	margin: 0.06,
+	/* Keep Reveal's outer scale at 1:1 on a matching 16:9 display to avoid
+	   fractional-transform text blur. Slide gutters come from --slide-padding. */
+	margin: 0,
 
 	/* Slide numbers: false | 'c' | 'c/t' | 'h.v' | 'h/v'.
 	   Reveal draws them bottom-right on a translucent-black fill; restyle with
