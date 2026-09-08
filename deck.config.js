@@ -30,7 +30,7 @@ export default {
 	   'slide' | 'none' | 'fade' | 'convex' | 'concave' | 'zoom'
 	   Override on one slide with data-transition (HTML) or
 	   `<!-- .slide: data-transition="fade" -->` (Markdown). */
-	transition: 'slide',
+	transition: 'none',
 
 	/* Put #/<slug> in the URL bar and restore position on reload. */
 	hash: true,
@@ -42,6 +42,24 @@ export default {
 
 	/* Type a slide number then Enter to jump straight to it. */
 	jumpToSlide: true,
+
+	  // CSS properties that can be auto-animated. Position & scale
+  // is matched separately so there's no need to include styles
+  // like top/right/bottom/left, width/height or margin.
+  autoAnimateStyles: [
+    'opacity',
+    'color',
+    'background-color',
+    'padding',
+    'font-size',
+    'line-height',
+    'letter-spacing',
+    'border-width',
+    'border-color',
+    'border-radius',
+    'outline',
+    'outline-offset',
+  ],
 
 	/* ── PERSISTENT DECK CHROME ──────────────────────────────────────────
 	   A logo and/or a footer line drawn on top of EVERY slide (they live
@@ -84,4 +102,6 @@ export default {
 		footer: { text: '(Not) AI Training', position: 'bottom-left' },
 		// hideOnTitle: true,  // default - footer hidden on the title slide
 	},
+
+	
 };
