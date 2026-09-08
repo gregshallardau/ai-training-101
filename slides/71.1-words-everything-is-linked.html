@@ -1,0 +1,38 @@
+<style>
+	/* Full-bleed. Reveal scales the 1920x1080 slide box to the window, so sizing
+	   here is % of that box - vw/vh would get scaled a second time by Reveal's
+	   transform (which also re-anchors position:fixed to the slides element). */
+	#everything-is-linked-idea-map	 {
+		display: flex !important;   /* beats Reveal's inline display:block */
+		flex-direction: column;
+		height: 100%;
+		padding: 0;
+		position: relative;
+	}
+	/* out of flow, so the map gets the full slide height under it */
+	#everything-is-linked-idea-map > h2 {
+		position: absolute;
+		top: 4%;      /* matches --slide-padding, so the title sits where it did */
+		left: 6%;
+		z-index: 1;
+		margin: 0;
+	}
+	#everything-is-linked-idea-map> deck-ideas-map {
+		flex: 1 1 auto;
+		min-height: 0;
+		--ideas-map-max-h: 100%;   /* fill this flex child, not the 72vh default cap */
+	}
+</style>
+<section id="everything-is-linked-idea-map" data-slug="everything-is-linked-idea-map">
+	<h2>Everything Is Linked</h2>
+	<deck-ideas-map mode="labels" spotlight="capital-of" label="Capital of"></deck-ideas-map>
+	<aside class="notes">
+		Citation, verified: Longpre et al., "A Pretrainer's Guide to Training
+		Data: Measuring the Effects of Data Age, Domain Coverage, Quality, &amp;
+		Toxicity" (NAACL 2024, arXiv:2305.13169). They pretrained 28 1.5B-param
+		models varying domain composition and found domain heterogeneity often
+		beats targeted data even on targeted evaluations — removing a domain
+		degrades performance on evaluations outside it, matching the "removed a
+		field, responses got worse" claim on this slide.
+	</aside>
+</section>

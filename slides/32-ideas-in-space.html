@@ -1,0 +1,37 @@
+<style>
+	/* Full-bleed. Reveal scales the 1920x1080 slide box to the window, so sizing
+	   here is % of that box - vw/vh would get scaled a second time by Reveal's
+	   transform (which also re-anchors position:fixed to the slides element). */
+	#ideas-in-space {
+		display: flex !important;   /* beats Reveal's inline display:block */
+		flex-direction: column;
+		height: 100%;
+		padding: 0;
+		position: relative;
+	}
+	/* out of flow, so the map gets the full slide height under it */
+	#ideas-in-space > h2 {
+		position: absolute;
+		top: 4%;      /* matches --slide-padding, so the title sits where it did */
+		left: 6%;
+		z-index: 1;
+		margin: 0;
+	}
+	#ideas-in-space > deck-ideas-map {
+		flex: 1 1 auto;
+		min-height: 0;
+		--ideas-map-max-h: 100%;   /* fill this flex child, not the 72vh default cap */
+	}
+</style>
+
+<section id="ideas-in-space" data-slug="ideas-in-space" data-hide-chrome>
+	<h2>"Ideas in Space" (The Map)</h2>
+	<deck-ideas-map mode="star-map" label="Ideas in space"></deck-ideas-map>
+	<small>Efficient Estimation of Word Representations in Vector Space (https://arxiv.org/pdf/1301.3781)</small>
+	<aside class="notes">
+		Our brain keeps different ideas in different places — a map, with similar
+		topics near each other; you can draw a circle around similar ideas.
+		Tap a dot to zoom into its family; the buttons layer in labels, the
+		association web, the relationship vectors, and the constellation.
+	</aside>
+</section>

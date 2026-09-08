@@ -1,53 +1,273 @@
 <section id="word-association-game" data-slug="word-association-game">
-	<h2>Word Association Game</h2>
-	<p class="fragment">I'll say the first word. You shout the second.</p>
-	<p class="fragment"><strong>sister</strong> &gt; ????</p>
+	<style>
+		#word-association-game svg { display: block; width: 100%; height: auto; }
+		#word-association-game .grp-gender { --ga: var(--success); }
+		#word-association-game .grp-capital { --ga: var(--primary); }
+		#word-association-game .grp-symbol { --ga: var(--warning); }
+		#word-association-game .grp-known { --ga: var(--danger); }
+		#word-association-game .ga-dot { fill: var(--ga, var(--muted)); }
+		#word-association-game .ga-arrow { stroke: var(--ga, var(--muted)); stroke-width: 3; }
+		#word-association-game .ga-label { fill: var(--fg); font-family: var(--font-body); font-size: 26px; font-weight: 500; text-anchor: middle; }
+		#word-association-game .ga-heading { fill: var(--muted); font-family: var(--font-body); font-size: 20px; font-weight: 600; letter-spacing: 6px; text-anchor: middle; }
+		#word-association-game .ga-mk-gender { fill: var(--success); }
+		#word-association-game .ga-mk-capital { fill: var(--primary); }
+		#word-association-game .ga-mk-symbol { fill: var(--warning); }
+		#word-association-game .ga-mk-known { fill: var(--danger); }
+		/* the unanswered end of a pair: a hollow socket where the dot will land,
+		   and a "?" in place of the word. Both live on a fade-in-then-out
+		   fragment, so they appear with the arrow and vanish on the next press. */
+		#word-association-game .ga-socket { fill: none; stroke: var(--ga, var(--muted)); stroke-width: 3; stroke-dasharray: 5 5; }
+		#word-association-game .ga-qmark { fill: var(--muted); font-family: var(--font-heading); font-size: 30px; font-weight: 700; text-anchor: middle; }
+		/* A label sits under its dot by default. Where the pair's own arrow would
+		   run through that space - the three diagonal groups - the label is pushed
+		   clear along the vector instead (past a target, behind a source) and
+		   anchored away from the line. Positions are computed and collision-checked
+		   against every arrow and every other label, never nudged by eye. */
+		#word-association-game .ga-off { dominant-baseline: middle; }
+		#word-association-game .ga-start { text-anchor: start; }
+		#word-association-game .ga-end { text-anchor: end; }
 
-	<div class="flex-cols">
-		<ul>
-			<li class="fragment">girl &gt; boy</li>
-			<li class="fragment">sister &gt; brother</li>
-			<li class="fragment">Japan &gt; sushi</li>
-			<li class="fragment">Australia &gt; Bunnings sausage</li>
-			<li class="fragment">France &gt; Paris</li>
-		</ul>
-		<ul>
-			<li class="fragment">Italy &gt; Rome</li>
-			<li class="fragment">copper &gt; Cu</li>
-			<li class="fragment">zinc &gt; Zn</li>
-			<li class="fragment">Victoria &gt; Melbourne</li>
-			<li class="fragment">New South Wales &gt; Sydney</li>
-		</ul>
-	</div>
+		/* THE CAMERA.
+		   The board is drawn once at its final coordinates; this frames it. At every
+		   step the view is the tightest one that still holds everything revealed so
+		   far (plus the live "?"), so the slide opens close on `girl` and only ever
+		   widens as much as the next word forces it to - it never cuts to the empty
+		   full board. Computed, not eyeballed: for a content bounding box centred on
+		   P, fitted at scale S into the 1600x900 stage centred at C (800,450),
+		       transform: translate(-S*(Px-800), -S*(Py-450)) scale(S)
+		   about transform-origin C, with S capped at 2 and 70 units of padding.
+		   Driven off Reveal's own `.visible` class - no JS, so the slide stays
+		   portable. Rules ascend and share specificity, so the latest one wins. */
+		#word-association-game .ga-board {
+			transform-box: view-box;
+			transform-origin: 800px 450px;
+			transition: transform 900ms var(--motion-hero-ease);
+			/* girl alone, as tight as the cap allows */
+			transform: translate(1240.0px, 531.6px) scale(2.0);
+		}
+		/* boy lands - pair centred, board slides left */
+		#word-association-game svg:has([data-cam="0"].visible) .ga-board { transform: translate(1047.2px, 531.6px) scale(2.0); }
+		/* sister lands - block centred, board slides up */
+		#word-association-game svg:has([data-cam="1"].visible) .ga-board { transform: translate(1061.4px, 400.9px) scale(2.0); }
+		/* the capitals open a second cluster - widen just enough to hold both */
+		#word-association-game svg:has([data-cam="3"].visible) .ga-board { transform: translate(272.5px, 356.7px) scale(1.463); }
+		/* Paris */
+		#word-association-game svg:has([data-cam="4"].visible) .ga-board { transform: translate(221.1px, 338.3px) scale(1.393); }
+		/* Victoria */
+		#word-association-game svg:has([data-cam="7"].visible) .ga-board { transform: translate(29.7px, 259.0px) scale(1.132); }
+		/* Melbourne */
+		#word-association-game svg:has([data-cam="8"].visible) .ga-board { transform: translate(-31.4px, 238.9px) scale(1.049); }
+		/* the symbols open the bottom row */
+		#word-association-game svg:has([data-cam="11"].visible) .ga-board { transform: translate(-5.5px, 48.2px) scale(1.016); }
+		@media (prefers-reduced-motion: reduce) {
+			#word-association-game .ga-board { transition: none; }
+		}
+	</style>
+	<h2>The Meaning of Words - Word Association</h2>
+	<svg viewBox="0 0 1600 900" role="img" aria-label="Word association pairs, revealed one at a time, each pair linked by a shared vector arrow">
+		<defs>
+			<marker id="pairs-m-gender" class="ga-mk-gender" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z"/></marker>
+			<marker id="pairs-m-capital" class="ga-mk-capital" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z"/></marker>
+			<marker id="pairs-m-symbol" class="ga-mk-symbol" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z"/></marker>
+			<marker id="pairs-m-known" class="ga-mk-known" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z"/></marker>
+		</defs>
+		<g class="ga-board">
 
-	<p class="fragment text-muted">Now let's go backwards.</p>
-	<p class="fragment">? &lt; Rome</p>
+			<!-- The whole board starts empty but for this: one word, one dot. -->
+			<circle class="ga-dot grp-gender" cx="180" cy="170" r="10"/>
+			<text class="ga-label" x="180" y="204">girl</text>
 
-	<p class="fragment"><code>x + 5 = 7</code> — ideas go in both directions.</p>
+			<!-- GENDER · girl → boy. Demonstrates the game, so no "?" beat: you say
+			"girl… boy", and the arrow simply arrives. -->
+			<g class="fragment" data-fragment-index="0" data-cam="0">
+				<!-- <text class="ga-heading" x="280" y="78">GENDER</text> -->
+				<line class="ga-arrow grp-gender" x1="194" y1="170" x2="366" y2="170" marker-end="url(#pairs-m-gender)"/>
+				<circle class="ga-dot grp-gender" cx="380" cy="170" r="10"/>
+				<text class="ga-label" x="380" y="204">boy</text>
+			</g>
 
-	<div class="box bar primary fragment">
-		<h3>It's just maths — a direction, and a distance.</h3>
-	</div>
+			<!-- GENDER · sister → ? → brother. Every pair from here on is two presses:
+			the source and its arrow land on a "?", the room answers, then the
+			word replaces the "?". -->
+			<g class="fragment" data-fragment-index="1" data-cam="1">
+				<circle class="ga-dot grp-gender" cx="180" cy="300" r="10"/>
+				<text class="ga-label" x="180" y="334">sister</text>
+				<line class="ga-arrow grp-gender" x1="194" y1="300" x2="366" y2="300" marker-end="url(#pairs-m-gender)"/>
+			</g>
+			<g class="fragment fade-in-then-out grp-gender" data-fragment-index="1">
+				<circle class="ga-socket" cx="380" cy="300" r="10"/>
+				<text class="ga-qmark" x="380" y="334">?</text>
+			</g>
+			<g class="fragment" data-fragment-index="2">
+				<circle class="ga-dot grp-gender" cx="380" cy="300" r="10"/>
+				<text class="ga-label" x="380" y="334">brother</text>
+			</g>
 
-	<p class="fragment"><span class="chip">girl</span> &gt; <span class="chip">boy</span> · <span class="chip">girl</span> ^ <span class="chip">mother</span> · <span class="chip">boy</span> ^ <span class="chip">father</span></p>
+			<!-- CAPITAL · France → ? → Paris -->
+			<g class="fragment" data-fragment-index="3" data-cam="3">
+				<!-- <text class="ga-heading" x="1125" y="78">CAPITAL</text> -->
+				<circle class="ga-dot grp-capital" cx="890" cy="200" r="10"/>
+				<text class="ga-label" x="890" y="234">France</text>
+				<line class="ga-arrow grp-capital" x1="902" y1="192.8" x2="1028" y2="117.2" marker-end="url(#pairs-m-capital)"/>
+			</g>
+			<g class="fragment fade-in-then-out grp-capital" data-fragment-index="3">
+				<circle class="ga-socket" cx="1040" cy="110" r="10"/>
+				<text class="ga-qmark ga-off ga-start" x="1074" y="89">?</text>
+			</g>
+			<g class="fragment" data-fragment-index="4" data-cam="4">
+				<circle class="ga-dot grp-capital" cx="1040" cy="110" r="10"/>
+				<text class="ga-label ga-off ga-start" x="1074" y="89">Paris</text>
+			</g>
 
+			<!-- CAPITAL · Italy → ? → Rome -->
+			<g class="fragment" data-fragment-index="5">
+				<circle class="ga-dot grp-capital" cx="890" cy="330" r="10"/>
+				<text class="ga-label" x="890" y="364">Italy</text>
+				<line class="ga-arrow grp-capital" x1="902" y1="322.8" x2="1028" y2="247.2" marker-end="url(#pairs-m-capital)"/>
+			</g>
+			<g class="fragment fade-in-then-out grp-capital" data-fragment-index="5">
+				<circle class="ga-socket" cx="1040" cy="240" r="10"/>
+				<text class="ga-qmark ga-off ga-start" x="1074" y="219">?</text>
+			</g>
+			<g class="fragment" data-fragment-index="6">
+				<circle class="ga-dot grp-capital" cx="1040" cy="240" r="10"/>
+				<text class="ga-label ga-off ga-start" x="1074" y="219">Rome</text>
+			</g>
+
+			<!-- CAPITAL · Victoria → ? → Melbourne -->
+			<g class="fragment" data-fragment-index="7" data-cam="7">
+				<circle class="ga-dot grp-capital" cx="1210" cy="200" r="10"/>
+				<text class="ga-label" x="1210" y="234">Victoria</text>
+				<line class="ga-arrow grp-capital" x1="1222" y1="192.8" x2="1348" y2="117.2" marker-end="url(#pairs-m-capital)"/>
+			</g>
+			<g class="fragment fade-in-then-out grp-capital" data-fragment-index="7">
+				<circle class="ga-socket" cx="1360" cy="110" r="10"/>
+				<text class="ga-qmark ga-off ga-start" x="1394" y="89">?</text>
+			</g>
+			<g class="fragment" data-fragment-index="8" data-cam="8">
+				<circle class="ga-dot grp-capital" cx="1360" cy="110" r="10"/>
+				<text class="ga-label ga-off ga-start" x="1394" y="89">Melbourne</text>
+			</g>
+
+			<!-- CAPITAL · New South Wales → ? → Sydney -->
+			<g class="fragment" data-fragment-index="9">
+				<circle class="ga-dot grp-capital" cx="1210" cy="330" r="10"/>
+				<text class="ga-label" x="1210" y="364">New South Wales</text>
+				<line class="ga-arrow grp-capital" x1="1222" y1="322.8" x2="1348" y2="247.2" marker-end="url(#pairs-m-capital)"/>
+			</g>
+			<g class="fragment fade-in-then-out grp-capital" data-fragment-index="9">
+				<circle class="ga-socket" cx="1360" cy="240" r="10"/>
+				<text class="ga-qmark ga-off ga-start" x="1394" y="219">?</text>
+			</g>
+			<g class="fragment" data-fragment-index="10">
+				<circle class="ga-dot grp-capital" cx="1360" cy="240" r="10"/>
+				<text class="ga-label ga-off ga-start" x="1394" y="219">Sydney</text>
+			</g>
+
+			<!-- SYMBOL · copper → ? → Cu -->
+			<g class="fragment" data-fragment-index="11" data-cam="11">
+				<!-- <text class="ga-heading" x="325" y="520">SYMBOL</text> -->
+				<circle class="ga-dot grp-symbol" cx="200" cy="560" r="10"/>
+				<text class="ga-label ga-off ga-end" x="174" y="529">copper</text>
+				<line class="ga-arrow grp-symbol" x1="209" y1="570.7" x2="301" y2="679.3" marker-end="url(#pairs-m-symbol)"/>
+			</g>
+			<g class="fragment fade-in-then-out grp-symbol" data-fragment-index="11">
+				<circle class="ga-socket" cx="310" cy="690" r="10"/>
+				<text class="ga-qmark" x="310" y="724">?</text>
+			</g>
+			<g class="fragment" data-fragment-index="12">
+				<circle class="ga-dot grp-symbol" cx="310" cy="690" r="10"/>
+				<text class="ga-label" x="310" y="724">Cu</text>
+			</g>
+
+			<!-- SYMBOL · zinc → ? → Zn -->
+			<g class="fragment" data-fragment-index="13">
+				<circle class="ga-dot grp-symbol" cx="450" cy="560" r="10"/>
+				<text class="ga-label ga-off ga-end" x="424" y="529">zinc</text>
+				<line class="ga-arrow grp-symbol" x1="459" y1="570.7" x2="551" y2="679.3" marker-end="url(#pairs-m-symbol)"/>
+			</g>
+			<g class="fragment fade-in-then-out grp-symbol" data-fragment-index="13">
+				<circle class="ga-socket" cx="560" cy="690" r="10"/>
+				<text class="ga-qmark" x="560" y="724">?</text>
+			</g>
+			<g class="fragment" data-fragment-index="14">
+				<circle class="ga-dot grp-symbol" cx="560" cy="690" r="10"/>
+				<text class="ga-label" x="560" y="724">Zn</text>
+			</g>
+
+			<!-- KNOWN-FOR · Japan → ? → sushi -->
+			<g class="fragment" data-fragment-index="15">
+				<!-- <text class="ga-heading" x="1300" y="520">KNOWN-FOR</text> -->
+				<circle class="ga-dot grp-known" cx="1240" cy="560" r="10"/>
+				<text class="ga-label ga-off ga-start" x="1270" y="534">Japan</text>
+				<line class="ga-arrow grp-known" x1="1229.4" y1="569.1" x2="1110.6" y2="670.9" marker-end="url(#pairs-m-known)"/>
+			</g>
+			<g class="fragment fade-in-then-out grp-known" data-fragment-index="15">
+				<circle class="ga-socket" cx="1100" cy="680" r="10"/>
+				<text class="ga-qmark" x="1100" y="714">?</text>
+			</g>
+			<g class="fragment" data-fragment-index="16">
+				<circle class="ga-dot grp-known" cx="1100" cy="680" r="10"/>
+				<text class="ga-label" x="1100" y="714">sushi</text>
+			</g>
+
+			<!-- KNOWN-FOR · Australia → ? → Bunnings sausage -->
+			<g class="fragment" data-fragment-index="17">
+				<circle class="ga-dot grp-known" cx="1500" cy="560" r="10"/>
+				<text class="ga-label ga-off" x="1500" y="520">Australia</text>
+				<line class="ga-arrow grp-known" x1="1489.4" y1="569.1" x2="1370.6" y2="670.9" marker-end="url(#pairs-m-known)"/>
+			</g>
+			<g class="fragment fade-in-then-out grp-known" data-fragment-index="17">
+				<circle class="ga-socket" cx="1360" cy="680" r="10"/>
+				<text class="ga-qmark" x="1360" y="714">?</text>
+			</g>
+			<g class="fragment" data-fragment-index="18">
+				<circle class="ga-dot grp-known" cx="1360" cy="680" r="10"/>
+				<text class="ga-label" x="1360" y="714">Bunnings sausage</text>
+			</g>
+		</g>
+		<g class="fragment" data-fragment-index="1">
+			<text class="ga-cap" x="800" y="850">Same direction. Same distance. Every time.</text>
+		</g>
+	</svg>
 	<aside class="notes">
-		Live game — say the first word of each pair, let the room shout the
-		second, then press on to reveal it and move to the next pair.
+		The performing slide. It opens on ONE word, centred and close up: girl.
+		Nothing else — no other dots, no headings, no grid. Resist filling the
+		silence; let them look at it.
 
-		After the list, jump back to the "Ideas in Space" map (slide
-		ideas-in-space, deck-ideas-map) and draw an arrow between each pair
-		live — they're all already sitting in the map, pointing the same
-		direction from the first word to the second.
+		The board moves under you. First press is the demonstration — girl → boy,
+		you say both words yourself — and the pair slides LEFT as boy arrives.
+		Second press brings sister in and the board slides UP to make room beneath.
+		When the capitals arrive (press four) the camera pulls all the way back and
+		the full board is on screen for the rest of the game. After that it holds
+		still; the movement is only there to make the first three beats feel like
+		one idea growing rather than a chart appearing.
 
-		The backwards round (? &lt; Rome) shows the arrow works both ways —
-		same idea as x + 5 = 7 solving for x. That's the whole concept: a
-		vector is just a direction and a distance.
+		That single first arrow teaches the shape of the game without asking
+		anything of the room.
 
-		Next: the Glossary — Vector joins Token.
+		From then on every pair is TWO presses. Press once and the next word lands
+		with its arrow already drawn, pointing at a dashed empty socket and a "?".
+		Say the source word and stop talking — the arrow is doing the asking. When
+		they shout it, press again and the "?" becomes the answer.
 
-		A dedicated deck-word-association component could replace this plain
-		version later if it needs its own reveal animation — run
-		artefact-builder if so.
+		sister → ? is the one that proves they've got it: the arrow is visibly the
+		same one that took girl to boy, so the answer is already implied by the
+		picture before anyone says "brother".
+
+		Running order warms them up: gender (everyone shouts these), then capital
+		countries → cities (still easy; after France→Paris say "and watch the next
+		one…" so they feel Rome land the same way), then copper→Cu / zinc→Zn (now
+		you're doing science), then the fun ones: Japan→sushi and
+		Australia→Bunnings sausage. If it stalls on the symbols, prompt "what's on
+		the periodic table?"
+
+		Nineteen presses in all. Don't rush them — the ? beat is where the room
+		does the work.
+
+		Do NOT explain the vector yet — just play the game. The layout is
+		deliberate: every arrow in a group is the same direction and the same
+		length, and the four groups point four visibly different ways. Next slide
+		names it.
 	</aside>
 </section>

@@ -1,22 +1,40 @@
-<section id="what-is-a-model" data-slug="what-is-a-model">
-	<p class="text-muted"><small>THAT MAP YOU JUST SAW…</small></p>
-	<h2>What Is a Model</h2>
-	<p class="fragment">That wasn't a metaphor. That's actually what's in there.</p>
-	<p class="fragment">Basically all of human knowledge — books, articles, code, conversations, the lot — got fed into it.</p>
-	<p class="fragment">And what came out the other side wasn't a library you could look things up in.</p>
-	<div class="box bar primary fragment">
-		<h3>It became a next-word predictor.</h3>
-	</div>
-	<aside class="notes">
-		Bridge slide, straight off the map: that map isn't a metaphor for what's
-		inside a model, it IS what's inside — human knowledge, arranged by
-		meaning.
+<section>
+  <div class="flex-cols" style="align-items: center;">
+    
+    <!-- Left Column: Narrative Content -->
+    <div>
+      <p class="text-muted" style="font-size: 0.6em; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;">
+        That map you just saw...
+      </p>
+      <h2>How do we turn ideas into a model?</h2>
+      <p>
+        This was the challenge, how do we get all that information, which humans have created, into a computer and make it think. That was Turing's dream.
+      </p>
+      <p class="fragment text-muted" data-fragment-index="0">
+        Basically all of human knowledge — books, articles, code, conversations, the lot — got fed into it.
+      </p>
 
-		Land only on "next-word predictor" here. Do not explain how it predicts,
-		don't mention dials/weights/prompts yet — that's a later slide's job.
-	</aside>
+      <p class="fragment bar box danger" data-fragment-index="1">But they're all still just words without meaning. The computer doesn't know what they mean, it just sees them as a sequence of letters.</p>
+      <!-- <p class="fragment text-muted" data-fragment-index="1">
+        And what came out the other side wasn't a library you could look things up in.
+      </p> -->
+      
+      <!-- deck.css Callout Box Primitive
+      <div class="box bar primary fragment" data-fragment-index="2">
+        <p style="font-weight: 700; font-size: 1.1em; margin: 0;">
+          It became a next-word predictor.
+        </p>
+      </div> -->
+    </div>
+
+    <!-- Right Column: the artefact, now a canonical component. It reads the
+         fragments above (data-fragment-index 0/1/2) off this section itself. -->
+    <!-- <deck-model-anatomy
+      tokens="predictor:82, engine:11, system:5, network:2"
+      readout-label="Token probabilities"></deck-model-anatomy> -->
+
+  </div>
 </section>
-
 <!-- DO NOT TOUCH BELOW IT IS MY REFERENCE -->
 <!-- <section id="what-is-a-model" data-slug="what-is-a-model">
 	<p class="fragment"><small class="text-muted">YOU'VE MET THE PIECES. TOKENS. DIALS. SO…</small></p>

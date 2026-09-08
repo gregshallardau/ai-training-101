@@ -1,0 +1,119 @@
+<section id="word-association-same-arrow" data-slug="word-association-same-arrow">
+	<style>
+		#word-association-same-arrow svg { display: block; width: 100%; height: auto; }
+		#word-association-same-arrow .grp-gender { --ga: var(--success); }
+		#word-association-same-arrow .grp-capital { --ga: var(--primary); }
+		#word-association-same-arrow .grp-symbol { --ga: var(--warning); }
+		#word-association-same-arrow .grp-known { --ga: var(--danger); }
+		#word-association-same-arrow .ga-dot { fill: var(--ga, var(--muted)); }
+		#word-association-same-arrow .ga-arrow { stroke: var(--ga, var(--muted)); stroke-width: 3; }
+		#word-association-same-arrow .ga-label { fill: var(--fg); font-family: var(--font-body); font-size: 26px; font-weight: 500; text-anchor: middle; }
+		/* Label placement matches 070.1 exactly - same board, same computed
+		   positions: pushed clear along the vector wherever the arrow would
+		   otherwise run through the space under the dot. */
+		#word-association-same-arrow .ga-off { dominant-baseline: middle; }
+		#word-association-same-arrow .ga-start { text-anchor: start; }
+		#word-association-same-arrow .ga-end { text-anchor: end; }
+		#word-association-same-arrow .ga-heading { fill: var(--muted); font-family: var(--font-body); font-size: 20px; font-weight: 600; letter-spacing: 6px; text-anchor: middle; }
+		#word-association-same-arrow .ga-cap { fill: var(--fg); font-family: var(--font-heading); font-size: 46px; font-weight: 600; text-anchor: middle; }
+		#word-association-same-arrow .ga-mk-gender { fill: var(--success); }
+		#word-association-same-arrow .ga-mk-capital { fill: var(--primary); }
+		#word-association-same-arrow .ga-mk-symbol { fill: var(--warning); }
+		#word-association-same-arrow .ga-mk-known { fill: var(--danger); }
+		#word-association-same-arrow .ga-ghostline { opacity: 0.5; stroke-width: 8; }
+		#word-association-same-arrow .ga-ghost { transform: translate(0, 0); }
+		@keyframes ga-same-arrow-travel {
+			0% { transform: translate(0px, 0px); }
+			25% { transform: translate(0px, 130px); }
+			50% { transform: translate(320px, 0px); }
+			75%, 100% { transform: translate(320px, 130px); }
+		}
+		#word-association-same-arrow .frag-ghost.visible .ga-ghost { animation: ga-same-arrow-travel 3.2s ease-in-out forwards; }
+		@media (prefers-reduced-motion: reduce) {
+			#word-association-same-arrow .ga-ghost { transform: translate(320px, 130px); }
+			#word-association-same-arrow .frag-ghost.visible .ga-ghost { animation: none; }
+		}
+	</style>
+	<svg viewBox="0 0 1600 900" role="img" aria-label="The finished word-association board, with one capital arrow lifting off and sliding onto the other capital pairs">
+		<defs>
+			<marker id="same-m-gender" class="ga-mk-gender" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z"/></marker>
+			<marker id="same-m-capital" class="ga-mk-capital" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z"/></marker>
+			<marker id="same-m-symbol" class="ga-mk-symbol" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z"/></marker>
+			<marker id="same-m-known" class="ga-mk-known" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z"/></marker>
+		</defs>
+		<text class="ga-heading" x="280" y="78">GENDER</text>
+		<text class="ga-heading" x="1125" y="78">CAPITAL</text>
+		<text class="ga-heading" x="325" y="520">SYMBOL</text>
+		<text class="ga-heading" x="1300" y="520">KNOWN-FOR</text>
+		<circle class="ga-dot grp-gender" cx="180" cy="170" r="10"/>
+		<text class="ga-label" x="180" y="204">girl</text>
+		<circle class="ga-dot grp-gender" cx="180" cy="300" r="10"/>
+		<text class="ga-label" x="180" y="334">sister</text>
+		<circle class="ga-dot grp-capital" cx="890" cy="200" r="10"/>
+		<text class="ga-label" x="890" y="234">France</text>
+		<circle class="ga-dot grp-capital" cx="890" cy="330" r="10"/>
+		<text class="ga-label" x="890" y="364">Italy</text>
+		<circle class="ga-dot grp-capital" cx="1210" cy="200" r="10"/>
+		<text class="ga-label" x="1210" y="234">Victoria</text>
+		<circle class="ga-dot grp-capital" cx="1210" cy="330" r="10"/>
+		<text class="ga-label" x="1210" y="364">New South Wales</text>
+		<circle class="ga-dot grp-symbol" cx="200" cy="560" r="10"/>
+		<text class="ga-label ga-off ga-end" x="174" y="529">copper</text>
+		<circle class="ga-dot grp-symbol" cx="450" cy="560" r="10"/>
+		<text class="ga-label ga-off ga-end" x="424" y="529">zinc</text>
+		<circle class="ga-dot grp-known" cx="1240" cy="560" r="10"/>
+		<text class="ga-label ga-off ga-start" x="1270" y="534">Japan</text>
+		<circle class="ga-dot grp-known" cx="1500" cy="560" r="10"/>
+		<text class="ga-label ga-off" x="1500" y="520">Australia</text>
+		<line class="ga-arrow grp-gender" x1="194" y1="170" x2="366" y2="170" marker-end="url(#same-m-gender)"/>
+		<circle class="ga-dot grp-gender" cx="380" cy="170" r="10"/>
+		<text class="ga-label" x="380" y="204">boy</text>
+		<line class="ga-arrow grp-gender" x1="194" y1="300" x2="366" y2="300" marker-end="url(#same-m-gender)"/>
+		<circle class="ga-dot grp-gender" cx="380" cy="300" r="10"/>
+		<text class="ga-label" x="380" y="334">brother</text>
+		<line class="ga-arrow grp-capital" x1="902" y1="192.8" x2="1028" y2="117.2" marker-end="url(#same-m-capital)"/>
+		<circle class="ga-dot grp-capital" cx="1040" cy="110" r="10"/>
+		<text class="ga-label ga-off ga-start" x="1074" y="89">Paris</text>
+		<line class="ga-arrow grp-capital" x1="902" y1="322.8" x2="1028" y2="247.2" marker-end="url(#same-m-capital)"/>
+		<circle class="ga-dot grp-capital" cx="1040" cy="240" r="10"/>
+		<text class="ga-label ga-off ga-start" x="1074" y="219">Rome</text>
+		<line class="ga-arrow grp-capital" x1="1222" y1="192.8" x2="1348" y2="117.2" marker-end="url(#same-m-capital)"/>
+		<circle class="ga-dot grp-capital" cx="1360" cy="110" r="10"/>
+		<text class="ga-label ga-off ga-start" x="1394" y="89">Melbourne</text>
+		<line class="ga-arrow grp-capital" x1="1222" y1="322.8" x2="1348" y2="247.2" marker-end="url(#same-m-capital)"/>
+		<circle class="ga-dot grp-capital" cx="1360" cy="240" r="10"/>
+		<text class="ga-label ga-off ga-start" x="1394" y="219">Sydney</text>
+		<line class="ga-arrow grp-symbol" x1="209" y1="570.7" x2="301" y2="679.3" marker-end="url(#same-m-symbol)"/>
+		<circle class="ga-dot grp-symbol" cx="310" cy="690" r="10"/>
+		<text class="ga-label" x="310" y="724">Cu</text>
+		<line class="ga-arrow grp-symbol" x1="459" y1="570.7" x2="551" y2="679.3" marker-end="url(#same-m-symbol)"/>
+		<circle class="ga-dot grp-symbol" cx="560" cy="690" r="10"/>
+		<text class="ga-label" x="560" y="724">Zn</text>
+		<line class="ga-arrow grp-known" x1="1229.4" y1="569.1" x2="1110.6" y2="670.9" marker-end="url(#same-m-known)"/>
+		<circle class="ga-dot grp-known" cx="1100" cy="680" r="10"/>
+		<text class="ga-label" x="1100" y="714">sushi</text>
+		<line class="ga-arrow grp-known" x1="1489.4" y1="569.1" x2="1370.6" y2="670.9" marker-end="url(#same-m-known)"/>
+		<circle class="ga-dot grp-known" cx="1360" cy="680" r="10"/>
+		<text class="ga-label" x="1360" y="714">Bunnings sausage</text>
+		<g class="fragment frag-ghost" data-fragment-index="0">
+			<g class="ga-ghost"><line class="ga-arrow grp-capital ga-ghostline" x1="902" y1="192.8" x2="1028" y2="117.2" marker-end="url(#same-m-capital)"/></g>
+		</g>
+		<g class="fragment" data-fragment-index="1">
+			<text class="ga-cap" x="800" y="850">Same direction. Same distance. Every time.</text>
+		</g>
+	</svg>
+	<aside class="notes">
+		The finished board is up — every pair drawn. Press once: the France → Paris
+		arrow lifts (translucent, thicker) and slides onto Italy → Rome, then up onto
+		Victoria → Melbourne, then onto New South Wales → Sydney. It lands EXACTLY on
+		each drawn arrow, because every capital pair is the same vector: source + V.
+
+		Say it as it lands: "watch it fit. And again. And again." The point is that
+		it isn't close — it coincides. Each group's arrows are the same direction
+		and the same length; only the starting point changes.
+
+		Second press lands the caption. Underline both halves: direction AND
+		distance. If you want to prove it aloud: pick any two arrows in a group and
+		measure — same slope, same length.
+	</aside>
+</section>
