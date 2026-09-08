@@ -168,7 +168,10 @@
 	}
 	.reveal :is(.deck-logo, .deck-footer)[data-pos$="center"] {
 		left: 50%;
-		transform: translateX(-50%);
+		right: 0;
+		width: fit-content;
+		margin-left: auto;
+		margin-right: auto;
 	}
 
 	/* src/main.js adds .deck-chrome-hidden to .reveal on the title slide
