@@ -1,21 +1,264 @@
 <section id="prompt-knows-nothing" data-slug="prompt-knows-nothing">
+	<style>
+		#prompt-knows-nothing .pk-wrap {
+			display: grid;
+			grid-template-columns: 0.92fr 1fr;
+			gap: 44px;
+			align-items: center;
+			margin-top: 24px;
+		}
+		#prompt-knows-nothing .pk-stage {
+			position: relative;
+			min-height: 540px;
+			border: 2px solid var(--line);
+			border-radius: var(--radius-card);
+			background: color-mix(in srgb, var(--muted) 7%, transparent);
+			overflow: hidden;
+		}
+		#prompt-knows-nothing .pk-stage::before {
+			content: "";
+			position: absolute;
+			inset: -110px -70px auto auto;
+			width: 330px;
+			height: 330px;
+			border-radius: var(--radius-round);
+			background: color-mix(in srgb, var(--primary) 14%, transparent);
+		}
+		#prompt-knows-nothing .pk-card {
+			position: absolute;
+			border-radius: var(--radius-card);
+			border: 2px solid var(--line);
+			background: var(--bg);
+			box-shadow: 0 14px 34px color-mix(in srgb, var(--fg) 10%, transparent);
+		}
+		#prompt-knows-nothing .pk-model {
+			left: 44px;
+			top: 48px;
+			width: 270px;
+			padding: 18px;
+		}
+		#prompt-knows-nothing .pk-brain {
+			width: 86px;
+			height: 86px;
+			margin: 0 auto 12px;
+			border-radius: 34% 66% 45% 55% / 48% 45% 55% 52%;
+			background: color-mix(in srgb, var(--primary) 22%, var(--bg));
+			border: 4px solid var(--primary);
+			position: relative;
+		}
+		#prompt-knows-nothing .pk-brain::before,
+		#prompt-knows-nothing .pk-brain::after {
+			content: "";
+			position: absolute;
+			inset: 20px 14px auto;
+			height: 15px;
+			border-top: 4px solid var(--primary);
+			border-radius: var(--radius-round);
+		}
+		#prompt-knows-nothing .pk-brain::after { top: 45px; width: 42px; left: 24px; }
+		#prompt-knows-nothing .pk-model h3,
+		#prompt-knows-nothing .pk-prompt h3,
+		#prompt-knows-nothing .pk-context h3 { margin: 0 0 8px; font-size: 1.05em; }
+		#prompt-knows-nothing .pk-model p,
+		#prompt-knows-nothing .pk-prompt p,
+		#prompt-knows-nothing .pk-context p { margin: 0; color: var(--muted); font-size: 0.72em; line-height: 1.25; }
+		#prompt-knows-nothing .pk-shelves {
+			display: grid;
+			grid-template-columns: repeat(5, 1fr);
+			gap: 5px;
+			margin-top: 18px;
+		}
+		#prompt-knows-nothing .pk-book {
+			height: 28px;
+			border-radius: var(--radius-control);
+			background: var(--primary);
+			opacity: 0.82;
+		}
+		#prompt-knows-nothing .pk-prompt {
+			right: 34px;
+			top: 82px;
+			width: 285px;
+			padding: 18px;
+			border-color: var(--danger);
+		}
+		#prompt-knows-nothing .pk-prompt h3 { color: var(--danger); }
+		#prompt-knows-nothing .pk-bubble {
+			margin-top: 14px;
+			padding: 14px 16px;
+			border-radius: var(--radius-card);
+			background: color-mix(in srgb, var(--danger) 12%, var(--bg));
+			border: 2px solid color-mix(in srgb, var(--danger) 42%, var(--line));
+			font-family: var(--font-heading);
+			font-size: 1.15em;
+			font-weight: 700;
+			text-align: center;
+		}
+		#prompt-knows-nothing .pk-arrow {
+			position: absolute;
+			left: 318px;
+			top: 190px;
+			width: 190px;
+			height: 4px;
+			background: var(--danger);
+			transform-origin: left center;
+		}
+		#prompt-knows-nothing .pk-arrow::after {
+			content: "";
+			position: absolute;
+			right: -2px;
+			top: -10px;
+			border-left: 24px solid var(--danger);
+			border-top: 12px solid transparent;
+			border-bottom: 12px solid transparent;
+		}
+		#prompt-knows-nothing .pk-question {
+			position: absolute;
+			left: 352px;
+			top: 212px;
+			width: 120px;
+			text-align: center;
+			font-family: var(--font-heading);
+			font-size: 4.2em;
+			font-weight: 800;
+			color: var(--danger);
+		}
+		#prompt-knows-nothing .pk-context {
+			left: 44px;
+			bottom: 34px;
+			width: 610px;
+			padding: 16px 18px;
+			border-color: var(--success);
+		}
+		#prompt-knows-nothing .pk-context h3 { color: var(--success); }
+		#prompt-knows-nothing .pk-chips {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 9px;
+			margin-top: 12px;
+		}
+		#prompt-knows-nothing .pk-chip {
+			padding: 8px 10px;
+			border-radius: var(--radius-round);
+			background: color-mix(in srgb, var(--success) 16%, var(--bg));
+			border: 2px solid color-mix(in srgb, var(--success) 50%, var(--line));
+			font-size: 0.58em;
+			font-weight: 700;
+			text-align: center;
+			color: var(--fg);
+		}
+		#prompt-knows-nothing .pk-side {
+			display: grid;
+			gap: 16px;
+		}
+		#prompt-knows-nothing .pk-line {
+			padding: 16px 20px;
+			border-radius: var(--radius-card);
+			border-left: 10px solid var(--c, var(--primary));
+			background: color-mix(in srgb, var(--c, var(--primary)) 10%, var(--bg));
+			font-size: 0.78em;
+			line-height: 1.2;
+		}
+		#prompt-knows-nothing .pk-line strong { color: var(--c, var(--primary)); }
+		#prompt-knows-nothing .pk-danger { --c: var(--danger); }
+		#prompt-knows-nothing .pk-primary { --c: var(--primary); }
+		#prompt-knows-nothing .pk-success { --c: var(--success); }
+		#prompt-knows-nothing .pk-payoff {
+			margin-top: 10px;
+			padding: 18px 22px;
+			border-radius: var(--radius-card);
+			background: var(--fg);
+			color: var(--bg);
+			font-family: var(--font-heading);
+			font-size: 0.9em;
+			font-weight: 700;
+			line-height: 1.15;
+		}
+		#prompt-knows-nothing .fragment.pk-float.visible { animation: pk-float 900ms var(--motion-hero-ease) both; }
+		#prompt-knows-nothing .fragment.pk-pop.visible { animation: pk-pop 650ms var(--motion-hero-ease) both; }
+		#prompt-knows-nothing .fragment.pk-pulse.visible { animation: pk-pulse 1300ms var(--motion-hero-ease) both; }
+		@keyframes pk-float {
+			from { transform: translateY(26px); opacity: 0; }
+			to { transform: translateY(0); opacity: 1; }
+		}
+		@keyframes pk-pop {
+			0% { transform: scale(0.82); opacity: 0; }
+			70% { transform: scale(1.04); opacity: 1; }
+			100% { transform: scale(1); opacity: 1; }
+		}
+		@keyframes pk-pulse {
+			0%, 100% { filter: drop-shadow(0 0 0 color-mix(in srgb, var(--success) 0%, transparent)); }
+			45% { filter: drop-shadow(0 0 18px color-mix(in srgb, var(--success) 52%, transparent)); }
+		}
+		@media (prefers-reduced-motion: reduce) {
+			#prompt-knows-nothing .fragment.pk-float.visible,
+			#prompt-knows-nothing .fragment.pk-pop.visible,
+			#prompt-knows-nothing .fragment.pk-pulse.visible { animation: none; }
+		}
+	</style>
+
 	<h2>The Prompt Knows Nothing</h2>
-	<p class="fragment">The prompt knows nothing if it has no context.</p>
-	<p class="fragment">So when you type a question into an AI — "Write me an email" — it has no idea:</p>
-	<ul>
-		<li class="fragment">Who you are</li>
-		<li class="fragment">Who the email is for</li>
-		<li class="fragment">What tone you want</li>
-		<li class="fragment">What you've already said to that person</li>
-		<li class="fragment">What your relationship is</li>
-		<li class="fragment">What you're actually trying to achieve</li>
-	</ul>
-	<p class="fragment">It's like walking up to a stranger who has read every book in the library and saying:</p>
-	<p class="fragment"><strong>"Help me."</strong></p>
-	<p class="fragment">And expecting them to know what you need.</p>
-	<div class="box bar danger fragment">
-		<h3>They can't. Not because they're dumb. Because they don't know you.</h3>
+	<div class="pk-wrap">
+		<div class="pk-stage">
+			<div class="pk-card pk-model">
+				<div class="pk-brain" aria-hidden="true"></div>
+				<h3>The model</h3>
+				<p>Has patterns from a giant library.</p>
+				<div class="pk-shelves" aria-hidden="true">
+					<span class="pk-book"></span><span class="pk-book"></span><span class="pk-book"></span><span class="pk-book"></span><span class="pk-book"></span>
+					<span class="pk-book"></span><span class="pk-book"></span><span class="pk-book"></span><span class="pk-book"></span><span class="pk-book"></span>
+				</div>
+			</div>
+
+			<div class="pk-card pk-prompt fragment pk-pop" data-fragment-index="0">
+				<h3>Your prompt</h3>
+				<p>What you typed.</p>
+				<div class="pk-bubble">“Write me an email.”</div>
+			</div>
+			<div class="pk-arrow fragment pk-float" data-fragment-index="1"></div>
+			<div class="pk-question fragment pk-pop" data-fragment-index="1">?</div>
+
+			<div class="pk-card pk-context fragment pk-pulse" data-fragment-index="4">
+				<h3>Context you haven’t given it yet</h3>
+				<p>The useful stuff lives with you, not in the prompt.</p>
+				<div class="pk-chips">
+					<span class="pk-chip">who I am</span>
+					<span class="pk-chip">who it’s for</span>
+					<span class="pk-chip">tone</span>
+					<span class="pk-chip">history</span>
+					<span class="pk-chip">relationship</span>
+					<span class="pk-chip">goal</span>
+				</div>
+			</div>
+		</div>
+
+		<div class="pk-side">
+			<div class="pk-line pk-danger fragment pk-float" data-fragment-index="2">
+				<strong>The prompt is tiny.</strong><br>
+				It does not contain your situation, your intent, or your constraints.
+			</div>
+			<div class="pk-line pk-primary fragment pk-float" data-fragment-index="3">
+				<strong>The model is not a mind reader.</strong><br>
+				It can predict language, but it cannot know what you meant to include.
+			</div>
+			<div class="pk-line pk-success fragment pk-float" data-fragment-index="4">
+				<strong>Context is the missing input.</strong><br>
+				Better answers come from giving the model more of the world around the question.
+			</div>
+			<div class="pk-payoff fragment pk-pop" data-fragment-index="5">
+				Prompting is not asking magic words.<br>
+				It is bringing the right context into the conversation.
+			</div>
+		</div>
 	</div>
-	<p class="fragment">So here's the question: if the model has knowledge but no context of who you are — and you bring context to everything you do — then how do we get our context into the conversation?</p>
-	<p class="fragment text-muted">Because that's the whole game now. It's not about asking better questions. It's about bringing more of yourself to the question.</p>
+	<aside class="notes">
+		This slide should feel like the vector slides: coloured objects, staged reveals,
+		and a visual mechanism. The model has broad patterns, but the tiny prompt only
+		sends “Write me an email.” The big red question mark is the point: the model has
+		no idea which version of the task you mean.
+
+		Then reveal the missing context cards. Who am I? Who is it for? What tone? What
+		history? What relationship? What am I trying to achieve? The shift is: prompt
+		engineering is less about magic phrasing and more about supplying the context
+		that was invisible.
+	</aside>
 </section>

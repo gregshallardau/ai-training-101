@@ -1,10 +1,48 @@
 <section id="context-layers" data-slug="context-layers">
-	<p class="text-muted"><small>PUT IT INTO PRACTICE.</small></p>
-	<h2 class="text-primary">So what does all this have to do with me?</h2>
-	<p>The Context Layers - Each layer you add changes the output — more layers, better results.</p>
+	<style>
+		#context-layers .layers {
+			display: grid;
+			gap: 0.45em;
+			margin-top: 0.8em;
+		}
 
-	<p class="fragment"><span class="chip success">Who are you?</span> — small business owner · university student · teacher of Year 5 kids</p>
-	<p class="fragment"><span class="chip warning">Who is this for?</span> — my team · my client · my teenager</p>
-	<p class="fragment"><span class="chip primary">What's the situation?</span> — behind on a project · explaining something simple · celebrating a win</p>
-	<p class="fragment"><span class="chip danger">What do you want?</span> — under 5 sentences · three options · bottom line first</p>
+		#context-layers .layer {
+			display: grid;
+			grid-template-columns: max-content 1fr;
+			gap: 0.6em;
+			align-items: center;
+			padding: 0.45em 0.6em;
+			border: 1px solid var(--line);
+			border-radius: var(--radius-card);
+			background: color-mix(in srgb, var(--bg) 88%, var(--primary) 12%);
+		}
+
+		#context-layers .layer p {
+			margin: 0;
+			font-size: 0.78em;
+		}
+	</style>
+
+	<p class="text-muted"><small>PUT IT INTO PRACTICE</small></p>
+	<h2 class="text-primary">Context layers</h2>
+	<p>Every layer you add changes the answer. More useful context means better results.</p>
+
+	<div class="layers">
+		<div class="fragment layer">
+			<span class="chip success">Who are you?</span>
+			<p>Small business owner · university student · Year 5 teacher</p>
+		</div>
+		<div class="fragment layer">
+			<span class="chip warning">Who is this for?</span>
+			<p>My team · my client · my teenager</p>
+		</div>
+		<div class="fragment layer">
+			<span class="chip primary">What's the situation?</span>
+			<p>Behind on a project · explaining something simple · celebrating a win</p>
+		</div>
+		<div class="fragment layer">
+			<span class="chip danger">What do you want?</span>
+			<p>Under 5 sentences · three options · bottom line first</p>
+		</div>
+	</div>
 </section>
