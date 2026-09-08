@@ -92,7 +92,7 @@
 		   If it's a webfont, <link> or @import it in index.html <head> first.
 		   Framework default: the system UI sans stack.
 		*/
-		/* --font-heading: "Your Font", ui-sans-serif, system-ui, sans-serif; */
+		--font-heading: "Helvetica Now Text", ui-sans-serif, system-ui, sans-serif;
 
 		/* --font-body  ───────────────────────────────────────────────────
 		   Font stack for everything that isn't a heading or a code span.
