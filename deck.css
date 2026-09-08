@@ -40,23 +40,23 @@
 		   outline, the ::selection highlight, `.text-primary`, a `primary`
 		   chip / box, the first series in a <deck-chart>.
 		   Framework default: #2563eb (a mid blue). */
-		/* --primary: #2563eb; */
-		/* --primary-strong: #1d4ed8; */   /* hover / pressed partner */
-		/* --primary-fg: #ffffff; */       /* text on a solid --primary fill */
+		--primary: #2563eb;
+		--primary-strong: #1d4ed8;   /* hover / pressed partner */
+		--primary-fg: #ffffff;       /* text on a solid --primary fill */
 
 		/* --secondary  ───────────────────────────────────────────────────────
 		   A quieter second colour - `.text` nothing, but a `secondary` chip /
 		   box, a second chart series. Default: a dark slate. */
-		/* --secondary: #3a3f4a; */
-		/* --secondary-strong: #24272e; */
-		/* --secondary-fg: #ffffff; */
+		--secondary: #3a3f4a;
+		--secondary-strong: #24272e;
+		--secondary-fg: #ffffff;
 
 		/* --success / --danger / --warning  ──────────────────────────────────
 		   Status colours for a `success` / `danger` / `warning` chip or box.
 		   Defaults: green #15803d, red #b91c1c, amber #d97706. */
-		/* --success: #15803d;  --success-fg: #ffffff; */
-		/* --danger:  #b91c1c;  --danger-fg:  #ffffff; */
-		/* --warning: #d97706;  --warning-fg: #0b0c0e; */
+		--success: #15803d;  --success-fg: #ffffff;
+		--danger:  #b91c1c;  --danger-fg:  #ffffff;
+		--warning: #d97706;  --warning-fg: #0b0c0e;
 
 		/* --bg  ─────  slide background / PDF page colour. Default #ffffff. */
 		/* --bg: #ffffff; */
@@ -402,6 +402,61 @@
 		color: var(--muted);
 	}
 	/* SHARED-VOCAB:end */
+
+	/* ─── .timeline ────────────────────────────────────────────────────
+	   A "how X evolved / where we are" line for a timeline or process
+	   stepper: a track with a fill to the current stop, and dots + labels
+	   under it. The slide hard-codes the state per slide - mark each dot
+	   .done / .active and set the fill's width inline (style="width: 40%").
+	     <div class="timeline" aria-hidden="true">
+	       <div class="timeline-track"><div class="timeline-fill" style="width: 40%"></div></div>
+	       <div class="timeline-dots"><span class="timeline-dot done"></span>…<span class="timeline-dot active"></span>…</div>
+	       <div class="timeline-labels"><span>1950s</span>…<span class="active">2013</span>…</div>
+	     </div> */
+	.reveal .slides section .timeline-track {
+		position: relative;
+		height: 4px;
+		background: var(--line);
+		border-radius: var(--radius-round);
+		margin-block: var(--space-block);
+	}
+	.reveal .slides section .timeline-fill {
+		position: absolute; top: 0; bottom: 0; left: 0;
+		width: 0;
+		background: var(--primary);
+		border-radius: var(--radius-round);
+	}
+	.reveal .slides section .timeline-dots {
+		display: flex; justify-content: space-between;
+		margin-top: calc(-1 * var(--space-block) - 6px);
+	}
+	.reveal .slides section .timeline-dot {
+		width: 12px; height: 12px; border-radius: 50%;
+		background: var(--line);
+	}
+	.reveal .slides section .timeline-dot.done,
+	.reveal .slides section .timeline-dot.active {
+		background: var(--primary);
+	}
+	.reveal .slides section .timeline-dot.active {
+		box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 30%, transparent);
+	}
+	.reveal .slides section .timeline-labels {
+		display: flex; justify-content: space-between;
+		margin-top: var(--space-gap);
+	}
+	.reveal .slides section .timeline-labels span {
+		flex: 1 1 0;
+		text-align: center;
+		color: var(--muted);
+		font-size: 0.85em;
+	}
+	.reveal .slides section .timeline-labels span:first-child { text-align: left; }
+	.reveal .slides section .timeline-labels span:last-child { text-align: right; }
+	.reveal .slides section .timeline-labels span.active {
+		color: var(--fg);
+		font-weight: 600;
+	}
 
 	/* ══════════════════════════════════════════════════════════════════════
 	   MOLECULES  (active)
