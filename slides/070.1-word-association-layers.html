@@ -1,0 +1,95 @@
+<section id="word-association-layers" data-slug="word-association-layers">
+	<style>
+		#word-association-layers svg { display: block; width: 100%; height: auto; }
+		#word-association-layers .grp-family { --ga: var(--success); }
+		#word-association-layers .ga-dot { fill: var(--ga, var(--muted)); }
+		#word-association-layers .ga-arrow { stroke: var(--ga, var(--muted)); stroke-width: 4; }
+		#word-association-layers .ga-arrow-soft { opacity: 0.28; }
+		#word-association-layers .ga-arrow-long { stroke-width: 7; }
+		#word-association-layers .ga-socket { fill: none; stroke: var(--ga, var(--muted)); stroke-width: 4; stroke-dasharray: 7 7; }
+		#word-association-layers .ga-label { fill: var(--fg); font-family: var(--font-body); font-size: 34px; font-weight: 600; text-anchor: middle; }
+		#word-association-layers .ga-start { text-anchor: start; dominant-baseline: middle; }
+		#word-association-layers .ga-end { text-anchor: end; dominant-baseline: middle; }
+		#word-association-layers .ga-qmark { fill: var(--muted); font-family: var(--font-heading); font-size: 36px; font-weight: 700; text-anchor: middle; }
+		#word-association-layers .ga-heading { fill: var(--fg); font-family: var(--font-heading); font-size: 54px; font-weight: 700; text-anchor: middle; }
+		#word-association-layers .ga-caption { fill: var(--muted); font-family: var(--font-body); font-size: 30px; font-weight: 500; text-anchor: middle; }
+		#word-association-layers .ga-mk-family { fill: var(--success); }
+	</style>
+	<h2>The Meaning of Words - Word Association</h2>
+	<svg viewBox="0 0 1600 900" role="img" aria-label="Family word vectors can be layered, making a longer daughter to grandmother vector">
+		<defs>
+			<marker id="layers-m-family" class="ga-mk-family" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 Z"/></marker>
+		</defs>
+
+		<text class="ga-heading" x="800" y="90">The arrows can stack</text>
+
+		<!-- Start with just one branch of the family tree. Step 1 asks first, then reveals. -->
+		<g class="grp-family">
+			<circle class="ga-dot" cx="760" cy="690" r="13"/>
+			<text class="ga-label" x="760" y="742">daughter</text>
+		</g>
+
+		<g class="grp-family fragment" data-fragment-index="0">
+			<line class="ga-arrow" x1="760" y1="672" x2="760" y2="478" marker-end="url(#layers-m-family)"/>
+		</g>
+		<g class="grp-family fragment fade-in-then-out" data-fragment-index="0">
+			<circle class="ga-socket" cx="760" cy="460" r="13"/>
+			<text class="ga-qmark" x="760" y="448">?</text>
+			<text class="ga-caption" x="1000" y="585">one step up</text>
+		</g>
+		<g class="grp-family fragment" data-fragment-index="1">
+			<circle class="ga-dot" cx="760" cy="460" r="13"/>
+			<text class="ga-label ga-end" x="725" y="460">mother</text>
+		</g>
+
+		<!-- Step 2 asks, then reveals grandmother. -->
+		<g class="grp-family fragment" data-fragment-index="2">
+			<line class="ga-arrow" x1="760" y1="442" x2="760" y2="248" marker-end="url(#layers-m-family)"/>
+		</g>
+		<g class="grp-family fragment fade-in-then-out" data-fragment-index="2">
+			<circle class="ga-socket" cx="760" cy="230" r="13"/>
+			<text class="ga-qmark" x="760" y="218">?</text>
+			<text class="ga-caption" x="1015" y="355">another step up</text>
+		</g>
+		<g class="grp-family fragment" data-fragment-index="3">
+			<circle class="ga-dot" cx="760" cy="230" r="13"/>
+			<text class="ga-label ga-end" x="725" y="230">grandmother</text>
+		</g>
+
+		<!-- The longer composed vector: now clearly on the left of the tree. -->
+		<g class="grp-family fragment" data-fragment-index="4">
+			<line class="ga-arrow ga-arrow-soft" x1="830" y1="672" x2="830" y2="478" marker-end="url(#layers-m-family)"/>
+			<line class="ga-arrow ga-arrow-soft" x1="830" y1="442" x2="830" y2="248" marker-end="url(#layers-m-family)"/>
+			<line class="ga-arrow ga-arrow-long" x1="520" y1="672" x2="520" y2="248" marker-end="url(#layers-m-family)"/>
+			<text class="ga-caption" x="520" y="720">daughter → grandmother</text>
+		</g>
+
+		<!-- Then fill out the matching green family tree. -->
+		<g class="grp-family fragment" data-fragment-index="5">
+			<circle class="ga-dot" cx="1150" cy="690" r="13"/>
+			<text class="ga-label" x="1150" y="742">son</text>
+			<circle class="ga-dot" cx="1150" cy="460" r="13"/>
+			<text class="ga-label ga-start" x="1185" y="460">father</text>
+			<circle class="ga-dot" cx="1150" cy="230" r="13"/>
+			<text class="ga-label ga-start" x="1185" y="230">grandfather</text>
+
+			<line class="ga-arrow" x1="1150" y1="672" x2="1150" y2="478" marker-end="url(#layers-m-family)"/>
+			<line class="ga-arrow" x1="1150" y1="442" x2="1150" y2="248" marker-end="url(#layers-m-family)"/>
+			<line class="ga-arrow" x1="778" y1="690" x2="1132" y2="690" marker-end="url(#layers-m-family)"/>
+			<line class="ga-arrow" x1="778" y1="460" x2="1132" y2="460" marker-end="url(#layers-m-family)"/>
+			<line class="ga-arrow" x1="778" y1="230" x2="1132" y2="230" marker-end="url(#layers-m-family)"/>
+
+			<text class="ga-heading" x="800" y="825">Two steps. Same direction. Longer vector.</text>
+		</g>
+	</svg>
+	<aside class="notes">
+		Keep everything green: this is still the family-word relationship from the game.
+		Do not jump straight to grandmother. First press asks daughter → ?. Let the room
+		say mother, then reveal it. Then ask mother → ?. Let them say grandmother, then
+		reveal it.
+
+		Only after those two beats, show the long daughter→grandmother arrow. The point:
+		we stacked the same kind of relationship twice, so the vector got longer. Then
+		fill out the matching green family tree on the male side as the same structure.
+	</aside>
+</section>

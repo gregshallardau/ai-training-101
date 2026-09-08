@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">
+	<rect x="0" y="0" width="1600" height="900" rx="24" fill="#eef1f6"/>
+	<text x="800" y="380" text-anchor="middle" font-size="48" fill="#5b616e">ANSWER · PHOTO PLACEHOLDER</text>
+	<text x="800" y="490" text-anchor="middle" font-size="72" font-weight="700" fill="#24272e">A dog</text>
+	<text x="800" y="580" text-anchor="middle" font-size="38" fill="#5b616e">replace with the real photo</text>
+</svg>

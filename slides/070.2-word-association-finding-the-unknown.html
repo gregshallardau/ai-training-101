@@ -1,0 +1,97 @@
+<section id="word-association-finding-the-unknown" data-slug="word-association-finding-the-unknown">
+	<style>
+		#word-association-finding-the-unknown svg { display: block; width: 100%; height: auto; }
+		#word-association-finding-the-unknown .grp-family { --ga: var(--success); }
+		#word-association-finding-the-unknown .ga-dot { fill: var(--ga, var(--muted)); }
+		#word-association-finding-the-unknown .ga-dot-unknown { fill: var(--bg); stroke: var(--ga, var(--success)); stroke-width: 5; }
+		#word-association-finding-the-unknown .ga-cloud { fill: var(--muted); opacity: 0.38; }
+		#word-association-finding-the-unknown .ga-arrow { stroke: var(--ga, var(--muted)); stroke-width: 4; }
+		#word-association-finding-the-unknown .ga-arrow-soft { opacity: 0.28; }
+		#word-association-finding-the-unknown .ga-label { fill: var(--fg); font-family: var(--font-body); font-size: 34px; font-weight: 600; text-anchor: middle; }
+		#word-association-finding-the-unknown .ga-small { fill: var(--muted); font-family: var(--font-body); font-size: 25px; font-weight: 500; text-anchor: middle; }
+		#word-association-finding-the-unknown .ga-heading { fill: var(--fg); font-family: var(--font-heading); font-size: 54px; font-weight: 700; text-anchor: middle; }
+		#word-association-finding-the-unknown .ga-question { fill: var(--fg); font-family: var(--font-heading); font-size: 46px; font-weight: 700; text-anchor: middle; }
+		#word-association-finding-the-unknown .ga-qmark { fill: var(--muted); font-family: var(--font-heading); font-size: 42px; font-weight: 700; text-anchor: middle; }
+		#word-association-finding-the-unknown .ga-mk-family { fill: var(--success); }
+	</style>
+	<h2>The Meaning of Words - Word Association</h2>
+	<svg viewBox="0 0 1600 900" role="img" aria-label="Use a known girl to boy vector to find the unknown female horse word">
+		<defs>
+			<marker id="unknown-m-family" class="ga-mk-family" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 Z"/></marker>
+		</defs>
+
+		<text class="ga-heading" x="800" y="90">Finding the unknown</text>
+
+		<!-- First establish the useful arrow. -->
+		<g class="grp-family">
+			<circle class="ga-dot" cx="360" cy="230" r="12"/>
+			<text class="ga-label" x="360" y="280">girl</text>
+			<line class="ga-arrow" x1="378" y1="230" x2="582" y2="230" marker-end="url(#unknown-m-family)"/>
+			<circle class="ga-dot" cx="600" cy="230" r="12"/>
+			<text class="ga-label" x="600" y="280">boy</text>
+			<text class="ga-small" x="480" y="340">this arrow means “female → male”</text>
+		</g>
+
+		<!-- An unlabeled map of nearby animal words. -->
+		<g class="grp-family">
+			<circle class="ga-cloud" cx="890" cy="210" r="8"/>
+			<circle class="ga-cloud" cx="1045" cy="245" r="8"/>
+			<circle class="ga-cloud" cx="1220" cy="210" r="8"/>
+			<circle class="ga-cloud" cx="840" cy="390" r="8"/>
+			<circle class="ga-cloud" cx="1110" cy="405" r="8"/>
+			<circle class="ga-cloud" cx="1300" cy="360" r="8"/>
+			<circle class="ga-cloud" cx="920" cy="610" r="8"/>
+			<circle class="ga-cloud" cx="1170" cy="630" r="8"/>
+		</g>
+
+		<g class="fragment fade-in-then-out" data-fragment-index="0">
+			<text class="ga-question" x="800" y="520">What’s a female horse called?</text>
+		</g>
+
+		<!-- Give one known point: stallion. The matching female point is one arrow back. -->
+		<g class="grp-family fragment" data-fragment-index="1">
+			<circle class="ga-dot" cx="1110" cy="430" r="13"/>
+			<text class="ga-label" x="1110" y="480">stallion</text>
+			<text class="ga-small" x="1110" y="535">known point</text>
+		</g>
+		<g class="grp-family fragment" data-fragment-index="2">
+			<line class="ga-arrow ga-arrow-soft" x1="378" y1="230" x2="582" y2="230" marker-end="url(#unknown-m-family)"/>
+			<line class="ga-arrow" x1="1092" y1="430" x2="908" y2="430" marker-end="url(#unknown-m-family)"/>
+			<circle class="ga-dot-unknown" cx="890" cy="430" r="15"/>
+			<text class="ga-qmark" x="890" y="485">?</text>
+			<text class="ga-small" x="1000" y="365">use the same arrow backwards</text>
+		</g>
+		<g class="grp-family fragment" data-fragment-index="3">
+			<circle class="ga-dot" cx="890" cy="430" r="13"/>
+			<text class="ga-label" x="890" y="480">mare</text>
+		</g>
+
+		<!-- The local neighbourhood becomes readable after the solve. -->
+		<g class="grp-family fragment" data-fragment-index="4">
+			<circle class="ga-dot" cx="890" cy="610" r="11"/>
+			<text class="ga-label" x="890" y="660">filly</text>
+			<circle class="ga-dot" cx="1110" cy="610" r="11"/>
+			<text class="ga-label" x="1110" y="660">colt</text>
+			<line class="ga-arrow" x1="906" y1="610" x2="1094" y2="610" marker-end="url(#unknown-m-family)"/>
+
+			<circle class="ga-dot" cx="1300" cy="430" r="11"/>
+			<text class="ga-label" x="1300" y="480">horse</text>
+			<circle class="ga-dot" cx="1040" cy="225" r="11"/>
+			<text class="ga-label" x="1040" y="275">foal</text>
+
+			<text class="ga-heading" x="800" y="820">The answer is where the arrow lands.</text>
+		</g>
+	</svg>
+	<aside class="notes">
+		This is not about memorising every label. Start with a page of nearby dots and
+		one known relationship: girl to boy gives the female-to-male direction.
+
+		Ask: what is a female horse called? Reveal stallion as the known male point.
+		Then use the same arrow backwards from stallion. The unknown dot is where the
+		answer should be. Let them say mare before revealing the label.
+
+		The last press makes the neighbourhood readable: mare/stallion, filly/colt,
+		foal, horse. The point is that meaning is geometry: if you know the direction,
+		you can search the space for the missing word.
+	</aside>
+</section>
