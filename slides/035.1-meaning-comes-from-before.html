@@ -4,10 +4,11 @@
 		"tokens": ["The", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog"],
 		"stages": [
 			{ "arcs": [[1, 3]], "caption": "We know the fox is quick" },
-			{ "arcs": [[[2, 3]], "caption": "We know the fox is brown." },
-			{ "arcs": [[1, 3], [2, 3]], "caption": "We know the fox is quick and brown." },
+			{ "arcs": [[2, 3]], "caption": "We know the fox is brown." },
+			{ "arcs": [], "caption": "We know the fox is quick and brown." },
 			{ "arcs": [[7, 8]], "caption": "We know the dog is lazy." },
-			{ "arcs": [[3, 8]], "caption": "We know the fox is jumping over the dog." },
+			{ "arcs": [[5, 8]], "caption": "We know the fox is jumping over the dog." },
+			{ "arcs": [[4, 8]], "caption": "We know the fox is jumping over the dog." },
 			{ "arcs": [], "caption": "There&#39;s a lot happening in just one sentence." }
 		],
 		"introCaption": "The quick brown fox jumps over the lazy dog."
