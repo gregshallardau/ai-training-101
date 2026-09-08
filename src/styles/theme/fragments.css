@@ -17,6 +17,14 @@
  *    inline-block below.
  */
 @layer fx {
+	/* Remove hardware acceleration from fragments to fix Windows sub-pixel
+	   rendering blur. will-change: opacity triggers GPU acceleration which
+	   can cause fractional pixel positioning on Windows. */
+	.reveal .fragment:not(.custom) {
+		will-change: auto;
+		backface-visibility: auto;
+	}
+
 	.reveal .slides section .fragment.highlight-red.visible,
 	.reveal .slides section .fragment.highlight-current-red.current-fragment {
 		color: var(--danger);
